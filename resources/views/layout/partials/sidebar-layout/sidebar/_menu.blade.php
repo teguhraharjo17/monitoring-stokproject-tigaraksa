@@ -1,0 +1,119 @@
+<!--begin::sidebar menu-->
+<div class="app-sidebar-menu overflow-hidden flex-column-fluid">
+	<!--begin::Menu wrapper-->
+	<div id="kt_app_sidebar_menu_wrapper" class="app-sidebar-wrapper hover-scroll-overlay-y my-5" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_app_sidebar_logo, #kt_app_sidebar_footer" data-kt-scroll-wrappers="#kt_app_sidebar_menu" data-kt-scroll-offset="5px" data-kt-scroll-save-state="true">
+		<!--begin::Menu-->
+		<div class="menu menu-column menu-rounded menu-sub-indention px-3" id="#kt_app_sidebar_menu" data-kt-menu="true" data-kt-menu-expand="false">
+
+			<!-- Dashboard Section -->
+			<div class="menu-item pt-5">
+				<div class="menu-content">
+					<span class="menu-heading fw-bold text-uppercase fs-7">Dashboard</span>
+				</div>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link {{ request()->is('dashboard') ? 'active' : '' }}" href="{{ url('dashboard') }}">
+					<span class="menu-icon">{!! getIcon('element-11', 'fs-2') !!}</span>
+					<span class="menu-title">Dashboard</span>
+				</a>
+			</div>
+
+			@if(auth()->user()->role === 'Admin')
+				<!-- Master Menu Section -->
+				<div class="menu-item pt-5">
+					<div class="menu-content">
+						<span class="menu-heading fw-bold text-uppercase fs-7">Master Menu</span>
+					</div>
+				</div>
+
+				<div class="menu-item">
+					<a class="menu-link {{ request()->routeIs('master.user.*') ? 'active' : '' }}" href="{{ route('master.user.index') }}">
+						<span class="menu-icon">{!! getIcon('user', 'fs-2') !!}</span>
+						<span class="menu-title">Master User</span>
+					</a>
+				</div>
+
+				<div class="menu-item">
+					<a class="menu-link {{ request()->routeIs('master.item.*') ? 'active' : '' }}" href="{{ route('master.item.index') }}">
+						<span class="menu-icon">{!! getIcon('delivery-door', 'fs-2') !!}</span>
+						<span class="menu-title">Master Item</span>
+					</a>
+				</div>
+
+				<div class="menu-item">
+					<a class="menu-link {{ request()->routeIs('master.company.*') ? 'active' : '' }}" href="{{ route('master.company.index') }}">
+						<span class="menu-icon">{!! getIcon('abstract-33', 'fs-2') !!}</span>
+						<span class="menu-title">Master Company</span>
+					</a>
+				</div>
+			@endif
+
+			<!-- Data Stock Awal & PO Section -->
+			<div class="menu-item pt-5">
+				<div class="menu-content">
+					<span class="menu-heading fw-bold text-uppercase fs-7">Data Stock Awal & PO</span>
+				</div>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link {{ request()->routeIs('datastock.rekap.*') ? 'active' : '' }}" href="{{ route('datastock.rekap.index') }}">
+					<span class="menu-icon">{!! getIcon('notepad', 'fs-2') !!}</span>
+					<span class="menu-title">Rekap Data</span>
+				</a>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link {{ request()->routeIs('datastock.levelstock.*') ? 'active' : '' }}" href="{{ route('datastock.levelstock.index') }}">
+					<span class="menu-icon">{!! getIcon('questionnaire-tablet', 'fs-2') !!}</span>
+					<span class="menu-title">Level Stock MIP & FG</span>
+				</a>
+			</div>
+
+			<!-- Monitoring Stock Section -->
+			<div class="menu-item pt-5">
+				<div class="menu-content">
+					<span class="menu-heading fw-bold text-uppercase fs-7">Monitoring Stock</span>
+				</div>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link {{ request()->routeIs('monitoring.subassy.*') ? 'active' : '' }}" href="{{ route('monitoring.subassy.index') }}">
+					<span class="menu-icon">{!! getIcon('search-list', 'fs-2') !!}</span>
+					<span class="menu-title">Monitoring Sub Assy</span>
+				</a>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link {{ request()->routeIs('monitoring.mip.*') ? 'active' : '' }}" href="{{ route('monitoring.mip.index') }}">
+					<span class="menu-icon">{!! getIcon('search-list', 'fs-2') !!}</span>
+					<span class="menu-title">Monitoring MIP</span>
+				</a>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link {{ request()->routeIs('monitoring.finishgood.*') ? 'active' : '' }}" href="{{ route('monitoring.finishgood.index') }}">
+					<span class="menu-icon">{!! getIcon('search-list', 'fs-2') !!}</span>
+					<span class="menu-title">Monitoring Finish Good</span>
+				</a>
+			</div>
+
+			<!-- Report Menu Section -->
+			<div class="menu-item pt-5">
+				<div class="menu-content">
+					<span class="menu-heading fw-bold text-uppercase fs-7">Report Menu</span>
+				</div>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link" href="#">
+					<span class="menu-icon">{!! getIcon('scroll', 'fs-2') !!}</span>
+					<span class="menu-title">SPK Packing Member</span>
+				</a>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link" href="#">
+					<span class="menu-icon">{!! getIcon('book-square', 'fs-2') !!}</span>
+					<span class="menu-title">Report Proses Packing MIP</span>
+				</a>
+			</div>
+
+		</div>
+		<!--end::Menu-->
+	</div>
+	<!--end::Menu wrapper-->
+</div>
+<!--end::sidebar menu-->
