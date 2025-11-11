@@ -92,7 +92,7 @@ class MonitoringMIPController extends Controller
 
                 for ($i = 1; $i <= 31; $i++) {
                     $in = $inList[$i] ?? 0;
-                    $out = optional($details[$i])->out_qty ?? 0;
+                    $out = optional($details->get($i))->out_qty ?? 0;
 
                     $balance = $balance + $in - $out;
 

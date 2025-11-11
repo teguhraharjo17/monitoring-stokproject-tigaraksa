@@ -96,23 +96,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // MONITORING
     // ================================
     Route::prefix('monitoring')->name('monitoring.')->group(function () {
-
         Route::prefix('subassy')->name('subassy.')->group(function () {
             Route::get('/', [MonitoringSubAssyController::class, 'index'])->name('index');
-            Route::get('/data', [MonitoringSubAssyController::class, 'data'])->name('data');
+            Route::post('/data', [MonitoringSubAssyController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringSubAssyController::class, 'save'])->name('save');
         });
 
         Route::prefix('mip')->name('mip.')->group(function () {
             Route::get('/', [MonitoringMIPController::class, 'index'])->name('index');
-            Route::get('/data', [MonitoringMIPController::class, 'data'])->name('data');
-            Route::post('/data', [MonitoringMIPController::class, 'data']);
+            Route::post('/data', [MonitoringMIPController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringMIPController::class, 'save'])->name('save');
         });
 
         Route::prefix('finishgood')->name('finishgood.')->group(function () {
             Route::get('/', [MonitoringFinishGoodsController::class, 'index'])->name('index');
-            Route::get('/data', [MonitoringFinishGoodsController::class, 'data'])->name('data');
+            Route::post('/data', [MonitoringFinishGoodsController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringFinishGoodsController::class, 'save'])->name('save');
         });
     });

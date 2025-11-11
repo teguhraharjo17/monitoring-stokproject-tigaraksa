@@ -191,7 +191,9 @@
                 order: [[1, 'asc']],
                 ajax: {
                     url: '{{ route("monitoring.finishgood.data") }}',
-                    data: d => {
+                    type: 'POST',
+                    data: function (d) {
+                        d._token = '{{ csrf_token() }}';
                         d.bulan = bulan;
                         d.tahun = tahun;
                     }
