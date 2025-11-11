@@ -283,7 +283,9 @@
                     order: [[1, 'asc']],
                     ajax: {
                         url: '{{ route("monitoring.mip.data") }}',
+                        type: 'POST',
                         data: d => {
+                            d._token = '{{ csrf_token() }}';
                             d.bulan = bulan;
                             d.tahun = tahun;
                         }

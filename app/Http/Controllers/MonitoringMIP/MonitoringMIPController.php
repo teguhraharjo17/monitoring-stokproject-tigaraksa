@@ -10,6 +10,7 @@ use App\Models\RekapData;
 use App\Models\LevelStok;
 use App\Models\SubAssy;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
 
 class MonitoringMIPController extends Controller
 {
@@ -93,6 +94,8 @@ class MonitoringMIPController extends Controller
                 $row["total_in"] += $in;
                 $row["total_out"] += $out;
             }
+
+            Log::info('Method: ' . $request->method());
 
             $data[] = $row;
         }
