@@ -72,10 +72,11 @@
                 order: [[1, 'asc']],
                 ajax: {
                     url: '{{ route("monitoring.mip.data") }}',
+                    type: 'POST',
                     data: d => {
-                        let { bulan, tahun } = getParams();
-                        d.bulan = bulan;
-                        d.tahun = tahun;
+                        d._token = '{{ csrf_token() }}';
+                        d.bulan = $('#filter_bulan').val();
+                        d.tahun = $('#filter_tahun').val();
                     }
                 },
                 columns: [

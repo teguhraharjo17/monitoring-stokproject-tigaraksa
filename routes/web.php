@@ -106,6 +106,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('mip')->name('mip.')->group(function () {
             Route::get('/', [MonitoringMIPController::class, 'index'])->name('index');
             Route::get('/data', [MonitoringMIPController::class, 'data'])->name('data');
+            Route::post('/data', [MonitoringMIPController::class, 'data']);
             Route::post('/save', [MonitoringMIPController::class, 'save'])->name('save');
         });
 
