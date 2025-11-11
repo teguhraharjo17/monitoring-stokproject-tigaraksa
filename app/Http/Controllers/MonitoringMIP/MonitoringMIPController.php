@@ -21,86 +21,97 @@ class MonitoringMIPController extends Controller
 
     public function data(Request $request)
     {
-        $bulan = $request->bulan;
-        $tahun = $request->tahun;
+        try {
+            $bulan = $request->bulan;
+            $tahun = $request->tahun;
 
-        $rekap = RekapData::where('bulan', $bulan)->where('tahun', $tahun)->get();
-        $levelStok = LevelStok::with('details')->where('bulan', $bulan)->where('tahun', $tahun)->first();
+            Log::info("MonitoringMIPController::data => bulan: $bulan, tahun: $tahun");
 
-        $data = [];
+            $rekap = RekapData::where('bulan', $bulan)->where('tahun', $tahun)->get();
+            if ($rekap->isEmpty()) {
+                Log::warning("Tidak ada data Rekap untuk bulan: $bulan tahun: $tahun");
+                return DataTables::of([])->make(true);
+            }
 
-        foreach ($rekap as $item) {
-            $row = [
-                'customer' => $item->customer,
-                'project' => $item->kode_project,
-                'part_number' => $item->part_number,
-                'part_name' => $item->models,
-                'stock_awal' => (int) $item->stock_awal_mip,
-                'total_in' => 0,
-                'total_out' => 0,
-                'level_min' => 0,
-                'level_safety' => 0,
-                'level_max' => 0,
-            ];
+            $levelStok = LevelStok::with('details')->where('bulan', $bulan)->where('tahun', $tahun)->first();
+            Log::info("LevelStok ditemukan: " . ($levelStok ? 'YA' : 'TIDAK'));
 
-            if ($levelStok) {
-                $levelDetail = $levelStok->details->firstWhere('part_number', $item->part_number);
-                if ($levelDetail) {
-                    $row['level_min'] = $levelDetail->min ?? 0;
-                    $row['level_safety'] = $levelDetail->safety_mip ?? 0;
-                    $row['level_max'] = $levelDetail->max ?? 0;
+            $data = [];
+
+            foreach ($rekap as $item) {
+                $row = [
+                    'customer' => $item->customer,
+                    'project' => $item->kode_project,
+                    'part_number' => $item->part_number,
+                    'part_name' => $item->models,
+                    'stock_awal' => (int) $item->stock_awal_mip,
+                    'total_in' => 0,
+                    'total_out' => 0,
+                    'level_min' => 0,
+                    'level_safety' => 0,
+                    'level_max' => 0,
+                ];
+
+                if ($levelStok) {
+                    $levelDetail = $levelStok->details->firstWhere('part_number', $item->part_number);
+                    if ($levelDetail) {
+                        $row['level_min'] = $levelDetail->min ?? 0;
+                        $row['level_safety'] = $levelDetail->safety_mip ?? 0;
+                        $row['level_max'] = $levelDetail->max ?? 0;
+                    }
                 }
-            }
 
-            $subAssy = SubAssy::with(['details' => function ($q) {
-                $q->where('tipe', 'Produksi');
-            }])
-                ->where('bulan', $bulan)
-                ->where('tahun', $tahun)
-                ->where('part_number', $item->part_number)
-                ->first();
+                $subAssy = SubAssy::with(['details' => function ($q) {
+                    $q->where('tipe', 'Produksi');
+                }])
+                    ->where('bulan', $bulan)
+                    ->where('tahun', $tahun)
+                    ->where('part_number', $item->part_number)
+                    ->first();
 
-            $inList = [];
-
-            if ($subAssy) {
-                foreach ($subAssy->details as $detail) {
-                    $inList[(int) $detail->tanggal] = $detail->jumlah;
+                $inList = [];
+                if ($subAssy && $subAssy->details) {
+                    foreach ($subAssy->details as $detail) {
+                        $inList[(int) $detail->tanggal] = $detail->jumlah;
+                    }
                 }
+
+                $header = MonitoringMIPHeader::where([
+                    'bulan' => $bulan,
+                    'tahun' => $tahun,
+                    'customer' => $item->customer,
+                    'project' => $item->kode_project,
+                    'part_number' => $item->part_number,
+                ])->first();
+
+                $details = $header
+                    ? MonitoringMIPDetail::where('header_id', $header->id)->get()->keyBy('tanggal')
+                    : collect();
+
+                $balance = $row['stock_awal'];
+
+                for ($i = 1; $i <= 31; $i++) {
+                    $in = $inList[$i] ?? 0;
+                    $out = optional($details[$i])->out_qty ?? 0;
+
+                    $balance = $balance + $in - $out;
+
+                    $row["in_hari_$i"] = $in;
+                    $row["out_hari_$i"] = $out;
+                    $row["balance_hari_$i"] = $balance;
+                    $row["total_in"] += $in;
+                    $row["total_out"] += $out;
+                }
+
+                $data[] = $row;
             }
 
-            $header = MonitoringMIPHeader::where([
-                'bulan' => $bulan,
-                'tahun' => $tahun,
-                'customer' => $item->customer,
-                'project' => $item->kode_project,
-                'part_number' => $item->part_number,
-            ])->first();
+            return DataTables::of($data)->make(true);
 
-            $details = $header
-                ? MonitoringMIPDetail::where('header_id', $header->id)->get()->keyBy('tanggal')
-                : collect();
-
-            $balance = $row['stock_awal'];
-
-            for ($i = 1; $i <= 31; $i++) {
-                $in = $inList[$i] ?? 0;
-                $out = $details[$i]->out_qty ?? 0;
-
-                $balance = $balance + $in - $out;
-
-                $row["in_hari_$i"] = $in;
-                $row["out_hari_$i"] = $out;
-                $row["balance_hari_$i"] = $balance;
-                $row["total_in"] += $in;
-                $row["total_out"] += $out;
-            }
-
-            Log::info('Method: ' . $request->method());
-
-            $data[] = $row;
+        } catch (\Throwable $e) {
+            Log::error('MonitoringMIPController::data() ERROR — ' . $e->getMessage());
+            return response()->json(['error' => 'Internal Server Error'], 500);
         }
-
-        return DataTables::of($data)->make(true);
     }
 
     public function save(Request $request)
