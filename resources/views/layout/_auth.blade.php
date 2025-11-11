@@ -43,7 +43,7 @@
                     <!--end::Logo-->
 
                     <!--begin::Image-->
-                    <img class="img-fluid d-none d-lg-block mx-auto" src="{{ image('misc/milenia_screen.png') }}" alt=""style="max-width: 550px; height: auto;"/>
+                    <img class="img-fluid d-none d-lg-block mx-auto" src="{{ image('misc/milenia_screen.png') }}" alt=""style="max-width: 750px; height: auto;"/>
                     <!--end::Image-->
                 </div>
                 <!--end::Content-->
