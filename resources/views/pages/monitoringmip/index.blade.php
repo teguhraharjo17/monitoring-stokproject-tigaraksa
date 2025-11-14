@@ -190,6 +190,7 @@
                         <th rowspan="2">Project</th>
                         <th rowspan="2">Part Number</th>
                         <th rowspan="2">Part Name</th>
+                        <th rowspan="2">Total PO</th>
                         <th rowspan="2">Stock Awal</th>
                         <th rowspan="2">Total IN</th>
                         <th rowspan="2">Total OUT</th>
@@ -222,14 +223,27 @@
                     { data: 'part_number' },
                     { data: 'part_name' },
                     {
+                        data: 'total_po',
+                        render: d => `<span>${d ?? 0}</span>`
+                    },
+                    {
                         data: 'stock_awal',
-                        render: d => `<input type="text" class="form-control form-control-sm text-center input-biru" value="${d ?? 0}" name="stock_awal" readonly tabindex="-1">`
+                        render: d => `<span>${d ?? 0}</span>`
                     },
                     { data: 'total_in', render: d => `<span>${d ?? 0}</span>` },
                     { data: 'total_out', render: d => `<span>${d ?? 0}</span>` },
-                    { data: 'level_min', render: d => `<input type="text" class="form-control form-control-sm text-center" value="${d ?? 0}" name="level_min" readonly>` },
-                    { data: 'level_safety', render: d => `<input type="text" class="form-control form-control-sm text-center" value="${d ?? 0}" name="level_safety" readonly>` },
-                    { data: 'level_max', render: d => `<input type="text" class="form-control form-control-sm text-center" value="${d ?? 0}" name="level_max" readonly>` },
+                    {
+                        data: 'level_min',
+                        render: d => `<span>${d ?? 0}</span>`
+                    },
+                    {
+                        data: 'level_safety',
+                        render: d => `<span>${d ?? 0}</span>`
+                    },
+                    {
+                        data: 'level_max',
+                        render: d => `<span>${d ?? 0}</span>`
+                    },
                     {
                         data: null,
                         render: () => `

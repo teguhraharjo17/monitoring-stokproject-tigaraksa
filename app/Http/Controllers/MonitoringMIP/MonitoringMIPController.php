@@ -45,12 +45,14 @@ class MonitoringMIPController extends Controller
                     'part_number' => $item->part_number,
                     'part_name' => $item->models,
                     'stock_awal' => (int) $item->stock_awal_mip,
+                    'total_po' => (int) $item->total_qty_bulan_ini ?? 0,
                     'total_in' => 0,
                     'total_out' => 0,
                     'level_min' => 0,
                     'level_safety' => 0,
                     'level_max' => 0,
                 ];
+
 
                 if ($levelStok) {
                     $levelDetail = $levelStok->details->firstWhere('part_number', $item->part_number);
