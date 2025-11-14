@@ -120,8 +120,8 @@
                         render: function (data, type, row) {
                             return `
                                 <div class="d-flex flex-column gap-1">
-                                    <input type="text" name="in_hari_${day}" class="form-control form-control-sm text-center input-merah" value="${row[`in_hari_${day}`] ?? 0}" readonly tabindex="-1">
-                                    <input type="text" name="out_hari_${day}" class="form-control form-control-sm text-center input-hijau" placeholder="OUT" value="${row[`out_hari_${day}`] ?? ''}">
+                                    <input type="text" name="in_hari_${day}" class="form-control form-control-sm text-center input-hijau" value="${row[`in_hari_${day}`] ?? 0}" readonly tabindex="-1">
+                                    <input type="text" name="out_hari_${day}" class="form-control form-control-sm text-center input-merah" placeholder="OUT" value="${row[`out_hari_${day}`] ?? ''}">
                                     <input type="text" name="balance_hari_${day}" class="form-control form-control-sm text-center input-biru" placeholder="BAL" value="${row[`balance_hari_${day}`] ?? ''}" readonly tabindex="-1">
                                 </div>
                             `;
@@ -248,8 +248,8 @@
                         data: null,
                         render: () => `
                             <div class="d-flex flex-column gap-1 text-center">
-                                <span class="badge bg-danger">IN</span>
-                                <span class="badge bg-success">OUT</span>
+                                <span class="badge bg-success">IN</span>
+                                <span class="badge bg-danger">OUT</span>
                                 <span class="badge bg-primary">BAL</span>
                             </div>
                         `
@@ -262,8 +262,8 @@
                         data: null,
                         render: row => `
                             <div class="d-flex flex-column gap-1">
-                                <input type="text" name="in_hari_${i}" class="form-control form-control-sm text-center input-merah" value="${row[`in_hari_${i}`] ?? 0}" readonly tabindex="-1">
-                                <input type="text" name="out_hari_${i}" class="form-control form-control-sm text-center input-hijau" placeholder="OUT" value="${row[`out_hari_${i}`] ?? ''}">
+                                <input type="text" name="in_hari_${i}" class="form-control form-control-sm text-center input-hijau" value="${row[`in_hari_${i}`] ?? 0}" readonly tabindex="-1">
+                                <input type="text" name="out_hari_${i}" class="form-control form-control-sm text-center input-merah" placeholder="OUT" value="${row[`out_hari_${i}`] ?? ''}">
                                 <input type="text" name="balance_hari_${i}" class="form-control form-control-sm text-center input-biru" placeholder="BAL" value="${row[`balance_hari_${i}`] ?? ''}" readonly tabindex="-1">
                             </div>
                         `

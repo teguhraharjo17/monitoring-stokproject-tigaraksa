@@ -108,8 +108,8 @@
                     searchable: false,
                     render: () => `
                         <div class="d-flex flex-column gap-1 text-center">
-                            <span class="badge bg-danger">IN</span>
-                            <span class="badge bg-success">OUT</span>
+                            <span class="badge bg-success">IN</span>
+                            <span class="badge bg-danger">OUT</span>
                             <span class="badge bg-primary">BAL</span>
                         </div>
                     `
@@ -122,8 +122,8 @@
                         data: null,
                         render: row => `
                             <div class="cell-input-group">
-                                <input name="in_hari_${i}_d" class="form-control form-control-sm text-center input-merah" value="${row[`in_hari_${i}_d`] ?? 0}" readonly>
-                                <input name="out_hari_${i}_d" class="form-control form-control-sm text-center input-hijau" value="${row[`out_hari_${i}_d`] ?? ''}">
+                                <input name="in_hari_${i}_d" class="form-control form-control-sm text-center input-hijau" value="${row[`in_hari_${i}_d`] ?? 0}" readonly>
+                                <input name="out_hari_${i}_d" class="form-control form-control-sm text-center input-merah" value="${row[`out_hari_${i}_d`] ?? ''}">
                                 <input name="balance_hari_${i}_d" class="form-control form-control-sm text-center input-biru" value="${row[`balance_hari_${i}_d`] ?? 0}" readonly>
                             </div>
                         `
@@ -132,8 +132,8 @@
                         data: null,
                         render: row => `
                             <div class="cell-input-group">
-                                <input name="in_hari_${i}_n" class="form-control form-control-sm text-center input-merah" value="${row[`in_hari_${i}_n`] ?? 0}" readonly>
-                                <input name="out_hari_${i}_n" class="form-control form-control-sm text-center input-hijau" value="${row[`out_hari_${i}_n`] ?? ''}">
+                                <input name="in_hari_${i}_n" class="form-control form-control-sm text-center input-hijau" value="${row[`in_hari_${i}_n`] ?? 0}" readonly>
+                                <input name="out_hari_${i}_n" class="form-control form-control-sm text-center input-merah" value="${row[`out_hari_${i}_n`] ?? ''}">
                                 <input name="balance_hari_${i}_n" class="form-control form-control-sm text-center input-biru" value="${row[`balance_hari_${i}_n`] ?? 0}" readonly>
                             </div>
                         `
