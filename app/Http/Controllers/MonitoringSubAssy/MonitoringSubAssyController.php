@@ -74,6 +74,7 @@ class MonitoringSubAssyController extends Controller
                 'part_name' => $rekap->models,
 
                 'wip_sebelumnya' => $subAssy->wip_sebelumnya ?? '',
+                'total_po' => $rekap->total_qty_bulan_ini ?? 0,
                 'total_spk' => $subAssy->total_spk ?? '',
                 'total_produksi' => $subAssy->total_produksi ?? '',
                 'wip_akhir' => $subAssy->wip_akhir ?? '',

@@ -318,6 +318,7 @@
                         <th rowspan="2">Project</th>
                         <th rowspan="2">Part Number</th>
                         <th rowspan="2">Part Name</th>
+                        <th rowspan="2">Total PO</th>
                         <th rowspan="2">WIP Sebelumnya</th>
                         <th rowspan="2">Total SPK</th>
                         <th rowspan="2">Total Produksi</th>
@@ -346,6 +347,10 @@
                     { data: 'project' },
                     { data: 'part_number' },
                     { data: 'part_name' },
+                    {
+                        data: 'total_po',
+                        render: d => `<span>${d ?? ''}</span>`
+                    },
                     {
                         data: 'wip_sebelumnya',
                         render: d => `<input type="text" name="wip_sebelumnya" class="form-control form-control-sm text-center" value="${d ?? ''}">`
