@@ -79,6 +79,7 @@ class MonitoringFinishGoodsController extends Controller
                 'project' => $rekap->kode_project,
                 'part_number' => $rekap->part_number,
                 'part_name' => $rekap->models,
+                'total_po' => (int) $rekap->total_qty_bulan_ini ?? 0,
                 'stock_awal' => $header->stock_awal,
                 'total_in' => $header->total_in,
                 'total_out' => $header->total_out,
