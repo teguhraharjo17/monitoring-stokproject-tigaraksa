@@ -43,6 +43,10 @@
         .input-merah { background-color: #fcdcdc !important; }
         .input-hijau { background-color: #d6f5d6 !important; }
         .input-biru { background-color: #d8e9ff !important; font-weight: bold; color: #004085; }
+        #fg_table thead th {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
         #fg_table th, #fg_table td { white-space: nowrap; text-align: center; vertical-align: middle; }
         #fg_table th:nth-child(n+13), #fg_table td:nth-child(n+13) {
             min-width: 50px;
@@ -170,12 +174,10 @@
             const { bulan, tahun } = getParams();
             const jumlahHari = new Date(tahun, bulan, 0).getDate();
 
-            // FIX #1: destroy kalau sudah ada
             if ($.fn.DataTable.isDataTable('#fg_table')) {
                 $('#fg_table').DataTable().clear().destroy();
             }
 
-            // FIX #2: bersihkan thead dan tbody
             $('#fg_table thead').empty();
             $('#fg_table tbody').empty();
 
@@ -191,9 +193,10 @@
                 <th rowspan="2">Outstanding</th>
                 <th rowspan="2">% Outstanding</th>
                 <th rowspan="2">Stock Awal</th>
-                <th colspan="2">Total</th>
-                <th colspan="3">Level</th>
+                <th colspan="2" class="text-center">Total</th>
+                <th colspan="3" class="text-center">Level</th>
                 <th rowspan="2">Stock On Hand</th>
+                <th rowspan="2">Status Stock</th>
                 <th rowspan="2">Status</th>
             `;
 
@@ -265,10 +268,8 @@
                     totalOut += outD + outN;
                 }
 
-                // 🧮 Update Stock On Hand
                 $row.find('td:eq(15) span').text(balance);
 
-                // 🧮 Update Status Stock
                 const levelMin = parseInt($row.find('td:eq(12)').text()) || 0;
                 const levelSafety = parseInt($row.find('td:eq(13)').text()) || 0;
                 const levelMax = parseInt($row.find('td:eq(14)').text()) || 0;
@@ -282,7 +283,6 @@
                 }
                 $row.find('td:eq(16)').html(statusBadge);
 
-                // 🧮 Update Outstanding dan Persentase
                 const totalPO = parseInt($row.find('td:eq(5)').text()) || 0;
                 const advanceDelivery = parseInt($row.find('input[name="advance_delivery"]').val()) || 0;
                 const outstanding = Math.max(0, totalPO - advanceDelivery - totalOut);
@@ -291,7 +291,6 @@
                 $row.find('td:eq(7) span').text(outstanding);
                 $row.find('td:eq(8) span').text(`${percentage}%`);
 
-                // Kirim ke server
                 const data = {
                     _token: '{{ csrf_token() }}',
                     bulan: $('#filter_bulan').val(),
@@ -329,7 +328,6 @@
                 const $row = $(this).closest('tr');
                 const jumlahHari = new Date($('#filter_tahun').val(), $('#filter_bulan').val(), 0).getDate();
 
-                // Ambil data yang dibutuhkan
                 const totalPO = parseInt($row.find('td:eq(5)').text()) || 0;
                 const advanceDelivery = parseInt($row.find('input[name="advance_delivery"]').val()) || 0;
 
@@ -339,15 +337,12 @@
                     totalOut += (parseInt($row.find(`input[name="out_hari_${i}_n"]`).val()) || 0);
                 }
 
-                // 🧮 Hitung ulang Outstanding dan Persentase
                 const outstanding = Math.max(0, totalPO - advanceDelivery - totalOut);
                 const percentage = totalPO > 0 ? ((outstanding / totalPO) * 100).toFixed(2) : '0.00';
 
-                // Update DOM kolom Outstanding dan Persentase
                 $row.find('td:eq(7) span').text(outstanding);
                 $row.find('td:eq(8) span').text(`${percentage}%`);
 
-                // (Opsional) Update Status Stock
                 const balance = parseInt($row.find('td:eq(15) span').text()) || 0;
                 const levelMin = parseInt($row.find('td:eq(12)').text()) || 0;
                 const levelMax = parseInt($row.find('td:eq(14)').text()) || 0;
@@ -361,7 +356,6 @@
                 }
                 $row.find('td:eq(16)').html(statusBadge);
 
-                // Kirim data ke server
                 const data = {
                     _token: '{{ csrf_token() }}',
                     bulan: $('#filter_bulan').val(),
