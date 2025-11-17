@@ -53,11 +53,15 @@
             max-width: 50px;
         }
 
+        #fg_table {
+            border: 2px solid #343a40;
+        }
+
         .cell-input-group {
             display: grid;
             grid-template-rows: repeat(3, auto);
             gap: 2px;
-            min-width: 60px;
+            min-width: 50px;
         }
 
         .cell-input-group input {
