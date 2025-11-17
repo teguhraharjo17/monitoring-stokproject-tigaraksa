@@ -19,6 +19,7 @@ class MonitoringFGHeader extends Model
         'bulan',
         'tahun',
         'stock_awal',
+        'advance_delivery',
         'total_in',
         'total_out',
         'level_min',

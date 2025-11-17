@@ -110,6 +110,25 @@ class MonitoringFinishGoodsController extends Controller
                 $balance = $balanceN;
             }
 
+            $advance = $header->advance_delivery ?? 0;
+            $totalOut = $header->total_out ?? 0;
+            $outstanding = max(0, ($row['total_po'] ?? 0) - $advance - $totalOut);
+            $percentage = $row['total_po'] > 0 ? round(($outstanding / $row['total_po']) * 100, 2) : 0;
+
+            $row['advance_delivery'] = $advance;
+            $row['outstanding'] = $outstanding;
+            $row['percentage'] = $percentage;
+
+            $row['stock_on_hand'] = $balance ?? 0;
+
+            if ($row['stock_on_hand'] <= $header->level_min) {
+                $row['status_stock'] = 'Problem';
+            } elseif ($row['stock_on_hand'] > $header->level_max) {
+                $row['status_stock'] = 'Over';
+            } else {
+                $row['status_stock'] = 'Aman';
+            }
+
             $data[] = $row;
         }
 
@@ -133,6 +152,7 @@ class MonitoringFinishGoodsController extends Controller
             ], [
                 'part_name' => $request->part_name,
                 'stock_awal' => (int) $request->stock_awal,
+                'advance_delivery' => (int) $request->advance_delivery,
                 'level_min' => (int) $request->level_min,
                 'level_safety' => (int) $request->level_safety,
                 'level_max' => (int) $request->level_max,

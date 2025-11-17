@@ -61,6 +61,10 @@
             font-size: 12px;
             height: 26px;
         }
+
+        .badge.bg-danger { background-color: #dc3545; }
+        .badge.bg-warning { background-color: #ffc107; color: #212529; }
+        .badge.bg-success { background-color: #28a745; }
     </style>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -79,29 +83,47 @@
 
         function generateTable(jumlahHari) {
             const columns = [
-                {
-                    data: null,
-                    orderable: false,
-                    searchable: false,
-                    render: (data, type, row, meta) => meta.row + 1
-                },
+                { data: null, render: (data, type, row, meta) => meta.row + 1 },
                 { data: 'customer' },
                 { data: 'project' },
                 { data: 'part_number' },
                 { data: 'part_name' },
+                { data: 'total_po', render: d => `<span>${d ?? 0}</span>` },
                 {
-                    data: 'total_po',
+                    data: 'advance_delivery',
+                    render: (data, type, row) => `<input name="advance_delivery" class="form-control form-control-sm text-center" value="${data ?? 0}">`
+                },
+                {
+                    data: 'outstanding',
                     render: d => `<span>${d ?? 0}</span>`
                 },
                 {
-                    data: 'stock_awal',
+                    data: 'percentage',
+                    render: d => `<span>${d ?? 0}%</span>`
+                },
+                { data: 'stock_awal', render: d => `<span>${d ?? 0}</span>` },
+                {
+                    data: 'total_in',
                     render: d => `<span>${d ?? 0}</span>`
                 },
-                { data: 'total_in', render: d => `<span>${d ?? 0}</span>` },
-                { data: 'total_out', render: d => `<span>${d ?? 0}</span>` },
+                {
+                    data: 'total_out',
+                    render: d => `<span>${d ?? 0}</span>`
+                },
                 { data: 'level_min', render: d => `<span>${d ?? 0}</span>` },
                 { data: 'level_safety', render: d => `<span>${d ?? 0}</span>` },
                 { data: 'level_max', render: d => `<span>${d ?? 0}</span>` },
+                { data: 'stock_on_hand', render: d => `<span>${d ?? 0}</span>` },
+                {
+                    data: 'status_stock',
+                    render: d => {
+                        let color = 'bg-secondary';
+                        if (d === 'Problem') color = 'bg-danger';
+                        else if (d === 'Over') color = 'bg-warning';
+                        else if (d === 'Aman') color = 'bg-success';
+                        return `<span class="badge ${color}">${d}</span>`;
+                    }
+                },
                 {
                     data: null,
                     orderable: false,
@@ -157,30 +179,33 @@
             $('#fg_table thead').empty();
             $('#fg_table tbody').empty();
 
-            // Build thead again
             let thead1 = `
-                <tr>
-                    <th rowspan="2">No</th>
-                    <th rowspan="2">Customer</th>
-                    <th rowspan="2">Project</th>
-                    <th rowspan="2">Part Number</th>
-                    <th rowspan="2">Part Name</th>
-                    <th rowspan="2">Total PO</th>
-                    <th rowspan="2">Stock Awal</th>
-                    <th rowspan="2">Total IN</th>
-                    <th rowspan="2">Total OUT</th>
-                    <th rowspan="2">Level Min</th>
-                    <th rowspan="2">Level Safety</th>
-                    <th rowspan="2">Level Max</th>
-                    <th rowspan="2">Status</th>
+            <tr>
+                <th rowspan="2">No</th>
+                <th rowspan="2">Customer</th>
+                <th rowspan="2">Project</th>
+                <th rowspan="2">Part Number</th>
+                <th rowspan="2">Part Name</th>
+                <th rowspan="2">Total PO</th>
+                <th rowspan="2">Advance Delivery</th>
+                <th rowspan="2">Outstanding</th>
+                <th rowspan="2">% Outstanding</th>
+                <th rowspan="2">Stock Awal</th>
+                <th colspan="2">Total</th>
+                <th colspan="3">Level</th>
+                <th rowspan="2">Stock On Hand</th>
+                <th rowspan="2">Status</th>
             `;
 
             for (let i = 1; i <= jumlahHari; i++) {
-                thead1 += `<th colspan="2"  class="text-center">${i}</th>`;
+                thead1 += `<th colspan="2" class="text-center">${i}</th>`;
             }
-            thead1 += `</tr><tr>`;
+            thead1 += `</tr><tr>
+            <th>IN</th><th>OUT</th>
+            <th>Min</th><th>Safety</th><th>Max</th>
+            `;
             for (let i = 1; i <= jumlahHari; i++) {
-                thead1 += `<th  class="text-center">D</th><th  class="text-center">N</th>`;
+                thead1 += `<th>D</th><th>N</th>`;
             }
             thead1 += `</tr>`;
 
@@ -218,6 +243,55 @@
                 const $row = $(this).closest('tr');
                 const jumlahHari = new Date($('#filter_tahun').val(), $('#filter_bulan').val(), 0).getDate();
 
+                let stockAwal = parseInt($row.find('td:eq(9)').text()) || 0;
+                let balance = stockAwal;
+
+                let totalOut = 0;
+
+                for (let i = 1; i <= jumlahHari; i++) {
+                    const inD = parseInt($row.find(`input[name="in_hari_${i}_d"]`).val()) || 0;
+                    const outD = parseInt($row.find(`input[name="out_hari_${i}_d"]`).val()) || 0;
+                    const inN = parseInt($row.find(`input[name="in_hari_${i}_n"]`).val()) || 0;
+                    const outN = parseInt($row.find(`input[name="out_hari_${i}_n"]`).val()) || 0;
+
+                    const balanceD = balance + inD - outD;
+                    const balanceN = balanceD + inN - outN;
+
+                    $row.find(`input[name="balance_hari_${i}_d"]`).val(balanceD);
+                    $row.find(`input[name="balance_hari_${i}_n"]`).val(balanceN);
+
+                    balance = balanceN;
+
+                    totalOut += outD + outN;
+                }
+
+                // 🧮 Update Stock On Hand
+                $row.find('td:eq(15) span').text(balance);
+
+                // 🧮 Update Status Stock
+                const levelMin = parseInt($row.find('td:eq(12)').text()) || 0;
+                const levelSafety = parseInt($row.find('td:eq(13)').text()) || 0;
+                const levelMax = parseInt($row.find('td:eq(14)').text()) || 0;
+                let statusBadge = '';
+                if (balance <= levelMin) {
+                    statusBadge = `<span class="badge bg-danger">Problem</span>`;
+                } else if (balance > levelMax) {
+                    statusBadge = `<span class="badge bg-warning">Over</span>`;
+                } else {
+                    statusBadge = `<span class="badge bg-success">Aman</span>`;
+                }
+                $row.find('td:eq(16)').html(statusBadge);
+
+                // 🧮 Update Outstanding dan Persentase
+                const totalPO = parseInt($row.find('td:eq(5)').text()) || 0;
+                const advanceDelivery = parseInt($row.find('input[name="advance_delivery"]').val()) || 0;
+                const outstanding = Math.max(0, totalPO - advanceDelivery - totalOut);
+                const percentage = totalPO > 0 ? ((outstanding / totalPO) * 100).toFixed(2) : 0;
+
+                $row.find('td:eq(7) span').text(outstanding);
+                $row.find('td:eq(8) span').text(`${percentage}%`);
+
+                // Kirim ke server
                 const data = {
                     _token: '{{ csrf_token() }}',
                     bulan: $('#filter_bulan').val(),
@@ -226,10 +300,11 @@
                     project: $row.find('td:eq(2)').text(),
                     part_number: $row.find('td:eq(3)').text(),
                     part_name: $row.find('td:eq(4)').text(),
-                    stock_awal: $row.find('input[name="stock_awal"]').val(),
-                    level_min: $row.find('input[name="level_min"]').val(),
-                    level_safety: $row.find('input[name="level_safety"]').val(),
-                    level_max: $row.find('input[name="level_max"]').val()
+                    stock_awal: stockAwal,
+                    level_min: levelMin,
+                    level_safety: levelSafety,
+                    level_max: levelMax,
+                    advance_delivery: advanceDelivery
                 };
 
                 for (let i = 1; i <= jumlahHari; i++) {
@@ -247,6 +322,90 @@
                     })
                     .fail(() => {
                         Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Gagal menyimpan data!', showConfirmButton: false, timer: 2000 });
+                    });
+            });
+
+            $('#fg_table tbody').on('blur', 'input[name="advance_delivery"]', function () {
+                const $row = $(this).closest('tr');
+                const jumlahHari = new Date($('#filter_tahun').val(), $('#filter_bulan').val(), 0).getDate();
+
+                // Ambil data yang dibutuhkan
+                const totalPO = parseInt($row.find('td:eq(5)').text()) || 0;
+                const advanceDelivery = parseInt($row.find('input[name="advance_delivery"]').val()) || 0;
+
+                let totalOut = 0;
+                for (let i = 1; i <= jumlahHari; i++) {
+                    totalOut += (parseInt($row.find(`input[name="out_hari_${i}_d"]`).val()) || 0);
+                    totalOut += (parseInt($row.find(`input[name="out_hari_${i}_n"]`).val()) || 0);
+                }
+
+                // 🧮 Hitung ulang Outstanding dan Persentase
+                const outstanding = Math.max(0, totalPO - advanceDelivery - totalOut);
+                const percentage = totalPO > 0 ? ((outstanding / totalPO) * 100).toFixed(2) : '0.00';
+
+                // Update DOM kolom Outstanding dan Persentase
+                $row.find('td:eq(7) span').text(outstanding);
+                $row.find('td:eq(8) span').text(`${percentage}%`);
+
+                // (Opsional) Update Status Stock
+                const balance = parseInt($row.find('td:eq(15) span').text()) || 0;
+                const levelMin = parseInt($row.find('td:eq(12)').text()) || 0;
+                const levelMax = parseInt($row.find('td:eq(14)').text()) || 0;
+                let statusBadge = '';
+                if (balance <= levelMin) {
+                    statusBadge = `<span class="badge bg-danger">Problem</span>`;
+                } else if (balance > levelMax) {
+                    statusBadge = `<span class="badge bg-warning">Over</span>`;
+                } else {
+                    statusBadge = `<span class="badge bg-success">Aman</span>`;
+                }
+                $row.find('td:eq(16)').html(statusBadge);
+
+                // Kirim data ke server
+                const data = {
+                    _token: '{{ csrf_token() }}',
+                    bulan: $('#filter_bulan').val(),
+                    tahun: $('#filter_tahun').val(),
+                    customer: $row.find('td:eq(1)').text(),
+                    project: $row.find('td:eq(2)').text(),
+                    part_number: $row.find('td:eq(3)').text(),
+                    part_name: $row.find('td:eq(4)').text(),
+                    stock_awal: parseInt($row.find('td:eq(9)').text()) || 0,
+                    level_min: levelMin,
+                    level_safety: parseInt($row.find('td:eq(13)').text()) || 0,
+                    level_max: levelMax,
+                    advance_delivery: advanceDelivery
+                };
+
+                for (let i = 1; i <= jumlahHari; i++) {
+                    data[`in_hari_${i}_d`] = $row.find(`input[name="in_hari_${i}_d"]`).val();
+                    data[`out_hari_${i}_d`] = $row.find(`input[name="out_hari_${i}_d"]`).val();
+                    data[`balance_hari_${i}_d`] = $row.find(`input[name="balance_hari_${i}_d"]`).val();
+                    data[`in_hari_${i}_n`] = $row.find(`input[name="in_hari_${i}_n"]`).val();
+                    data[`out_hari_${i}_n`] = $row.find(`input[name="out_hari_${i}_n"]`).val();
+                    data[`balance_hari_${i}_n`] = $row.find(`input[name="balance_hari_${i}_n"]`).val();
+                }
+
+                $.post('{{ route("monitoring.finishgood.save") }}', data)
+                    .done(() => {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'Advance Delivery Disimpan',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    })
+                    .fail(() => {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: 'Gagal menyimpan Advance Delivery!',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
                     });
             });
         });
