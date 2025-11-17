@@ -195,7 +195,7 @@
                 <th rowspan="2">Total PO</th>
                 <th rowspan="2">Advance Delivery</th>
                 <th rowspan="2">Outstanding</th>
-                <th rowspan="2">% Outstanding</th>
+                <th rowspan="2">% Delivery</th>
                 <th rowspan="2">Stock Awal</th>
                 <th colspan="2" class="text-center">Total</th>
                 <th colspan="3" class="text-center">Level</th>
