@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
+use App\Exports\SubAssyExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MonitoringSubAssyController extends Controller
 {
@@ -181,5 +183,18 @@ class MonitoringSubAssyController extends Controller
             'message' => 'Data berhasil disimpan.',
             'id' => $subAssy->id,
         ]);
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'bulan' => 'required|integer|between:1,12',
+            'tahun' => 'required|integer|min:2020',
+        ]);
+
+        $bulan = $request->bulan;
+        $tahun = $request->tahun;
+
+        return Excel::download(new SubAssyExport($bulan, $tahun), "Monitoring_SubAssy_{$bulan}_{$tahun}.xlsx");
     }
 }

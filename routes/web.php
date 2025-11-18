@@ -100,6 +100,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', [MonitoringSubAssyController::class, 'index'])->name('index');
             Route::post('/data', [MonitoringSubAssyController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringSubAssyController::class, 'save'])->name('save');
+            Route::get('/export', [MonitoringSubAssyController::class, 'export'])->name('export');
         });
 
         Route::prefix('mip')->name('mip.')->group(function () {
@@ -112,6 +113,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', [MonitoringFinishGoodsController::class, 'index'])->name('index');
             Route::post('/data', [MonitoringFinishGoodsController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringFinishGoodsController::class, 'save'])->name('save');
+            Route::get('/export', [MonitoringFinishGoodsController::class, 'export'])->name('export');
         });
     });
 });

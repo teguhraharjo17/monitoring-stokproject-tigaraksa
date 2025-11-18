@@ -25,8 +25,14 @@
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-6 d-flex align-items-end justify-content-end">
+                <div class="col-md-6 d-flex align-items-end justify-content-end gap-2">
                     <button id="reload_table" class="btn btn-primary">🔄 Refresh Data</button>
+
+                    <form id="export_form" action="{{ route('monitoring.subassy.export') }}" method="GET" target="_blank" class="d-inline">
+                        <input type="hidden" name="bulan" id="export_bulan">
+                        <input type="hidden" name="tahun" id="export_tahun">
+                        <button type="submit" class="btn btn-success">📤 Export Excel</button>
+                    </form>
                 </div>
             </div>
 
@@ -439,6 +445,16 @@
                     });
                 });
             }
+
+            $('#reload_table').on('click', function () {
+                $('#export_bulan').val($('#filter_bulan').val());
+                $('#export_tahun').val($('#filter_tahun').val());
+            });
+
+            $('#export_form').on('submit', function () {
+                $('#export_bulan').val($('#filter_bulan').val());
+                $('#export_tahun').val($('#filter_tahun').val());
+            });
 
             function calculateTotals($row) {
                 const jumlahHari = $('#subassy_table thead tr:last th').length;
