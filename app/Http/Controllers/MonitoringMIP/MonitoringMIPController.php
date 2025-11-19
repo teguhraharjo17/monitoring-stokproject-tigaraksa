@@ -11,6 +11,8 @@ use App\Models\LevelStok;
 use App\Models\SubAssy;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Log;
+use App\Exports\MonitoringMIPExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MonitoringMIPController extends Controller
 {
@@ -118,6 +120,15 @@ class MonitoringMIPController extends Controller
 
     public function save(Request $request)
     {
+        $stockAwal = is_numeric($request->stock_awal)
+            ? (int) $request->stock_awal
+            : RekapData::where('bulan', $request->bulan)
+                ->where('tahun', $request->tahun)
+                ->where('customer', $request->customer)
+                ->where('kode_project', $request->project)
+                ->where('part_number', $request->part_number)
+                ->value('stock_awal_mip') ?? 0;
+
         $header = MonitoringMIPHeader::updateOrCreate(
             [
                 'bulan' => $request->bulan,
@@ -125,10 +136,10 @@ class MonitoringMIPController extends Controller
                 'customer' => $request->customer,
                 'project' => $request->project,
                 'part_number' => $request->part_number,
-                'part_name' => $request->part_name,
             ],
             [
-                'stock_awal' => $request->stock_awal,
+                'part_name' => $request->part_name,
+                'stock_awal' => $stockAwal,
                 'level_min' => $request->level_min,
                 'level_safety' => $request->level_safety,
                 'level_max' => $request->level_max,
@@ -136,6 +147,8 @@ class MonitoringMIPController extends Controller
                 'total_in' => collect($request->all())->filter(fn($v, $k) => str_starts_with($k, 'in_hari_'))->sum(),
             ]
         );
+
+        Log::info("Simpan Header MIP — {$request->part_number} — Stock Awal: {$stockAwal}");
 
         $balance = (int) $request->stock_awal;
 
@@ -159,5 +172,18 @@ class MonitoringMIPController extends Controller
         }
 
         return response()->json(['status' => 'success']);
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'bulan' => 'required|integer|between:1,12',
+            'tahun' => 'required|integer|min:2020',
+        ]);
+
+        $bulan = $request->bulan;
+        $tahun = $request->tahun;
+
+        return Excel::download(new MonitoringMIPExport($bulan, $tahun), "Monitoring_MIP_{$bulan}_{$tahun}.xlsx");
     }
 }
