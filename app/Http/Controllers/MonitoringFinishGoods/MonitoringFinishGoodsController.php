@@ -13,6 +13,8 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use App\Exports\FinishGoodsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MonitoringFinishGoodsController extends Controller
 {
@@ -202,5 +204,16 @@ class MonitoringFinishGoodsController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function export(Request $request)
+    {
+        $bulan = (int) $request->input('bulan', now()->month);
+        $tahun = (int) $request->input('tahun', now()->year);
+
+        $namaBulan = \Carbon\Carbon::create()->month($bulan)->translatedFormat('F');
+        $fileName = "Monitoring_Finish_Goods_{$namaBulan}_{$tahun}.xlsx";
+
+        return Excel::download(new FinishGoodsExport($bulan, $tahun), $fileName);
     }
 }

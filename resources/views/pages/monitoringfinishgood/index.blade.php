@@ -25,8 +25,9 @@
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-6 d-flex align-items-end justify-content-end">
-                    <button id="reload_table" class="btn btn-primary">🔄 Refresh Data</button>
+                <div class="col-md-6 d-flex align-items-end justify-content-end gap-2 mt-2 mt-md-0">
+                    <button id="reload_table" class="btn btn-primary btn-sm">🔄 Refresh Data</button>
+                    <button id="export_excel" class="btn btn-success btn-sm">📁 Export Excel</button>
                 </div>
             </div>
 
@@ -405,6 +406,17 @@
                             timer: 2000
                         });
                     });
+            });
+
+            $('#export_excel').on('click', function () {
+                const bulan = $('#filter_bulan').val();
+                const tahun = $('#filter_tahun').val();
+
+                const url = new URL('{{ route("monitoring.finishgood.export") }}', window.location.origin);
+                url.searchParams.set('bulan', bulan);
+                url.searchParams.set('tahun', tahun);
+
+                window.location.href = url.toString();
             });
         });
     </script>

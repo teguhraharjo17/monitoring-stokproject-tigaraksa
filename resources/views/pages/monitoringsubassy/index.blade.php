@@ -25,13 +25,13 @@
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-6 d-flex align-items-end justify-content-end gap-2">
-                    <button id="reload_table" class="btn btn-primary">🔄 Refresh Data</button>
+                <div class="col-md-6 d-flex flex-wrap align-items-end justify-content-end gap-2 mt-2 mt-md-0">
+                    <button id="reload_table" class="btn btn-primary btn-sm">🔄 Refresh Data</button>
 
                     <form id="export_form" action="{{ route('monitoring.subassy.export') }}" method="GET" target="_blank" class="d-inline">
                         <input type="hidden" name="bulan" id="export_bulan">
                         <input type="hidden" name="tahun" id="export_tahun">
-                        <button type="submit" class="btn btn-success">📤 Export Excel</button>
+                        <button type="submit" class="btn btn-success btn-sm">📤 Export Excel</button>
                     </form>
                 </div>
             </div>
