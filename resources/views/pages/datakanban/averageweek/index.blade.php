@@ -61,7 +61,6 @@
         </div>
     </div>
 
-    {{-- Style --}}
     <style>
         .table-responsive {
             max-width: 100%;
@@ -85,16 +84,26 @@
             vertical-align: middle !important;
         }
 
-        /* Hover effect */
+        /* Hover effect full row + pointer */
         #avgweek_table tbody tr:hover {
             background-color: #e2f0ff !important;
             cursor: pointer;
         }
 
+        #avgweek_table tbody tr.selected td {
+            background-color: #cdeaff !important;
+        }
+
         #avgweek_table tbody tr {
             transition: background-color 0.2s ease;
         }
+
+        /* Highlight untuk kolom genap */
+        .highlight-genap {
+            background-color: #d4edda !important;
+        }
     </style>
+
 
     {{-- Script --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -122,9 +131,21 @@
                     { data: 'minggu_3' },
                     { data: 'minggu_4' }
                 ],
+                createdRow: function (row, data, dataIndex) {
+                    $('td', row).each(function (index) {
+                        if (index === 5 || index === 7) {
+                            $(this).addClass('highlight-genap');
+                        }
+                    });
+                },
                 initComplete: function () {
                     this.api().columns.adjust();
                 }
+            });
+        
+            $('#avgweek_table tbody').on('click', 'tr', function () {
+                $('#avgweek_table tbody tr').removeClass('selected');
+                $(this).addClass('selected');
             });
 
             function getFilterParams() {
@@ -171,6 +192,13 @@
                         { data: 'minggu_3' },
                         { data: 'minggu_4' }
                     ],
+                    createdRow: function (row, data, dataIndex) {
+                        $('td', row).each(function (index) {
+                            if (index === 5 || index === 7) {
+                                $(this).addClass('highlight-genap');
+                            }
+                        });
+                    },
                     initComplete: function () {
                         this.api().columns.adjust();
                     }
