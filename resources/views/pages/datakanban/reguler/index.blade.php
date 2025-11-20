@@ -70,6 +70,19 @@
         .border-left-strong {
             border-left: 2px solid #000 !important;
         }
+
+        #kanban_table tbody tr:hover td {
+            background-color: #e2f0ff !important;
+            cursor: pointer;
+        }
+
+        #kanban_table tbody tr.selected td {
+            background-color: #cdeaff !important;
+        }
+
+        #kanban_table tbody tr td {
+            transition: background-color 0.2s ease;
+        }
     </style>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -176,6 +189,11 @@
 
         $('#filter_bulan, #filter_tahun').on('change', function () {
             updateExportLink();
+        });
+
+        $('#kanban_table tbody').on('click', 'tr', function () {
+            $('#kanban_table tbody tr').removeClass('selected');
+            $(this).addClass('selected');
         });
 
         function updateExportLink() {
