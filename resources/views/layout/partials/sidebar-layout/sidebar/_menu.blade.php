@@ -98,19 +98,46 @@
 					<span class="menu-heading fw-bold text-uppercase fs-7">Report Menu</span>
 				</div>
 			</div>
+			<div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('datakanban.*') ? 'here show' : '' }}">
+				<span class="menu-link">
+					<span class="menu-icon">{!! getIcon('archive', 'fs-2') !!}</span>
+					<span class="menu-title">Data Kanban</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link {{ request()->routeIs('datakanban.reguler.*') ? 'active' : '' }}" href="{{ route('datakanban.reguler.index') }}">
+							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+							<span class="menu-title">Reguler</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link" href="#">
+							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+							<span class="menu-title">Average Week</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link" href="#">
+							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+							<span class="menu-title">O/S per Weekly</span>
+						</a>
+					</div>
+				</div>
+			</div>
 			<div class="menu-item">
 				<a class="menu-link" href="#">
 					<span class="menu-icon">{!! getIcon('scroll', 'fs-2') !!}</span>
 					<span class="menu-title">SPK Packing Member</span>
 				</a>
 			</div>
+
 			<div class="menu-item">
 				<a class="menu-link" href="#">
 					<span class="menu-icon">{!! getIcon('book-square', 'fs-2') !!}</span>
 					<span class="menu-title">Report Proses Packing MIP</span>
 				</a>
 			</div>
-
 		</div>
 		<!--end::Menu-->
 	</div>

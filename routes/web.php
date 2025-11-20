@@ -12,6 +12,7 @@ use App\Http\Controllers\LevelStock\LevelStockController;
 use App\Http\Controllers\MonitoringSubAssy\MonitoringSubAssyController;
 use App\Http\Controllers\MonitoringMIP\MonitoringMIPController;
 use App\Http\Controllers\MonitoringFinishGoods\MonitoringFinishGoodsController;
+use App\Http\Controllers\DataKanban\Reguler\RegulerController;
 
 // ======================
 // PUBLIC
@@ -115,6 +116,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/data', [MonitoringFinishGoodsController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringFinishGoodsController::class, 'save'])->name('save');
             Route::get('/export', [MonitoringFinishGoodsController::class, 'export'])->name('export');
+        });
+    });
+
+    Route::prefix('datakanban')->name('datakanban.')->group(function () {
+        Route::prefix('reguler')->name('reguler.')->group(function () {
+            Route::get('/', [RegulerController::class, 'index'])->name('index');
+            Route::get('/data', [RegulerController::class, 'data'])->name('data');
+            Route::get('/export', [RegulerController::class, 'export'])->name('export');
         });
     });
 });
