@@ -35,9 +35,11 @@ class AverageWeekExport implements FromArray, WithEvents, ShouldAutoSize
 
         $rows = [];
 
+        // Title and Periode
         $rows[] = ['REKAP DATA KANBAN TARIKAN REGULER - AVERAGE WEEK'];
         $rows[] = ['Periode: ' . strtoupper(Carbon::create($this->tahun, $this->bulan, 1)->translatedFormat('F Y'))];
 
+        // Header rows start at row 3
         $rows[] = ['No', 'Customer', 'Part Number', 'Models', 'Sum Per Weekly', '', '', ''];
         $rows[] = ['', '', '', '', 'I', 'II', 'III', 'IV'];
 
@@ -53,12 +55,7 @@ class AverageWeekExport implements FromArray, WithEvents, ShouldAutoSize
 
             $details = $header?->details ?? collect();
 
-            $minggu = [
-                1 => 0,
-                2 => 0,
-                3 => 0,
-                4 => 0
-            ];
+            $minggu = [1 => 0, 2 => 0, 3 => 0, 4 => 0];
 
             for ($i = 1; $i <= $jumlahHari; $i++) {
                 $row = $details->firstWhere('tanggal', $i);
@@ -85,7 +82,7 @@ class AverageWeekExport implements FromArray, WithEvents, ShouldAutoSize
                 $minggu[1],
                 $minggu[2],
                 $minggu[3],
-                $minggu[4]
+                $minggu[4],
             ];
         });
 
@@ -97,54 +94,57 @@ class AverageWeekExport implements FromArray, WithEvents, ShouldAutoSize
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
-
-                $titleRow = 1;
-                $periodeRow = 2;
-                $firstHeaderRow = 3;
-                $secondHeaderRow = 4;
-                $dataStartRow = 5;
-                $dataCount = count($this->data) - 4;
                 $lastCol = 'H';
+                $headerStartRow = 3;
+                $headerEndRow = 4;
+                $dataStartRow = 5;
+                $dataRowCount = count($this->data) - 4;
 
-                $sheet->mergeCells("A{$titleRow}:{$lastCol}{$titleRow}");
-                $sheet->mergeCells("A{$periodeRow}:{$lastCol}{$periodeRow}");
+                // Merge title and periode
+                $sheet->mergeCells("A1:H1");
+                $sheet->mergeCells("A2:H2");
 
-                $sheet->getStyle("A{$titleRow}")->applyFromArray([
+                // Style title
+                $sheet->getStyle("A1")->applyFromArray([
                     'font' => ['bold' => true, 'size' => 16, 'color' => ['rgb' => 'FFFFFF']],
                     'alignment' => ['horizontal' => 'center'],
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '343A40']],
                 ]);
 
-                $sheet->getStyle("A{$periodeRow}")->applyFromArray([
+                // Style periode
+                $sheet->getStyle("A2")->applyFromArray([
                     'font' => ['italic' => true, 'size' => 12, 'color' => ['rgb' => 'FFFFFF']],
                     'alignment' => ['horizontal' => 'center'],
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '6C757D']],
                 ]);
 
+                // Merge main headers
                 foreach (range('A', 'D') as $col) {
-                    $sheet->mergeCells("{$col}{$firstHeaderRow}:{$col}{$secondHeaderRow}");
+                    $sheet->mergeCells("{$col}{$headerStartRow}:{$col}{$headerEndRow}");
                 }
-                $sheet->mergeCells("E{$firstHeaderRow}:H{$firstHeaderRow}");
+                $sheet->mergeCells("E{$headerStartRow}:H{$headerStartRow}");
 
-                $sheet->getStyle("A{$firstHeaderRow}:H{$secondHeaderRow}")->applyFromArray([
+                // Style header rows
+                $sheet->getStyle("A{$headerStartRow}:H{$headerEndRow}")->applyFromArray([
                     'font' => ['bold' => true],
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D9EAF7']],
                     'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
                     'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
                 ]);
 
+                // Sub header coloring
                 foreach (range('E', 'H') as $col) {
-                    $sheet->getStyle("{$col}{$secondHeaderRow}")->getFill()->setFillType(Fill::FILL_SOLID)
+                    $sheet->getStyle("{$col}{$headerEndRow}")->getFill()->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setRGB('E2EFDA');
                 }
 
-                $sheet->getStyle("A{$dataStartRow}:H" . ($dataStartRow + $dataCount - 1))
-                    ->getBorders()->getAllBorders()
-                    ->setBorderStyle(Border::BORDER_THIN);
-
-                $sheet->getStyle("A{$dataStartRow}:H" . ($dataStartRow + $dataCount - 1))
+                // Data rows border & alignment
+                $sheet->getStyle("A{$dataStartRow}:H" . ($dataStartRow + $dataRowCount - 1))
+                    ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle("A{$dataStartRow}:H" . ($dataStartRow + $dataRowCount - 1))
                     ->getAlignment()->setHorizontal('center')->setVertical('center');
 
+                // Freeze pane below header
                 $sheet->freezePane("A{$dataStartRow}");
             }
         ];

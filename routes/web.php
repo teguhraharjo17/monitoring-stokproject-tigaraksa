@@ -13,6 +13,7 @@ use App\Http\Controllers\MonitoringSubAssy\MonitoringSubAssyController;
 use App\Http\Controllers\MonitoringMIP\MonitoringMIPController;
 use App\Http\Controllers\MonitoringFinishGoods\MonitoringFinishGoodsController;
 use App\Http\Controllers\DataKanban\Reguler\RegulerController;
+use App\Http\Controllers\DataKanban\AverageWeek\AverageWeekController;
 
 // ======================
 // PUBLIC
@@ -124,6 +125,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', [RegulerController::class, 'index'])->name('index');
             Route::post('/data', [RegulerController::class, 'data'])->name('data');
             Route::get('/export', [RegulerController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('averageweek')->name('averageweek.')->group(function () {
+            Route::get('/', [AverageWeekController::class, 'index'])->name('index');
+            Route::get('/data', [AverageWeekController::class, 'data'])->name('data');
+            Route::get('/export', [AverageWeekController::class, 'export'])->name('export');
         });
     });
 });
