@@ -131,6 +131,11 @@
                     { data: 'minggu_3' },
                     { data: 'minggu_4' }
                 ],
+                columnDefs: [
+                    { width: '350px', targets: [1,2] },
+                    { width: '700px', targets: 3 },
+                    { width: '70px', targets: [4, 5, 6, 7] }
+                ],
                 createdRow: function (row, data, dataIndex) {
                     $('td', row).each(function (index) {
                         if (index === 5 || index === 7) {
@@ -191,6 +196,10 @@
                         { data: 'minggu_2' },
                         { data: 'minggu_3' },
                         { data: 'minggu_4' }
+                    ],
+                    columnDefs: [
+                        { width: '450px', targets: 3 },
+                        { width: '70px', targets: [4, 5, 6, 7] }
                     ],
                     createdRow: function (row, data, dataIndex) {
                         $('td', row).each(function (index) {
