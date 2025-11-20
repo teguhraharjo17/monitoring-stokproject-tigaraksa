@@ -122,7 +122,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('datakanban')->name('datakanban.')->group(function () {
         Route::prefix('reguler')->name('reguler.')->group(function () {
             Route::get('/', [RegulerController::class, 'index'])->name('index');
-            Route::get('/data', [RegulerController::class, 'data'])->name('data');
+            Route::post('/data', [RegulerController::class, 'data'])->name('data');
             Route::get('/export', [RegulerController::class, 'export'])->name('export');
         });
     });

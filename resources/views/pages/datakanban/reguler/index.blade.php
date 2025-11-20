@@ -159,9 +159,13 @@
                 scrollX: true,
                 ajax: {
                     url: "{{ route('datakanban.reguler.data') }}",
-                    data: {
-                        bulan,
-                        tahun
+                    type: "POST",
+                    data: function (d) {
+                        d.bulan = $('#filter_bulan').val();
+                        d.tahun = $('#filter_tahun').val();
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     }
                 },
                 createdRow: function(row, data, dataIndex) {

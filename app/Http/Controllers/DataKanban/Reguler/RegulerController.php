@@ -20,6 +20,10 @@ class RegulerController extends Controller
 
     public function data(Request $request)
     {
+        $request->validate([
+            'bulan' => 'required|integer|min:1|max:12',
+            'tahun' => 'required|integer|min:2020|max:' . (now()->year + 1),
+        ]);
         $bulan = $request->bulan ?? now()->month;
         $tahun = $request->tahun ?? now()->year;
         $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
