@@ -118,7 +118,7 @@
 						</a>
 					</div>
 					<div class="menu-item">
-						<a class="menu-link" href="#">
+						<a class="menu-link {{ request()->routeIs('datakanban.osperweek.*') ? 'active' : '' }}" href="{{ route('datakanban.osperweek.index') }}">
 							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
 							<span class="menu-title">O/S per Weekly</span>
 						</a>

@@ -14,6 +14,7 @@ use App\Http\Controllers\MonitoringMIP\MonitoringMIPController;
 use App\Http\Controllers\MonitoringFinishGoods\MonitoringFinishGoodsController;
 use App\Http\Controllers\DataKanban\Reguler\RegulerController;
 use App\Http\Controllers\DataKanban\AverageWeek\AverageWeekController;
+use App\Http\Controllers\DataKanban\OSPERWEEK\OSPERWEEKController;
 
 // ======================
 // PUBLIC
@@ -131,6 +132,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', [AverageWeekController::class, 'index'])->name('index');
             Route::get('/data', [AverageWeekController::class, 'data'])->name('data');
             Route::get('/export', [AverageWeekController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('osperweek')->name('osperweek.')->group(function () {
+            Route::get('/', [OSPERWEEKController::class, 'index'])->name('index');
+            Route::get('/data', [OSPERWEEKController::class, 'data'])->name('data');
+            Route::get('/export', [OSPERWEEKController::class, 'export'])->name('export');
         });
     });
 });
