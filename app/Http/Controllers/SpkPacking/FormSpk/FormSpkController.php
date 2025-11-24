@@ -85,6 +85,7 @@ class FormSpkController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'tanggal_proses' => 'required|date',
             'details' => 'required|array|min:1',
             'details.*.part_number' => 'required|string',
             'details.*.customer' => 'nullable|string',
@@ -107,6 +108,7 @@ class FormSpkController extends Controller
                 'tanggal' => (int) $now->format('d'),
                 'bulan' => $now->month,
                 'tahun' => $now->year,
+                'tanggal_proses' => $validated['tanggal_proses'],
                 'created_by' => auth()->id(),
             ]);
 

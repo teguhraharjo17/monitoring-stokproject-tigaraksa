@@ -141,7 +141,7 @@
 					</div>
 
 					<div class="menu-item">
-						<a class="menu-link" href="#">
+						<a class="menu-link {{ request()->routeIs('spkpacking.approveppic.*') ? 'active' : '' }}" href="{{ route('spkpacking.approveppic.index') }}">
 							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
 							<span class="menu-title">Approve PPIC</span>
 						</a>

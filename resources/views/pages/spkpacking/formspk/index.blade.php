@@ -9,6 +9,12 @@
         <form action="{{ route('spkpacking.formspk.store') }}" method="POST" id="form-spk-submit">
             @csrf
             <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-sm-6">
+                        <label for="tanggal_proses" class="form-label">Tanggal Proses:</label>
+                        <input type="date" name="tanggal_proses" id="tanggal_proses" class="form-control" required>
+                    </div>
+                </div>
                 <table class="table table-bordered" id="form-spk-table">
                     <thead>
                         <tr>

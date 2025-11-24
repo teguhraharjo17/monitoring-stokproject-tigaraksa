@@ -16,6 +16,7 @@ use App\Http\Controllers\DataKanban\Reguler\RegulerController;
 use App\Http\Controllers\DataKanban\AverageWeek\AverageWeekController;
 use App\Http\Controllers\DataKanban\OSPERWEEK\OSPERWEEKController;
 use App\Http\Controllers\SpkPacking\FormSpk\FormSpkController;
+use App\Http\Controllers\SpkPacking\ApprovePPIC\ApprovePPICController;
 
 // ======================
 // PUBLIC
@@ -148,6 +149,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/master-items', [FormSpkController::class, 'getMasterItems'])->name('masteritems'); // For select2
             Route::get('/detail-info', [FormSpkController::class, 'getItemInfo'])->name('getiteminfo');
             Route::post('/store', [FormSpkController::class, 'store'])->name('store');
+        });
+
+         Route::prefix('approveppic')->name('approveppic.')->group(function () {
+            Route::get('/', [ApprovePPICController::class, 'index'])->name('index');
         });
     });
 });

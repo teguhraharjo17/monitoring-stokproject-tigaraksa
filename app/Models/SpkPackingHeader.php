@@ -15,6 +15,7 @@ class SpkPackingHeader extends Model
         'tanggal',
         'bulan',
         'tahun',
+        'tanggal_proses',
         'created_by',
         'approved_ppic_at',
         'approved_mip_at',
