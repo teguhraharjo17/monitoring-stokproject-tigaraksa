@@ -125,11 +125,57 @@
 					</div>
 				</div>
 			</div>
-			<div class="menu-item">
-				<a class="menu-link" href="#">
+			<div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('spkpacking.*') ? 'here show' : '' }}">
+				<span class="menu-link">
 					<span class="menu-icon">{!! getIcon('scroll', 'fs-2') !!}</span>
 					<span class="menu-title">SPK Packing Member</span>
-				</a>
+					<span class="menu-arrow"></span>
+				</span>
+				<div class="menu-sub menu-sub-accordion">
+
+					<div class="menu-item">
+						<a class="menu-link {{ request()->routeIs('spkpacking.formspk.*') ? 'active' : '' }}" href="{{ route('spkpacking.formspk.index') }}">
+							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+							<span class="menu-title">Form SPK</span>
+						</a>
+					</div>
+
+					<div class="menu-item">
+						<a class="menu-link" href="#">
+							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+							<span class="menu-title">Approve PPIC</span>
+						</a>
+					</div>
+
+					<div class="menu-item">
+						<a class="menu-link" href="#">
+							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+							<span class="menu-title">Approve MIP</span>
+						</a>
+					</div>
+
+					<div class="menu-item">
+						<a class="menu-link" href="#">
+							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+							<span class="menu-title">Approve Finish Good</span>
+						</a>
+					</div>
+
+					<div class="menu-item">
+						<a class="menu-link" href="#">
+							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+							<span class="menu-title">Approve Packing Member</span>
+						</a>
+					</div>
+
+					<div class="menu-item">
+						<a class="menu-link" href="#">
+							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+							<span class="menu-title">Approve Diketahui</span>
+						</a>
+					</div>
+
+				</div>
 			</div>
 
 			<div class="menu-item">

@@ -15,6 +15,7 @@ use App\Http\Controllers\MonitoringFinishGoods\MonitoringFinishGoodsController;
 use App\Http\Controllers\DataKanban\Reguler\RegulerController;
 use App\Http\Controllers\DataKanban\AverageWeek\AverageWeekController;
 use App\Http\Controllers\DataKanban\OSPERWEEK\OSPERWEEKController;
+use App\Http\Controllers\SpkPacking\FormSpk\FormSpkController;
 
 // ======================
 // PUBLIC
@@ -138,6 +139,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', [OSPERWEEKController::class, 'index'])->name('index');
             Route::get('/data', [OSPERWEEKController::class, 'data'])->name('data');
             Route::get('/export', [OSPERWEEKController::class, 'export'])->name('export');
+        });
+    });
+
+    Route::prefix('spkpacking')->name('spkpacking.')->group(function () {
+        Route::prefix('formspk')->name('formspk.')->group(function () {
+            Route::get('/', [FormSpkController::class, 'index'])->name('index');
+            Route::get('/master-items', [FormSpkController::class, 'getMasterItems'])->name('masteritems'); // For select2
+            Route::get('/detail-info', [FormSpkController::class, 'getItemInfo'])->name('getiteminfo');
+            Route::post('/store', [FormSpkController::class, 'store'])->name('store');
         });
     });
 });
