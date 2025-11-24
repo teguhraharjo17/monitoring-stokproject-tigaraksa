@@ -29,7 +29,7 @@ class FormSpkController extends Controller
 
         $results = $items->map(function ($item) {
             return [
-                'id' => $item->id,
+                'id' => $item->part_number,
                 'text' => $item->part_number,
                 'customer' => $item->customer,
                 'nama_part' => $item->nama_part,
@@ -41,22 +41,23 @@ class FormSpkController extends Controller
 
     public function getItemInfo(Request $request)
     {
-        $itemId = $request->input('item_id');
-        $bulan = $request->input('bulan', now()->month);
-        $tahun = $request->input('tahun', now()->year);
+        $partNumber = $request->input('item_id'); // ← isinya sekarang part_number
 
-        $item = MasterItem::find($itemId);
+        $item = MasterItem::where('part_number', $partNumber)->first();
 
         if (!$item) {
             return response()->json(['error' => 'Item not found'], 404);
         }
 
-        // Cek Qty/Set Box dan Level Stock
+        $bulan = $request->input('bulan', now()->month);
+        $tahun = $request->input('tahun', now()->year);
+
+        // Tetap lanjut seperti biasa
         $level = LevelStok::where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->with(['details' => function ($query) use ($item) {
                 $query->where('customer', $item->customer)
-                      ->where('part_number', $item->part_number);
+                    ->where('part_number', $item->part_number);
             }])
             ->first();
 
@@ -81,6 +82,7 @@ class FormSpkController extends Controller
             'stock_fg' => $lastBalance,
         ]);
     }
+
 
     public function store(Request $request)
     {
