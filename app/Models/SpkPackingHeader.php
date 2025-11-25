@@ -18,10 +18,15 @@ class SpkPackingHeader extends Model
         'tanggal_proses',
         'created_by',
         'approved_ppic_at',
+        'approved_ppic_path',
         'approved_mip_at',
+        'approved_mip_path',
         'approved_fg_at',
+        'approved_fg_path',
         'approved_packing_member_at',
-        'approved_diketahui_at'
+        'approved_packing_member_path',
+        'approved_diketahui_at',
+        'approved_diketahui_path',
     ];
 
     public function details()

@@ -58,6 +58,7 @@ class ApproveFGController extends Controller
 
         $header->update([
             'approved_fg_at' => Carbon::now(),
+            'approved_fg_path' => $path,
         ]);
 
         return response()->json([

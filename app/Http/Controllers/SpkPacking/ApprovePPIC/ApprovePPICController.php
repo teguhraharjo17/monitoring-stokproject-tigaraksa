@@ -78,11 +78,12 @@ class ApprovePPICController extends Controller
         ]);
 
         if ($request->hasFile('ttd_upload')) {
-            $path = $request->file('ttd_upload')->store('public/images/ttd_ppic');
+            $path = $request->file('ttd_upload')->store('images/ttd_ppic', 'public');
 
             $header = SpkPackingHeader::find($request->header_id);
             $header->update([
                 'approved_ppic_at' => now(),
+                'approved_ppic_path' => $path,
             ]);
         } else {
             return response()->json(['message' => 'Upload gambar tanda tangan wajib diisi.'], 422);

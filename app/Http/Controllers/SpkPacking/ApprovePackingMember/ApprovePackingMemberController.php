@@ -52,13 +52,18 @@ class ApprovePackingMemberController extends Controller
 
         $file = $request->file('ttd_upload');
         $filename = 'ttd_packing_' . $request->header_id . '.' . $file->getClientOriginalExtension();
-        $file->storeAs('images/ttd_packing_member', $filename, 'public');
+        $path = $file->storeAs('images/ttd_packing_member', $filename, 'public');
 
         DB::table('spk_packing_headers')->where('id', $request->header_id)->update([
             'approved_packing_member_at' => now(),
+            'approved_packing_member_path' => $path,
             'updated_at' => now()
         ]);
 
-        return response()->json(['message' => 'Berhasil disetujui oleh Packing Member.']);
+        return response()->json([
+            'message' => 'Berhasil disetujui oleh Packing Member.',
+            'ttd_path' => $path
+        ]);
     }
+
 }

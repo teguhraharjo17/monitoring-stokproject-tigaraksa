@@ -60,6 +60,7 @@ class ApproveMIPController extends Controller
 
         $header->update([
             'approved_mip_at' => Carbon::now(),
+            'approved_mip_path' => $path,
         ]);
 
         return response()->json([

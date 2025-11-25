@@ -52,13 +52,18 @@ class ApproveDiketahuiController extends Controller
 
         $file = $request->file('ttd_upload');
         $filename = 'ttd_diketahui_' . $request->header_id . '.' . $file->getClientOriginalExtension();
-        $file->storeAs('images/ttd_diketahui', $filename, 'public');
+        $path = $file->storeAs('images/ttd_diketahui', $filename, 'public');
 
         DB::table('spk_packing_headers')->where('id', $request->header_id)->update([
             'approved_diketahui_at' => now(),
+            'approved_diketahui_path' => $path,
             'updated_at' => now()
         ]);
 
-        return response()->json(['message' => 'Berhasil disetujui oleh pihak Diketahui.']);
+        return response()->json([
+            'message' => 'Berhasil disetujui oleh pihak Diketahui.',
+            'ttd_path' => $path
+        ]);
     }
+
 }
