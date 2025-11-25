@@ -175,6 +175,12 @@
 						</a>
 					</div>
 
+					<div class="menu-item">
+						<a class="menu-link {{ request()->routeIs('spkpacking.spklist.*') ? 'active' : '' }}" href="{{ route('spkpacking.spklist.index') }}">
+							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+							<span class="menu-title">SPK List</span>
+						</a>
+					</div>
 				</div>
 			</div>
 

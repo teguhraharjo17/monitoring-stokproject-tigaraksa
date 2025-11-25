@@ -21,6 +21,7 @@ use App\Http\Controllers\SpkPacking\ApproveMIP\ApproveMIPController;
 use App\Http\Controllers\SpkPacking\ApproveFG\ApproveFGController;
 use App\Http\Controllers\SpkPacking\ApprovePackingMember\ApprovePackingMemberController;
 use App\Http\Controllers\SpkPacking\ApproveDiketahui\ApproveDiketahuiController;
+use App\Http\Controllers\SpkPacking\SpkList\SpkListController;
 
 // ======================
 // PUBLIC
@@ -189,6 +190,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/get-by-tanggal', [ApproveDiketahuiController::class, 'getDataByTanggal'])->name('getbytanggal');
             Route::post('/bulk-update', [ApproveDiketahuiController::class, 'bulkUpdate'])->name('bulkupdate');
             Route::post('/approve', [ApproveDiketahuiController::class, 'approve'])->name('approve');
+        });
+
+        Route::prefix('spklist')->name('spklist.')->group(function () {
+            Route::get('/', [SpkListController::class, 'index'])->name('index');
+            Route::get('/datatable', [SpkListController::class, 'datatable'])->name('datatable');
+            Route::get('/export/{id}', [SpkListController::class, 'export'])->name('export');
+
         });
     });
 });
