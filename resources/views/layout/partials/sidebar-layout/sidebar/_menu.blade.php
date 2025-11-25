@@ -148,7 +148,7 @@
 					</div>
 
 					<div class="menu-item">
-						<a class="menu-link" href="#">
+						<a class="menu-link {{ request()->routeIs('spkpacking.approvemip.*') ? 'active' : '' }}" href="{{ route('spkpacking.approvemip.index') }}">
 							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
 							<span class="menu-title">Approve MIP</span>
 						</a>
