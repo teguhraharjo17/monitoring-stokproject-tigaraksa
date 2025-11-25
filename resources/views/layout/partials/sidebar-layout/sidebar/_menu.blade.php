@@ -169,7 +169,7 @@
 					</div>
 
 					<div class="menu-item">
-						<a class="menu-link" href="#">
+						<a class="menu-link {{ request()->routeIs('spkpacking.approvediketahui.*') ? 'active' : '' }}" href="{{ route('spkpacking.approvediketahui.index') }}">
 							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
 							<span class="menu-title">Approve Diketahui</span>
 						</a>
