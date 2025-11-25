@@ -19,6 +19,7 @@ use App\Http\Controllers\SpkPacking\FormSpk\FormSpkController;
 use App\Http\Controllers\SpkPacking\ApprovePPIC\ApprovePPICController;
 use App\Http\Controllers\SpkPacking\ApproveMIP\ApproveMIPController;
 use App\Http\Controllers\SpkPacking\ApproveFG\ApproveFGController;
+use App\Http\Controllers\SpkPacking\ApprovePackingMember\ApprovePackingMemberController;
 
 // ======================
 // PUBLIC
@@ -173,6 +174,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/get-by-tanggal', [ApproveFGController::class, 'getDataByTanggal'])->name('getbytanggal');
             Route::post('/bulk-update', [ApproveFGController::class, 'bulkUpdate'])->name('bulkupdate');
             Route::post('/approve', [ApproveFGController::class, 'approve'])->name('approve');
+        });
+
+        Route::prefix('approvepacking')->name('approvepacking.')->group(function () {
+            Route::get('/', [ApprovePackingMemberController::class, 'index'])->name('index');
+            Route::get('/get-by-tanggal', [ApprovePackingMemberController::class, 'getDataByTanggal'])->name('getbytanggal');
+            Route::post('/bulk-update', [ApprovePackingMemberController::class, 'bulkUpdate'])->name('bulkupdate');
+            Route::post('/approve', [ApprovePackingMemberController::class, 'approve'])->name('approve');
         });
     });
 });
