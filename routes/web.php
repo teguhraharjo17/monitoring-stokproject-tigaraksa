@@ -146,13 +146,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('spkpacking')->name('spkpacking.')->group(function () {
         Route::prefix('formspk')->name('formspk.')->group(function () {
             Route::get('/', [FormSpkController::class, 'index'])->name('index');
-            Route::get('/master-items', [FormSpkController::class, 'getMasterItems'])->name('masteritems'); // For select2
+            Route::get('/master-items', [FormSpkController::class, 'getMasterItems'])->name('masteritems');
             Route::get('/detail-info', [FormSpkController::class, 'getItemInfo'])->name('getiteminfo');
             Route::post('/store', [FormSpkController::class, 'store'])->name('store');
         });
 
          Route::prefix('approveppic')->name('approveppic.')->group(function () {
             Route::get('/', [ApprovePPICController::class, 'index'])->name('index');
+            Route::get('/get-by-tanggal', [ApprovePPICController::class, 'getDataByTanggal'])->name('getbytanggal');
+            Route::post('/update-detail/{id}', [ApprovePPICController::class, 'updateDetail'])->name('updatedetail');
+            Route::post('/bulk-update', [ApprovePPICController::class, 'bulkUpdate'])->name('bulkupdate');
+            Route::post('/approve', [ApprovePPICController::class, 'approve'])->name('approve');
         });
     });
 });
