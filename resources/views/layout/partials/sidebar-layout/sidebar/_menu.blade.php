@@ -155,7 +155,7 @@
 					</div>
 
 					<div class="menu-item">
-						<a class="menu-link" href="#">
+						<a class="menu-link {{ request()->routeIs('spkpacking.approvefg.*') ? 'active' : '' }}" href="{{ route('spkpacking.approvefg.index') }}">
 							<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
 							<span class="menu-title">Approve Finish Good</span>
 						</a>

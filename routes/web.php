@@ -18,6 +18,7 @@ use App\Http\Controllers\DataKanban\OSPERWEEK\OSPERWEEKController;
 use App\Http\Controllers\SpkPacking\FormSpk\FormSpkController;
 use App\Http\Controllers\SpkPacking\ApprovePPIC\ApprovePPICController;
 use App\Http\Controllers\SpkPacking\ApproveMIP\ApproveMIPController;
+use App\Http\Controllers\SpkPacking\ApproveFG\ApproveFGController;
 
 // ======================
 // PUBLIC
@@ -165,6 +166,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/get-by-tanggal', [ApproveMIPController::class, 'getDataByTanggal'])->name('getbytanggal');
             Route::post('/bulk-update', [ApproveMIPController::class, 'bulkUpdate'])->name('bulkupdate');
             Route::post('/approve', [ApproveMIPController::class, 'approve'])->name('approve');
+        });
+
+        Route::prefix('approvefg')->name('approvefg.')->group(function () {
+            Route::get('/', [ApproveFGController::class, 'index'])->name('index');
+            Route::get('/get-by-tanggal', [ApproveFGController::class, 'getDataByTanggal'])->name('getbytanggal');
+            Route::post('/bulk-update', [ApproveFGController::class, 'bulkUpdate'])->name('bulkupdate');
+            Route::post('/approve', [ApproveFGController::class, 'approve'])->name('approve');
         });
     });
 });
