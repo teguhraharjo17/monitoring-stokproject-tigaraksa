@@ -53,6 +53,12 @@
                                 <option value="">Pilih Role</option>
                                 <option value="Admin">Admin</option>
                                 <option value="User">User</option>
+                                <option value="PPIC">PPIC</option>
+                                <option value="MIP">MIP</option>
+                                <option value="Finish Good">Finish Good</option>
+                                <option value="Packing">Packing</option>
+                                <option value="Sub Assy">Sub Assy</option>
+                                <option value="Diketahui">Diketahui</option>
                             </select>
                         </div>
                     </div>
@@ -96,6 +102,12 @@
                                 <option value="">Pilih Role</option>
                                 <option value="Admin">Admin</option>
                                 <option value="User">User</option>
+                                <option value="PPIC">PPIC</option>
+                                <option value="MIP">MIP</option>
+                                <option value="Finish Good">Finish Good</option>
+                                <option value="Packing">Packing</option>
+                                <option value="Sub Assy">Sub Assy</option>
+                                <option value="Diketahui">Diketahui</option>
                             </select>
                         </div>
                     </div>

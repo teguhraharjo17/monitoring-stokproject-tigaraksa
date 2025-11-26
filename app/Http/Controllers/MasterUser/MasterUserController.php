@@ -52,7 +52,7 @@ class MasterUserController extends Controller
             'name'     => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
             'password' => 'required|string|min:6',
-            'role'     => 'required|string',
+            'role' => 'required|string|in:Admin,User,PPIC,MIP,Finish Good,Packing,Diketahui,Sub Assy',
         ]);
 
         if ($validator->fails()) {
@@ -76,7 +76,7 @@ class MasterUserController extends Controller
         $validator = Validator::make($request->all(), [
             'name'     => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,' . $id,
-            'role'     => 'required|string',
+            'role' => 'required|string|in:Admin,User,PPIC,MIP,Finish Good,Packing,Diketahui,Sub Assy',
             'password' => 'nullable|string|min:6',
         ]);
 

@@ -41,18 +41,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('index');
     });
 
-    // ================================
-    // Admin-only route (register)
-    // ================================
-    Route::prefix('admin')->middleware('role:Admin')->name('admin.')->group(function () {
+    // Admin-only registration
+    Route::prefix('admin')->middleware('role.access:Admin')->name('admin.')->group(function () {
         Route::get('/register', [RegisteredUserController::class, 'create'])->name('make-account');
         Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
     });
 
-    // ================================
-    // MASTER DATA (Admin only)
-    // ================================
-    Route::prefix('master')->middleware('role:Admin')->name('master.')->group(function () {
+    // ==========================
+    // MASTER DATA (Admin, PPIC, Diketahui)
+    // ==========================
+    Route::prefix('master')->middleware('role.access:Admin,PPIC,Diketahui')->name('master.')->group(function () {
         Route::prefix('item')->name('item.')->group(function () {
             Route::get('/', [MasterItemController::class, 'index'])->name('index');
             Route::get('/data', [MasterItemController::class, 'data'])->name('data');
@@ -78,12 +76,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-    // ================================
-    // DATA STOCK
-    // ================================
+    // ==========================
+    // DATA STOCK (Umum, tanpa role check)
+    // ==========================
     Route::prefix('datastock')->name('datastock.')->group(function () {
 
-        // Rekap Data
         Route::prefix('rekap')->name('rekap.')->group(function () {
             Route::get('/', [RekapDataController::class, 'index'])->name('index');
             Route::get('/data', [RekapDataController::class, 'data'])->name('data');
@@ -91,7 +88,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/fetch', [RekapDataController::class, 'fetch'])->name('fetch');
         });
 
-        // Level Stock
         Route::prefix('levelstock')->name('levelstock.')->group(function () {
             Route::get('/', [LevelStockController::class, 'index'])->name('index');
             Route::get('/data', [LevelStockController::class, 'data'])->name('data');
@@ -102,25 +98,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-    // ================================
+    // ==========================
     // MONITORING
-    // ================================
+    // ==========================
     Route::prefix('monitoring')->name('monitoring.')->group(function () {
-        Route::prefix('subassy')->name('subassy.')->group(function () {
+
+        Route::prefix('subassy')->middleware('role.access:Sub Assy')->name('subassy.')->group(function () {
             Route::get('/', [MonitoringSubAssyController::class, 'index'])->name('index');
             Route::post('/data', [MonitoringSubAssyController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringSubAssyController::class, 'save'])->name('save');
             Route::get('/export', [MonitoringSubAssyController::class, 'export'])->name('export');
         });
 
-        Route::prefix('mip')->name('mip.')->group(function () {
+        Route::prefix('mip')->middleware('role.access:MIP')->name('mip.')->group(function () {
             Route::get('/', [MonitoringMIPController::class, 'index'])->name('index');
             Route::post('/data', [MonitoringMIPController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringMIPController::class, 'save'])->name('save');
             Route::get('/export', [MonitoringMIPController::class, 'export'])->name('export');
         });
 
-        Route::prefix('finishgood')->name('finishgood.')->group(function () {
+        Route::prefix('finishgood')->middleware('role.access:Finish Good')->name('finishgood.')->group(function () {
             Route::get('/', [MonitoringFinishGoodsController::class, 'index'])->name('index');
             Route::post('/data', [MonitoringFinishGoodsController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringFinishGoodsController::class, 'save'])->name('save');
@@ -128,6 +125,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
+    // ==========================
+    // DATA KANBAN (umum)
+    // ==========================
     Route::prefix('datakanban')->name('datakanban.')->group(function () {
         Route::prefix('reguler')->name('reguler.')->group(function () {
             Route::get('/', [RegulerController::class, 'index'])->name('index');
@@ -148,15 +148,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
+    // ==========================
+    // SPK PACKING
+    // ==========================
     Route::prefix('spkpacking')->name('spkpacking.')->group(function () {
-        Route::prefix('formspk')->name('formspk.')->group(function () {
+
+        Route::prefix('formspk')->middleware('role.access:Packing')->name('formspk.')->group(function () {
             Route::get('/', [FormSpkController::class, 'index'])->name('index');
             Route::get('/master-items', [FormSpkController::class, 'getMasterItems'])->name('masteritems');
             Route::get('/detail-info', [FormSpkController::class, 'getItemInfo'])->name('getiteminfo');
             Route::post('/store', [FormSpkController::class, 'store'])->name('store');
         });
 
-         Route::prefix('approveppic')->name('approveppic.')->group(function () {
+        Route::prefix('approveppic')->middleware('role.access:PPIC')->name('approveppic.')->group(function () {
             Route::get('/', [ApprovePPICController::class, 'index'])->name('index');
             Route::get('/get-by-tanggal', [ApprovePPICController::class, 'getDataByTanggal'])->name('getbytanggal');
             Route::post('/update-detail/{id}', [ApprovePPICController::class, 'updateDetail'])->name('updatedetail');
@@ -164,28 +168,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/approve', [ApprovePPICController::class, 'approve'])->name('approve');
         });
 
-        Route::prefix('approvemip')->name('approvemip.')->group(function () {
+        Route::prefix('approvemip')->middleware('role.access:MIP')->name('approvemip.')->group(function () {
             Route::get('/', [ApproveMIPController::class, 'index'])->name('index');
             Route::get('/get-by-tanggal', [ApproveMIPController::class, 'getDataByTanggal'])->name('getbytanggal');
             Route::post('/bulk-update', [ApproveMIPController::class, 'bulkUpdate'])->name('bulkupdate');
             Route::post('/approve', [ApproveMIPController::class, 'approve'])->name('approve');
         });
 
-        Route::prefix('approvefg')->name('approvefg.')->group(function () {
+        Route::prefix('approvefg')->middleware('role.access:Finish Good')->name('approvefg.')->group(function () {
             Route::get('/', [ApproveFGController::class, 'index'])->name('index');
             Route::get('/get-by-tanggal', [ApproveFGController::class, 'getDataByTanggal'])->name('getbytanggal');
             Route::post('/bulk-update', [ApproveFGController::class, 'bulkUpdate'])->name('bulkupdate');
             Route::post('/approve', [ApproveFGController::class, 'approve'])->name('approve');
         });
 
-        Route::prefix('approvepacking')->name('approvepacking.')->group(function () {
+        Route::prefix('approvepacking')->middleware('role.access:Packing')->name('approvepacking.')->group(function () {
             Route::get('/', [ApprovePackingMemberController::class, 'index'])->name('index');
             Route::get('/get-by-tanggal', [ApprovePackingMemberController::class, 'getDataByTanggal'])->name('getbytanggal');
             Route::post('/bulk-update', [ApprovePackingMemberController::class, 'bulkUpdate'])->name('bulkupdate');
             Route::post('/approve', [ApprovePackingMemberController::class, 'approve'])->name('approve');
         });
 
-        Route::prefix('approvediketahui')->name('approvediketahui.')->group(function () {
+        Route::prefix('approvediketahui')->middleware('role.access:Diketahui')->name('approvediketahui.')->group(function () {
             Route::get('/', [ApproveDiketahuiController::class, 'index'])->name('index');
             Route::get('/get-by-tanggal', [ApproveDiketahuiController::class, 'getDataByTanggal'])->name('getbytanggal');
             Route::post('/bulk-update', [ApproveDiketahuiController::class, 'bulkUpdate'])->name('bulkupdate');
@@ -196,7 +200,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', [SpkListController::class, 'index'])->name('index');
             Route::get('/datatable', [SpkListController::class, 'datatable'])->name('datatable');
             Route::get('/export/{id}', [SpkListController::class, 'export'])->name('export');
-
         });
     });
 });
