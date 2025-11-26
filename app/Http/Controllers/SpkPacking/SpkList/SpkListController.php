@@ -20,6 +20,11 @@ class SpkListController extends Controller
     {
         $query = SpkPackingHeader::with('details');
 
+        if ($request->filled('tanggal_proses')) {
+            [$start, $end] = explode(' - ', $request->tanggal_proses);
+            $query->whereBetween('tanggal_proses', [$start, $end]);
+        }
+
         return DataTables::of($query)
             ->addIndexColumn()
             ->editColumn('tanggal_proses', function ($row) {
@@ -31,10 +36,29 @@ class SpkListController extends Controller
             ->addColumn('updated_at', function ($row) {
                 return $row->details->max('updated_at')?->format('d M Y H:i') ?? '-';
             })
+            ->addColumn('status', function ($row) {
+                $statuses = [
+                    'PPIC'       => $row->approved_ppic_at,
+                    'MIP'        => $row->approved_mip_at,
+                    'Finish Good'=> $row->approved_fg_at,
+                    'Packing'    => $row->approved_packing_member_at,
+                    'Diketahui'  => $row->approved_diketahui_at,
+                ];
+
+                $result = '<div class="d-flex flex-column align-items-start gap-1">';
+                foreach ($statuses as $label => $approvedAt) {
+                    $badge = $approvedAt
+                        ? '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>' . $label . '</span>'
+                        : '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>' . $label . '</span>';
+                    $result .= $badge;
+                }
+                $result .= '</div>';
+                return $result;
+            })
             ->addColumn('action', function ($row) {
                 return '<a href="' . route('spkpacking.spklist.export', $row->id) . '" class="btn btn-sm btn-success">📥 Export</a>';
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['action', 'status'])
             ->make(true);
     }
 

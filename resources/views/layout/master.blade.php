@@ -15,6 +15,7 @@
     <link rel="canonical" href=""/>
     <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.1.5/css/rowGroup.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/media/logos/logo_mileniagroup_small.svg') }}">
 
