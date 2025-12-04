@@ -11,15 +11,17 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class AverageWeekExport implements FromArray, WithEvents, ShouldAutoSize
+class RegulerExport implements FromArray, WithEvents, ShouldAutoSize
 {
-    protected $bulan, $tahun, $data;
+    protected $bulan, $tahun, $jumlahHari, $data;
 
     public function __construct($bulan, $tahun)
     {
         $this->bulan = $bulan;
         $this->tahun = $tahun;
+        $this->jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
         $this->data = $this->generateData();
     }
 
@@ -30,63 +32,73 @@ class AverageWeekExport implements FromArray, WithEvents, ShouldAutoSize
 
     protected function generateData(): array
     {
-        $jumlahHari = Carbon::create($this->tahun, $this->bulan, 1)->daysInMonth;
         $rekapData = RekapData::bulan($this->bulan)->tahun($this->tahun)->get();
 
         $rows = [];
 
-        $rows[] = ['REKAP DATA KANBAN TARIKAN REGULER - AVERAGE WEEK'];
-        $rows[] = ['Periode: ' . strtoupper(Carbon::create($this->tahun, $this->bulan, 1)->translatedFormat('F Y'))];
+        $judul = ['REKAP DATA KANBAN TARIKAN REGULER'];
+        $periode = ['Periode: ' . strtoupper(Carbon::createFromDate($this->tahun, $this->bulan, 1)->translatedFormat('F Y'))];
+        $rows[] = $judul;
+        $rows[] = $periode;
 
-        $rows[] = ['No', 'Customer', 'Part Number', 'Models', 'Sum Per Weekly', '', '', ''];
-        $rows[] = ['', '', '', '', 'I', 'II', 'III', 'IV'];
+        $staticHeaders = ['No', 'Customer', 'Part Number', 'Models', 'Qty PO', 'Total Qty Kanban', '% Penyerapan PO', '+/- (PCS)'];
+        $headerRow1 = $staticHeaders;
 
-        $rekapData->each(function ($item, $index) use (&$rows, $jumlahHari) {
+        for ($i = 1; $i <= $this->jumlahHari; $i++) {
+            $headerRow1[] = $i;
+            $headerRow1[] = '';
+        }
+
+        $headerRow2 = array_fill(0, count($staticHeaders), '');
+        for ($i = 1; $i <= $this->jumlahHari; $i++) {
+            $headerRow2[] = 'D';
+            $headerRow2[] = 'N';
+        }
+
+        $rows[] = $headerRow1;
+        $rows[] = $headerRow2;
+
+        $rekapData->each(function ($item, $index) use (&$rows) {
             $header = MonitoringFGHeader::with('details')->where([
                 ['bulan', $this->bulan],
                 ['tahun', $this->tahun],
                 ['customer', $item->customer],
                 ['project', $item->kode_project],
                 ['part_number', $item->part_number],
-                ['part_name', $item->models],
+                ['part_name', $item->models]
             ])->first();
 
             $details = $header?->details ?? collect();
+            $totalKanban = 0;
 
-            $minggu = [
-                1 => 0,
-                2 => 0,
-                3 => 0,
-                4 => 0
-            ];
-
-            for ($i = 1; $i <= $jumlahHari; $i++) {
-                $row = $details->firstWhere('tanggal', $i);
-                $d = (int)($row->out_qty_d ?? 0);
-                $n = (int)($row->out_qty_n ?? 0);
-                $total = $d + $n;
-
-                if ($i >= 1 && $i <= 7) {
-                    $minggu[1] += $total;
-                } elseif ($i >= 8 && $i <= 14) {
-                    $minggu[2] += $total;
-                } elseif ($i >= 15 && $i <= 21) {
-                    $minggu[3] += $total;
-                } else {
-                    $minggu[4] += $total;
-                }
-            }
-
-            $rows[] = [
+            $row = [
                 $index + 1,
                 $item->customer,
                 $item->part_number,
                 $item->models,
-                $minggu[1],
-                $minggu[2],
-                $minggu[3],
-                $minggu[4]
+                (int) $item->po_bulan_ini,
+                0,
+                '0%',
+                0
             ];
+
+            for ($i = 1; $i <= $this->jumlahHari; $i++) {
+                $d = $details->firstWhere('tanggal', $i)?->out_qty_d ?? 0;
+                $n = $details->firstWhere('tanggal', $i)?->out_qty_n ?? 0;
+                $row[] = $d;
+                $row[] = $n;
+                $totalKanban += $d + $n;
+            }
+
+            $po = (int) $item->po_bulan_ini;
+            $penyerapan = $po > 0 ? round(($totalKanban / $po) * 100, 2) . '%' : '0%';
+            $selisih = $totalKanban - $po;
+
+            $row[5] = $totalKanban;
+            $row[6] = $penyerapan;
+            $row[7] = $selisih;
+
+            $rows[] = $row;
         });
 
         return $rows;
@@ -97,14 +109,14 @@ class AverageWeekExport implements FromArray, WithEvents, ShouldAutoSize
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
-
                 $titleRow = 1;
                 $periodeRow = 2;
                 $firstHeaderRow = 3;
                 $secondHeaderRow = 4;
                 $dataStartRow = 5;
-                $dataCount = count($this->data) - 4;
-                $lastCol = 'H';
+                $dataRowCount = count($this->data) - 4;
+                $colCount = 8 + ($this->jumlahHari * 2);
+                $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colCount);
 
                 $sheet->mergeCells("A{$titleRow}:{$lastCol}{$titleRow}");
                 $sheet->mergeCells("A{$periodeRow}:{$lastCol}{$periodeRow}");
@@ -121,32 +133,46 @@ class AverageWeekExport implements FromArray, WithEvents, ShouldAutoSize
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '6C757D']],
                 ]);
 
-                foreach (range('A', 'D') as $col) {
+                foreach (range(0, 7) as $i) {
+                    $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
                     $sheet->mergeCells("{$col}{$firstHeaderRow}:{$col}{$secondHeaderRow}");
                 }
-                $sheet->mergeCells("E{$firstHeaderRow}:H{$firstHeaderRow}");
 
-                $sheet->getStyle("A{$firstHeaderRow}:H{$secondHeaderRow}")->applyFromArray([
+                $colIdx = 9;
+                for ($i = 1; $i <= $this->jumlahHari; $i++) {
+                    $startCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
+                    $endCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx + 1);
+                    $sheet->mergeCells("{$startCol}{$firstHeaderRow}:{$endCol}{$firstHeaderRow}");
+                    $colIdx += 2;
+                }
+
+                $headerRange = "A{$firstHeaderRow}:{$lastCol}{$secondHeaderRow}";
+                $sheet->getStyle($headerRange)->applyFromArray([
                     'font' => ['bold' => true],
-                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D9EAF7']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'DEEAF6']],
                     'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
                     'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
                 ]);
 
-                foreach (range('E', 'H') as $col) {
-                    $sheet->getStyle("{$col}{$secondHeaderRow}")->getFill()->setFillType(Fill::FILL_SOLID)
-                        ->getStartColor()->setRGB('E2EFDA');
+                for ($row = $dataStartRow; $row < $dataStartRow + $dataRowCount; $row++) {
+                    $colIndex = 9;
+                    for ($i = 1; $i <= $this->jumlahHari; $i++) {
+                        $sheet->getStyleByColumnAndRow($colIndex, $row)->getFill()->setFillType(Fill::FILL_SOLID)
+                            ->getStartColor()->setRGB('D4EDDA');
+                        $colIndex++;
+                        $sheet->getStyleByColumnAndRow($colIndex, $row)->getFill()->setFillType(Fill::FILL_SOLID)
+                            ->getStartColor()->setRGB('F8D7DA');
+                        $colIndex++;
+                    }
                 }
 
-                $sheet->getStyle("A{$dataStartRow}:H" . ($dataStartRow + $dataCount - 1))
-                    ->getBorders()->getAllBorders()
-                    ->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle("A{$firstHeaderRow}:{$lastCol}" . ($dataStartRow + $dataRowCount - 1))
+                    ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
-                $sheet->getStyle("A{$dataStartRow}:H" . ($dataStartRow + $dataCount - 1))
+                $sheet->getStyle("A{$dataStartRow}:{$lastCol}" . ($dataStartRow + $dataRowCount - 1))
                     ->getAlignment()->setHorizontal('center')->setVertical('center');
-
-                $sheet->freezePane("A{$dataStartRow}");
             }
+
         ];
     }
 }
