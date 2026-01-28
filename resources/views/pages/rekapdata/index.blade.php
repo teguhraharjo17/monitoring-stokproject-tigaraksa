@@ -441,54 +441,53 @@
             $('#rekap_table tbody').on('blur', 'input.editable-cell', function () {
                 const $input = $(this);
                 const $row = $input.closest('tr');
-                const id = $row.attr('data-id');
-                const name = $input.attr('name');
-                const value = $input.val();
 
-                if (!id) return;
+                setTimeout(() => {
+                    let id = $row.attr('data-id') || null;
 
-                hitungOtomatis($row);
+                    hitungOtomatis($row);
 
-                const data = {
-                    _token: '{{ csrf_token() }}',
-                    id: id,
-                    bulan: $('#filter_bulan').val(),
-                    tahun: $('#filter_tahun').val(),
-                    part_number: $row.find('[name="part_number"]').val(),
-                    customer: $row.find('[name="customer"]').val(),
-                    kode_project: $row.find('[name="kode_project"]').val(),
-                    models: $row.find('[name="models"]').val(),
-                    stock_awal_mip: $row.find('[name="stock_awal_mip"]').val() || 0,
-                    stock_awal_fg: $row.find('[name="stock_awal_fg"]').val() || 0,
-                    wip_spk_sa: $row.find('[name="wip_spk_sa"]').val() || 0,
-                    os_bulan_lalu: $row.find('[name="os_bulan_lalu"]').val() || 0,
-                    po_bulan_ini: $row.find('[name="po_bulan_ini"]').val() || 0,
-                    total_stock: $row.find('[name="total_stock"]').val() || 0,
-                    total_qty_bulan_ini: $row.find('[name="total_qty_bulan_ini"]').val() || 0,
-                    selisih_stock: $row.find('[name="selisih_stock"]').val() || 0,
-                };
+                    const data = {
+                        _token: '{{ csrf_token() }}',
+                        id: id,
+                        bulan: $('#filter_bulan').val(),
+                        tahun: $('#filter_tahun').val(),
+                        part_number: $row.find('[name="part_number"]').val(),
+                        customer: $row.find('[name="customer"]').val(),
+                        kode_project: $row.find('[name="kode_project"]').val(),
+                        models: $row.find('[name="models"]').val(),
+                        stock_awal_mip: $row.find('[name="stock_awal_mip"]').val() || 0,
+                        stock_awal_fg: $row.find('[name="stock_awal_fg"]').val() || 0,
+                        wip_spk_sa: $row.find('[name="wip_spk_sa"]').val() || 0,
+                        os_bulan_lalu: $row.find('[name="os_bulan_lalu"]').val() || 0,
+                        po_bulan_ini: $row.find('[name="po_bulan_ini"]').val() || 0,
+                        total_stock: $row.find('[name="total_stock"]').val() || 0,
+                        total_qty_bulan_ini: $row.find('[name="total_qty_bulan_ini"]').val() || 0,
+                        selisih_stock: $row.find('[name="selisih_stock"]').val() || 0,
+                    };
 
-                $.ajax({
-                    url: '{{ route("datastock.rekap.store") }}',
-                    method: 'POST',
-                    data: data,
-                    success: function () {
-                        showToast('Berhasil disimpan');
-                    },
-                    error: function (xhr) {
-                        let message = 'Gagal menyimpan';
-
-                        if (xhr.status === 422 && xhr.responseJSON?.error) {
-                            message = xhr.responseJSON.error;
-                        } else if (xhr.responseJSON?.message) {
-                            message = xhr.responseJSON.message;
+                    $.ajax({
+                        url: '{{ route("datastock.rekap.store") }}',
+                        method: 'POST',
+                        data: data,
+                        success: function (res) {
+                            if (!id && res.id) {
+                                $row.attr('data-id', res.id); // Set id-nya setelah create
+                            }
+                            showToast('Berhasil disimpan');
+                        },
+                        error: function (xhr) {
+                            let message = 'Gagal menyimpan';
+                            if (xhr.status === 422 && xhr.responseJSON?.error) {
+                                message = xhr.responseJSON.error;
+                            } else if (xhr.responseJSON?.message) {
+                                message = xhr.responseJSON.message;
+                            }
+                            console.error(xhr.responseJSON || xhr.responseText);
+                            showToast(message, 'error');
                         }
-
-                        console.error(xhr.responseJSON || xhr.responseText);
-                        showToast(message, 'error');
-                    }
-
-                });
+                    });
+                }, 150);
             });
 
             function showToast(message, icon = 'success') {
