@@ -183,9 +183,26 @@
 
             }
 
+            function calculateTotalsMIP($row) {
+                const jumlahHari = $('#mip_table thead tr:last th').length - 3; 
+
+                let totalIn = 0;
+                let totalOut = 0;
+
+                for (let i = 1; i <= jumlahHari; i++) {
+                    totalIn  += parseInt($row.find(`input[name="in_hari_${i}"]`).val()) || 0;
+                    totalOut += parseInt($row.find(`input[name="out_hari_${i}"]`).val()) || 0;
+                }
+
+                $row.find('td:eq(7)').html(`<span>${totalIn}</span>`);
+                $row.find('td:eq(8)').html(`<span>${totalOut}</span>`);
+            }
+
+
             $('#mip_table tbody').on('input', 'input[name^="out_hari_"]', function () {
                 const $row = $(this).closest('tr');
                 calculateBalance($row);
+                calculateTotalsMIP($row);
             });
 
             function generateTableHeader(jumlahHari) {

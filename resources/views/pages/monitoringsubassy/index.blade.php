@@ -487,12 +487,14 @@
                 const wipAkhir = wipValues[jumlahHari] || 0;
                 const produktivitas = totalSPK > 0 ? Math.ceil((totalProduksi / totalSPK) * 100) : 0;
 
-                $row.find('td:eq(6)').html(`<span>${totalSPK}</span>`);
-                $row.find('td:eq(7)').html(`<span>${totalProduksi}</span>`);
-                $row.find('td:eq(8)').html(`<span>${wipAkhir}</span>`);
-                $row.find('td:eq(9)').html(produktivitas < 100
+                $row.find('td:eq(7)').html(`<span>${totalSPK}</span>`);
+                $row.find('td:eq(8)').html(`<span>${totalProduksi}</span>`);
+                $row.find('td:eq(9)').html(`<span>${wipAkhir}</span>`);
+                $row.find('td:eq(10)').html(
+                produktivitas < 100
                     ? `<span style="color:red;font-weight:bold">${produktivitas}%</span>`
-                    : `${produktivitas}%`);
+                    : `${produktivitas}%`
+                );
             }
 
             $('#subassy_table tbody').on('input', 'input[name="wip_sebelumnya"]', function () {
