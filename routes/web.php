@@ -42,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Admin-only registration
-    Route::prefix('admin')->middleware('role.access:Admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->middleware('role.access:Admin, PPIC')->name('admin.')->group(function () {
         Route::get('/register', [RegisteredUserController::class, 'create'])->name('make-account');
         Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
     });
@@ -50,7 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ==========================
     // MASTER DATA (Admin, PPIC, Diketahui)
     // ==========================
-    Route::prefix('master')->middleware('role.access:Admin,PPIC,Diketahui')->name('master.')->group(function () {
+    Route::prefix('master')->middleware('role.access:Admin,PPIC')->name('master.')->group(function () {
         Route::prefix('item')->name('item.')->group(function () {
             Route::get('/', [MasterItemController::class, 'index'])->name('index');
             Route::get('/data', [MasterItemController::class, 'data'])->name('data');
@@ -81,14 +81,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ==========================
     Route::prefix('datastock')->name('datastock.')->group(function () {
 
-        Route::prefix('rekap')->name('rekap.')->group(function () {
+        Route::prefix('rekap')->middleware('role.access:Admin,PPIC')->name('rekap.')->group(function () {
             Route::get('/', [RekapDataController::class, 'index'])->name('index');
             Route::get('/data', [RekapDataController::class, 'data'])->name('data');
             Route::post('/store', [RekapDataController::class, 'store'])->name('store');
             Route::get('/fetch', [RekapDataController::class, 'fetch'])->name('fetch');
         });
 
-        Route::prefix('levelstock')->name('levelstock.')->group(function () {
+
+        Route::prefix('levelstock')->middleware('role.access:Admin,PPIC')->name('levelstock.')->group(function () {
             Route::get('/', [LevelStockController::class, 'index'])->name('index');
             Route::get('/data', [LevelStockController::class, 'data'])->name('data');
             Route::post('/update-jumlah-hari-kerja', [LevelStockController::class, 'updateJumlahHariKerja'])->name('updateHariKerja');
@@ -103,21 +104,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ==========================
     Route::prefix('monitoring')->name('monitoring.')->group(function () {
 
-        Route::prefix('subassy')->middleware('role.access:Sub Assy')->name('subassy.')->group(function () {
+        Route::prefix('subassy')->middleware('role.access:Sub Assy,PPIC')->name('subassy.')->group(function () {
             Route::get('/', [MonitoringSubAssyController::class, 'index'])->name('index');
             Route::post('/data', [MonitoringSubAssyController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringSubAssyController::class, 'save'])->name('save');
             Route::get('/export', [MonitoringSubAssyController::class, 'export'])->name('export');
         });
 
-        Route::prefix('mip')->middleware('role.access:MIP')->name('mip.')->group(function () {
+        Route::prefix('mip')->middleware('role.access:MIP,PPIC')->name('mip.')->group(function () {
             Route::get('/', [MonitoringMIPController::class, 'index'])->name('index');
             Route::post('/data', [MonitoringMIPController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringMIPController::class, 'save'])->name('save');
             Route::get('/export', [MonitoringMIPController::class, 'export'])->name('export');
         });
 
-        Route::prefix('finishgood')->middleware('role.access:Finish Good')->name('finishgood.')->group(function () {
+        Route::prefix('finishgood')->middleware('role.access:Finish Good,PPIC')->name('finishgood.')->group(function () {
             Route::get('/', [MonitoringFinishGoodsController::class, 'index'])->name('index');
             Route::post('/data', [MonitoringFinishGoodsController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringFinishGoodsController::class, 'save'])->name('save');
@@ -153,7 +154,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ==========================
     Route::prefix('spkpacking')->name('spkpacking.')->group(function () {
 
-        Route::prefix('formspk')->middleware('role.access:Packing')->name('formspk.')->group(function () {
+        Route::prefix('formspk')->middleware('role.access:Finish Good,PPIC')->name('formspk.')->group(function () {
             Route::get('/', [FormSpkController::class, 'index'])->name('index');
             Route::get('/master-items', [FormSpkController::class, 'getMasterItems'])->name('masteritems');
             Route::get('/detail-info', [FormSpkController::class, 'getItemInfo'])->name('getiteminfo');

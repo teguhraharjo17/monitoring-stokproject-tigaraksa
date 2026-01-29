@@ -31,7 +31,7 @@
 			</div>
 
 			{{-- Master Menu --}}
-			@if($isAdmin || in_array($role, ['PPIC', 'Diketahui']))
+			@if($isAdmin)
 				<div class="menu-item pt-5">
 					<div class="menu-content">
 						<span class="menu-heading fw-bold text-uppercase fs-7">Master Menu</span>
@@ -58,6 +58,7 @@
 			@endif
 
 			{{-- Data Stock --}}
+			@if($isAdmin || in_array($role, ['PPIC']))
 			<div class="menu-item pt-5">
 				<div class="menu-content">
 					<span class="menu-heading fw-bold text-uppercase fs-7">Data Stock Awal & PO</span>
@@ -75,6 +76,7 @@
 					<span class="menu-title">Level Stock MIP & FG</span>
 				</a>
 			</div>
+			@endif
 
 			{{-- Monitoring --}}
 			<div class="menu-item pt-5">
@@ -83,7 +85,7 @@
 				</div>
 			</div>
 
-			@if($isAdmin || $role === 'Sub Assy')
+			@if($isAdmin || in_array($role, ['Sub Assy', 'PPIC']))
 				<div class="menu-item">
 					<a class="menu-link {{ request()->routeIs('monitoring.subassy.*') ? 'active' : '' }}" href="{{ route('monitoring.subassy.index') }}">
 						<span class="menu-icon">{!! getIcon('search-list', 'fs-2') !!}</span>
@@ -92,7 +94,7 @@
 				</div>
 			@endif
 
-			@if($isAdmin || $role === 'MIP')
+			@if($isAdmin || in_array($role, ['MIP', 'PPIC']))
 				<div class="menu-item">
 					<a class="menu-link {{ request()->routeIs('monitoring.mip.*') ? 'active' : '' }}" href="{{ route('monitoring.mip.index') }}">
 						<span class="menu-icon">{!! getIcon('search-list', 'fs-2') !!}</span>
@@ -101,7 +103,7 @@
 				</div>
 			@endif
 
-			@if($isAdmin || $role === 'Finish Good')
+			@if($isAdmin || in_array($role, ['Finish Good', 'PPIC']))
 				<div class="menu-item">
 					<a class="menu-link {{ request()->routeIs('monitoring.finishgood.*') ? 'active' : '' }}" href="{{ route('monitoring.finishgood.index') }}">
 						<span class="menu-icon">{!! getIcon('search-list', 'fs-2') !!}</span>
@@ -153,13 +155,15 @@
 						<span class="menu-arrow"></span>
 					</span>
 					<div class="menu-sub menu-sub-accordion">
-						@if($isAdmin || $role === 'Packing')
+						@if($isAdmin || in_array($role, ['Finish Good', 'PPIC']))
 							<div class="menu-item">
 								<a class="menu-link {{ request()->routeIs('spkpacking.formspk.*') ? 'active' : '' }}" href="{{ route('spkpacking.formspk.index') }}">
 									<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
 									<span class="menu-title">Form SPK</span>
 								</a>
 							</div>
+						@endif
+						@if($isAdmin || $role === 'Packing')
 							<div class="menu-item">
 								<a class="menu-link {{ request()->routeIs('spkpacking.approvepacking.*') ? 'active' : '' }}" href="{{ route('spkpacking.approvepacking.index') }}">
 									<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>

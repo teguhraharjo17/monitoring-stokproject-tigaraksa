@@ -472,7 +472,7 @@
                         data: data,
                         success: function (res) {
                             if (!id && res.id) {
-                                $row.attr('data-id', res.id); // Set id-nya setelah create
+                                $row.attr('data-id', res.id);
                             }
                             showToast('Berhasil disimpan');
                         },
