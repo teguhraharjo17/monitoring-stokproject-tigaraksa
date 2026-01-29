@@ -34,6 +34,10 @@ class SpkPackingHeader extends Model
         return $this->hasMany(SpkPackingDetail::class, 'spk_packing_header_id');
     }
 
+    protected $casts = [
+        'tanggal_proses' => 'date',
+    ];
+
     public function getTanggalFormattedAttribute()
     {
         return \Carbon\Carbon::parse($this->tanggal)->translatedFormat('d F Y');

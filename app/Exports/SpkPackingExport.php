@@ -45,7 +45,7 @@ class SpkPackingExport
         // ==== INFO SPK ====
         $sheet->setCellValue('C4', 'No SPK :');
         $sheet->mergeCells('D4:E4');
-        $sheet->setCellValue('D4', 'MMM/SPK-PM/4/2025/14'); // Bisa kamu buat dinamis
+        $sheet->setCellValue('D4', 'MMM/SPK-PM/4/2025/14');
 
         $sheet->setCellValue('C5', 'Tanggal Proses :');
         $sheet->mergeCells('D5:E5');
