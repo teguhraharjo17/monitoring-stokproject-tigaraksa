@@ -24,28 +24,26 @@ class RekapDataController extends Controller
 
         $items = MasterItem::leftJoin('rekap_data', function ($join) use ($bulan, $tahun) {
             $join->on('master_items.part_number', '=', 'rekap_data.part_number')
-                ->on('master_items.customer', '=', 'rekap_data.customer')
-                ->on('master_items.kode_project', '=', 'rekap_data.kode_project')
-                ->on('master_items.nama_part', '=', 'rekap_data.models')
                 ->where('rekap_data.bulan', $bulan)
                 ->where('rekap_data.tahun', $tahun);
         })
-        ->selectRaw('
-            master_items.part_number,
-            master_items.customer,
-            master_items.kode_project,
-            master_items.nama_part as models,
-            rekap_data.id,
-            rekap_data.stock_awal_mip,
-            rekap_data.stock_awal_fg,
-            rekap_data.wip_spk_sa,
-            rekap_data.total_stock,
-            rekap_data.os_bulan_lalu,
-            rekap_data.po_bulan_ini,
-            rekap_data.total_qty_bulan_ini,
-            rekap_data.selisih_stock
-        ')
+        ->select([
+            'master_items.part_number',
+            'master_items.customer',
+            'master_items.kode_project',
+            'master_items.nama_part as models',
+            'rekap_data.id',
+            'rekap_data.stock_awal_mip',
+            'rekap_data.stock_awal_fg',
+            'rekap_data.wip_spk_sa',
+            'rekap_data.total_stock',
+            'rekap_data.os_bulan_lalu',
+            'rekap_data.po_bulan_ini',
+            'rekap_data.total_qty_bulan_ini',
+            'rekap_data.selisih_stock',
+        ])
         ->orderBy('master_items.part_number');
+
 
         return DataTables::of($items)->make(true);
     }

@@ -357,7 +357,7 @@
 
                         const columns = table.settings().init().columns;
                         const key = columns[index].data;
-                        const value = data[key] || '';
+                        const value = data[key] ?? '';
                         const readonly = readonlyFields.includes(key) ? 'readonly' : '';
 
                         let inputField = '';
