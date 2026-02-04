@@ -54,7 +54,17 @@ class MonitoringSubAssyController extends Controller
             }
         }
 
-        $rekapData = RekapData::where('bulan', $bulan)->where('tahun', $tahun)->get();
+        $customer = $request->customer;
+
+        $rekapData = RekapData::where('bulan', $bulan)
+            ->where('tahun', $tahun)
+            ->when($customer, function ($q) use ($customer) {
+                $q->where('customer', $customer);
+            })
+            ->orderBy('customer')
+            ->orderBy('kode_project')
+            ->orderBy('part_number')
+            ->get();
 
         $subAssies = SubAssy::with('details')
             ->where('bulan', $bulan)
