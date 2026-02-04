@@ -27,9 +27,41 @@ class MonitoringFinishGoodsController extends Controller
     {
         $bulan = (int) $request->input('bulan', now()->month);
         $tahun = (int) $request->input('tahun', now()->year);
+        $customer = $request->customer;
 
-        $rekapList = RekapData::where('bulan', $bulan)->where('tahun', $tahun)->get();
+
+        $rekapList = RekapData::where('bulan', $bulan)
+            ->where('tahun', $tahun)
+            ->when($customer, function ($q) use ($customer) {
+                $q->where('customer', $customer);
+            })
+            ->orderBy('customer')
+            ->orderBy('kode_project')
+            ->orderBy('part_number')
+            ->get();
         $data = [];
+
+        if ($request->only_customer) {
+
+            $rekapCustomer = RekapData::where('bulan', $request->bulan)
+                ->where('tahun', $request->tahun)
+                ->pluck('customer');
+
+            $fgCustomer = MonitoringFGHeader::where('bulan', $request->bulan)
+                ->where('tahun', $request->tahun)
+                ->pluck('customer');
+
+            $customers = $rekapCustomer
+                ->merge($fgCustomer)
+                ->unique()
+                ->sort()
+                ->values()
+                ->map(fn ($c) => ['customer' => $c]);
+
+            return response()->json([
+                'data' => $customers
+            ]);
+        }
 
         foreach ($rekapList as $rekap) {
             $level = DB::table('level_stok_detail as d')

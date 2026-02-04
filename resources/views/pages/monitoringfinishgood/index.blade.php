@@ -6,10 +6,10 @@
             <h3 class="card-title">Monitoring Finish Good</h3>
         </div>
         <div class="card-body">
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <label for="filter_bulan" class="form-label">Bulan</label>
-                    <select id="filter_bulan" class="form-select">
+            <div class="row g-3 align-items-end mb-4">
+                <div class="col-md-3 col-sm-6">
+                    <label for="filter_bulan" class="form-label fw-semibold">Bulan</label>
+                    <select id="filter_bulan" class="form-select form-select-sm">
                         @for ($i = 1; $i <= 12; $i++)
                             <option value="{{ $i }}" {{ now()->month == $i ? 'selected' : '' }}>
                                 {{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}
@@ -17,17 +17,27 @@
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label for="filter_tahun" class="form-label">Tahun</label>
-                    <select id="filter_tahun" class="form-select">
+
+                <div class="col-md-3 col-sm-6">
+                    <label for="filter_tahun" class="form-label fw-semibold">Tahun</label>
+                    <select id="filter_tahun" class="form-select form-select-sm">
                         @for ($y = now()->year - 2; $y <= now()->year + 1; $y++)
                             <option value="{{ $y }}" {{ now()->year == $y ? 'selected' : '' }}>{{ $y }}</option>
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-6 d-flex align-items-end justify-content-end gap-2 mt-2 mt-md-0">
-                    <button id="reload_table" class="btn btn-primary btn-sm">🔄 Refresh Data</button>
-                    <button id="export_excel" class="btn btn-success btn-sm">📁 Export Excel</button>
+
+                <!-- CUSTOMER -->
+                <div class="col-md-3 col-sm-6">
+                    <label for="filter_customer" class="form-label fw-semibold">Customer</label>
+                    <select id="filter_customer" class="form-select form-select-sm">
+                        <option value="">-- Semua Customer --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 col-sm-6 d-flex gap-2 justify-content-md-end">
+                    <button id="reload_table" class="btn btn-primary btn-sm">🔄 Refresh</button>
+                    <button id="export_excel" class="btn btn-success btn-sm">📁 Export</button>
                 </div>
             </div>
 
@@ -234,6 +244,7 @@
                         d._token = '{{ csrf_token() }}';
                         d.bulan = bulan;
                         d.tahun = tahun;
+                        d.customer = $('#filter_customer').val();
                     }
                 },
                 columns: generateTable(jumlahHari)
@@ -245,6 +256,12 @@
 
             $('#filter_bulan, #filter_tahun, #reload_table').on('change click', function () {
                 reloadTable();
+            });
+
+            $('#filter_customer').select2({
+                placeholder: '-- Semua Customer --',
+                allowClear: true,
+                width: '100%'
             });
 
             $('#fg_table tbody').on('blur', 'input[name^="out_hari_"], input[name^="in_hari_"]', function () {
@@ -418,6 +435,40 @@
 
                 window.location.href = url.toString();
             });
+
+            function loadCustomerFilter() {
+                $.ajax({
+                    url: '{{ route("monitoring.finishgood.data") }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        bulan: $('#filter_bulan').val(),
+                        tahun: $('#filter_tahun').val(),
+                        only_customer: true
+                    },
+                    success: function (res) {
+                        const select = $('#filter_customer');
+                        select.empty().append('<option value=""></option>');
+
+                        res.data.forEach(r => {
+                            select.append(`<option value="${r.customer}">${r.customer}</option>`);
+                        });
+                    }
+                });
+            }
+
+            $('#filter_bulan, #filter_tahun').on('change', function () {
+                $('#filter_customer').val(null).trigger('change');
+                loadCustomerFilter();
+                reloadTable();
+            });
+
+            $('#filter_customer').on('change', function () {
+                reloadTable();
+            });
+
+            loadCustomerFilter();
+            reloadTable();
         });
     </script>
 </x-default-layout>
