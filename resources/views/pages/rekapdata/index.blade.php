@@ -28,6 +28,15 @@
                         @endfor
                     </select>
                 </div>
+                <div>
+                    <label for="filter_customer" class="mb-1 fw-bold">Pilih Customer:</label>
+                    <select id="filter_customer" class="form-select form-select-sm" style="width: 200px;">
+                        <option value="">-- Semua Customer --</option>
+                        @foreach ($masterItems->pluck('customer')->unique()->sort() as $customer)
+                            <option value="{{ $customer }}">{{ $customer }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
             <div class="mb-3 d-flex justify-content-end gap-2">
                 <button id="tambah_row" class="btn btn-sm btn-primary">
@@ -303,6 +312,10 @@
             background-color: #bbb;
             border-radius: 4px;
         }
+
+        #filter_customer + .select2 {
+            display: block !important;
+        }
     </style>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -324,6 +337,7 @@
                     data: function (d) {
                         d.bulan = $('#filter_bulan').val();
                         d.tahun = $('#filter_tahun').val();
+                        d.customer = $('#filter_customer').val();
                     }
                 },
                 columns: [
@@ -413,6 +427,16 @@
                     });
                     inisialisasiSelect2($(row));
                 }
+            });
+
+            $('#filter_customer').select2({
+                placeholder: '-- Semua Customer --',
+                allowClear: true,
+                width: '200px'
+            });
+
+            table.on('processing.dt', function (e, settings, processing) {
+                $('#filter_customer').prop('disabled', processing);
             });
 
             $('#rekap_table tbody').on('input', 'input', function () {
@@ -679,8 +703,8 @@
                 });
             });
 
-            $('#filter_bulan, #filter_tahun').on('change', function () {
-                table.ajax.reload();
+            $('#filter_bulan, #filter_tahun, #filter_customer').on('change', function () {
+                table.ajax.reload(null, false);
             });
 
             $('#rekap_table').on('draw.dt', function () {
