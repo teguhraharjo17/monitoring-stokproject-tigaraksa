@@ -29,7 +29,39 @@ class MonitoringMIPController extends Controller
 
             Log::info("MonitoringMIPController::data => bulan: $bulan, tahun: $tahun");
 
-            $rekap = RekapData::where('bulan', $bulan)->where('tahun', $tahun)->get();
+            if ($request->only_customer) {
+
+                $rekapCustomer = RekapData::where('bulan', $request->bulan)
+                    ->where('tahun', $request->tahun)
+                    ->pluck('customer');
+
+                $mipCustomer = MonitoringMIPHeader::where('bulan', $request->bulan)
+                    ->where('tahun', $request->tahun)
+                    ->pluck('customer');
+
+                $customers = $rekapCustomer
+                    ->merge($mipCustomer)
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->map(fn ($c) => ['customer' => $c]);
+
+                return response()->json([
+                    'data' => $customers
+                ]);
+            }
+
+            $customer = $request->customer;
+
+            $rekap = RekapData::where('bulan', $bulan)
+                ->where('tahun', $tahun)
+                ->when($customer, function ($q) use ($customer) {
+                    $q->where('customer', $customer);
+                })
+                ->orderBy('customer')
+                ->orderBy('kode_project')
+                ->orderBy('part_number')
+                ->get();
             if ($rekap->isEmpty()) {
                 Log::warning("Tidak ada data Rekap untuk bulan: $bulan tahun: $tahun");
                 return DataTables::of([])->make(true);

@@ -6,10 +6,11 @@
             <h3 class="card-title">Monitoring MIP</h3>
         </div>
         <div class="card-body">
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <label for="filter_bulan" class="form-label">Bulan</label>
-                    <select id="filter_bulan" class="form-select">
+            <div class="row g-3 align-items-end mb-4">
+                <!-- Bulan -->
+                <div class="col-md-3 col-sm-6">
+                    <label for="filter_bulan" class="form-label fw-semibold">Bulan</label>
+                    <select id="filter_bulan" class="form-select form-select-sm">
                         @for ($i = 1; $i <= 12; $i++)
                             <option value="{{ $i }}" {{ now()->month == $i ? 'selected' : '' }}>
                                 {{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}
@@ -17,21 +18,42 @@
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label for="filter_tahun" class="form-label">Tahun</label>
-                    <select id="filter_tahun" class="form-select">
+
+                <!-- Tahun -->
+                <div class="col-md-3 col-sm-6">
+                    <label for="filter_tahun" class="form-label fw-semibold">Tahun</label>
+                    <select id="filter_tahun" class="form-select form-select-sm">
                         @for ($y = now()->year - 2; $y <= now()->year + 1; $y++)
-                            <option value="{{ $y }}" {{ now()->year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            <option value="{{ $y }}" {{ now()->year == $y ? 'selected' : '' }}>
+                                {{ $y }}
+                            </option>
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-6 d-flex flex-wrap align-items-end justify-content-end gap-2 mt-2 mt-md-0">
-                    <button id="reload_table" class="btn btn-primary btn-sm">🔄 Refresh Data</button>
 
-                    <form id="export_form" action="{{ route('monitoring.mip.export') }}" method="GET" class="d-inline">
+                <!-- Customer -->
+                <div class="col-md-3 col-sm-6">
+                    <label for="filter_customer" class="form-label fw-semibold">Customer</label>
+                    <select id="filter_customer" class="form-select form-select-sm">
+                        <option value="">-- Semua Customer --</option>
+                    </select>
+                </div>
+
+                <!-- Action -->
+                <div class="col-md-3 col-sm-6 d-flex gap-2 justify-content-md-end">
+                    <button id="reload_table" class="btn btn-primary btn-sm">
+                        🔄 Refresh
+                    </button>
+
+                    <form id="export_form"
+                        action="{{ route('monitoring.mip.export') }}"
+                        method="GET"
+                        class="d-inline">
                         <input type="hidden" name="bulan" id="export_bulan">
                         <input type="hidden" name="tahun" id="export_tahun">
-                        <button type="submit" class="btn btn-success btn-sm">📤 Export Excel</button>
+                        <button type="submit" class="btn btn-success btn-sm">
+                            📤 Export
+                        </button>
                     </form>
                 </div>
             </div>
@@ -63,8 +85,9 @@
         $(function () {
             function getParams() {
                 return {
-                    bulan: $('#filter_bulan').val(),
-                    tahun: $('#filter_tahun').val()
+                    bulan: parseInt($('#filter_bulan').val()),
+                    tahun: parseInt($('#filter_tahun').val()),
+                    customer: $('#filter_customer').val()
                 };
             }
 
@@ -137,7 +160,23 @@
                 ]
             });
 
+            $('#filter_customer').select2({
+                placeholder: '-- Semua Customer --',
+                allowClear: true,
+                width: '100%'
+            });
+
             $('#filter_bulan, #filter_tahun, #reload_table').on('change click', function () {
+                reloadTable();
+            });
+
+            $('#filter_bulan, #filter_tahun').on('change', function () {
+                $('#filter_customer').val(null).trigger('change');
+                loadCustomerFilter();
+                reloadTable();
+            });
+
+            $('#filter_customer').on('change', function () {
                 reloadTable();
             });
 
@@ -297,8 +336,8 @@
             }
 
             function reloadTable() {
-                const bulan = parseInt($('#filter_bulan').val());
-                const tahun = parseInt($('#filter_tahun').val());
+                const params = getParams();
+                const { bulan, tahun, customer } = params;
                 const jumlahHari = new Date(tahun, bulan, 0).getDate();
 
                 if ($.fn.DataTable.isDataTable('#mip_table')) {
@@ -325,9 +364,32 @@
                             d._token = '{{ csrf_token() }}';
                             d.bulan = bulan;
                             d.tahun = tahun;
+                            d.customer = customer;
                         }
                     },
                     columns: generateTableColumns(jumlahHari)
+                });
+            }
+
+            function loadCustomerFilter() {
+                $.ajax({
+                    url: '{{ route("monitoring.mip.data") }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        bulan: $('#filter_bulan').val(),
+                        tahun: $('#filter_tahun').val(),
+                        only_customer: true
+                    },
+                    success: function (res) {
+                        const select = $('#filter_customer');
+                        select.empty().append('<option value=""></option>');
+
+                        const customers = [...new Set(res.data.map(r => r.customer))].sort();
+                        customers.forEach(c => {
+                            select.append(`<option value="${c}">${c}</option>`);
+                        });
+                    }
                 });
             }
 
@@ -336,6 +398,7 @@
                 $('#export_tahun').val($('#filter_tahun').val());
             });
 
+            loadCustomerFilter();
             reloadTable();
         });
     </script>
