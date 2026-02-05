@@ -11,6 +11,7 @@ use App\Models\LevelStok;
 use App\Models\SubAssy;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Exports\MonitoringMIPExport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -205,6 +206,78 @@ class MonitoringMIPController extends Controller
 
         return response()->json(['status' => 'success']);
     }
+
+    public function updateStockAwal(Request $request)
+    {
+        $request->validate([
+            'bulan' => 'required|integer',
+            'tahun' => 'required|integer',
+            'customer' => 'required|string',
+            'project' => 'nullable|string',
+            'part_number' => 'required|string',
+            'stock_awal' => 'required|integer',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $header = MonitoringMIPHeader::where([
+                'bulan' => $request->bulan,
+                'tahun' => $request->tahun,
+                'customer' => $request->customer,
+                'project' => $request->project,
+                'part_number' => $request->part_number,
+            ])->firstOrFail();
+
+            $header->update([
+                'stock_awal' => $request->stock_awal
+            ]);
+
+            RekapData::where([
+                'bulan' => $request->bulan,
+                'tahun' => $request->tahun,
+                'customer' => $request->customer,
+                'kode_project' => $request->project,
+                'part_number' => $request->part_number,
+            ])->update([
+                'stock_awal_mip' => $request->stock_awal
+            ]);
+
+            $details = MonitoringMIPDetail::where('header_id', $header->id)
+                ->orderBy('tanggal')
+                ->get();
+
+            $balance = $request->stock_awal;
+
+            foreach ($details as $detail) {
+                $balance = $balance + $detail->in_qty - $detail->out_qty;
+
+                $detail->update([
+                    'balance' => $balance
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'balance' => $balance,
+                'warning' => $balance < 0
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Update Stock Awal MIP gagal', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal update stock awal'
+            ], 500);
+        }
+    }
+
 
     public function export(Request $request)
     {

@@ -116,6 +116,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/data', [MonitoringMIPController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringMIPController::class, 'save'])->name('save');
             Route::get('/export', [MonitoringMIPController::class, 'export'])->name('export');
+            Route::post('/update-stock-awal',[MonitoringMIPController::class, 'updateStockAwal'])->name('updateStockAwal');
         });
 
         Route::prefix('finishgood')->middleware('role.access:Finish Good,PPIC')->name('finishgood.')->group(function () {

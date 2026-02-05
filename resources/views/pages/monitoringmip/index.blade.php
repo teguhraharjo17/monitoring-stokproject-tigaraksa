@@ -290,7 +290,13 @@
                     },
                     {
                         data: 'stock_awal',
-                        render: d => `<span>${d ?? 0}</span>`
+                        render: d => `
+                            <input
+                                name="stock_awal"
+                                class="form-control form-control-sm text-center input-biru"
+                                value="${d ?? 0}"
+                            >
+                        `
                     },
                     { data: 'total_in', render: d => `<span>${d ?? 0}</span>` },
                     { data: 'total_out', render: d => `<span>${d ?? 0}</span>` },
@@ -392,6 +398,53 @@
                     }
                 });
             }
+
+            $('#mip_table tbody').on('blur', 'input[name="stock_awal"]', function () {
+                const $row = $(this).closest('tr');
+
+                const stockAwal = parseInt($(this).val()) || 0;
+                let balance = stockAwal;
+
+                for (let i = 1; i <= 31; i++) {
+                    const inQty  = parseInt($row.find(`input[name="in_hari_${i}"]`).val()) || 0;
+                    const outQty = parseInt($row.find(`input[name="out_hari_${i}"]`).val()) || 0;
+
+                    balance = balance + inQty - outQty;
+                    $row.find(`input[name="balance_hari_${i}"]`).val(balance);
+                }
+
+                $.post('{{ route("monitoring.mip.updateStockAwal") }}', {
+                    _token: '{{ csrf_token() }}',
+                    bulan: $('#filter_bulan').val(),
+                    tahun: $('#filter_tahun').val(),
+                    customer: $.trim($row.find('td:eq(1)').text()),
+                    project: $.trim($row.find('td:eq(2)').text()),
+                    part_number: $.trim($row.find('td:eq(3)').text()),
+                    stock_awal: stockAwal
+                })
+                .done(res => {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: res.warning ? 'warning' : 'success',
+                        title: res.warning
+                            ? `⚠️ Stock minus (${res.balance})`
+                            : 'Stock Awal diperbarui',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                })
+                .fail(() => {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: 'Gagal update Stock Awal',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                });
+            });
 
             $('#export_form').on('submit', function () {
                 $('#export_bulan').val($('#filter_bulan').val());
