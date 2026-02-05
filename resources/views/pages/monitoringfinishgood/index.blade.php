@@ -120,7 +120,16 @@
                     data: 'percentage',
                     render: d => `<span>${d ?? 0}%</span>`
                 },
-                { data: 'stock_awal', render: d => `<span>${d ?? 0}</span>` },
+                {
+                    data: 'stock_awal',
+                    render: d => `
+                        <input
+                            name="stock_awal"
+                            class="form-control form-control-sm text-center input-biru"
+                            value="${d ?? 0}"
+                        >
+                    `
+                },
                 {
                     data: 'total_in',
                     render: d => `<span>${d ?? 0}</span>`
@@ -268,7 +277,7 @@
                 const $row = $(this).closest('tr');
                 const jumlahHari = new Date($('#filter_tahun').val(), $('#filter_bulan').val(), 0).getDate();
 
-                let stockAwal = parseInt($row.find('td:eq(9)').text()) || 0;
+                let stockAwal = parseInt($row.find('input[name="stock_awal"]').val()) || 0;
                 let balance = stockAwal;
 
                 let totalOut = 0;
@@ -386,7 +395,7 @@
                     project: $row.find('td:eq(2)').text(),
                     part_number: $row.find('td:eq(3)').text(),
                     part_name: $row.find('td:eq(4)').text(),
-                    stock_awal: parseInt($row.find('td:eq(9)').text()) || 0,
+                    stock_awal: parseInt($row.find('input[name="stock_awal"]').val()) || 0,
                     level_min: levelMin,
                     level_safety: parseInt($row.find('td:eq(13)').text()) || 0,
                     level_max: levelMax,
@@ -419,6 +428,103 @@
                             position: 'top-end',
                             icon: 'error',
                             title: 'Gagal menyimpan Advance Delivery!',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    });
+            });
+
+            $('#fg_table tbody').on('blur', 'input[name="stock_awal"]', function () {
+                const $row = $(this).closest('tr');
+                const jumlahHari = new Date($('#filter_tahun').val(), $('#filter_bulan').val(), 0).getDate();
+
+                let stockAwal = parseInt($(this).val()) || 0;
+                let balance = stockAwal;
+                let totalOut = 0;
+
+                for (let i = 1; i <= jumlahHari; i++) {
+                    const inD = parseInt($row.find(`input[name="in_hari_${i}_d"]`).val()) || 0;
+                    const outD = parseInt($row.find(`input[name="out_hari_${i}_d"]`).val()) || 0;
+                    const inN = parseInt($row.find(`input[name="in_hari_${i}_n"]`).val()) || 0;
+                    const outN = parseInt($row.find(`input[name="out_hari_${i}_n"]`).val()) || 0;
+
+                    const balanceD = balance + inD - outD;
+                    const balanceN = balanceD + inN - outN;
+
+                    $row.find(`input[name="balance_hari_${i}_d"]`).val(balanceD);
+                    $row.find(`input[name="balance_hari_${i}_n"]`).val(balanceN);
+
+                    balance = balanceN;
+                    totalOut += outD + outN;
+                }
+
+                $row.find('td:eq(15) span').text(balance);
+
+                const levelMin = parseInt($row.find('td:eq(12)').text()) || 0;
+                const levelMax = parseInt($row.find('td:eq(14)').text()) || 0;
+
+                let statusBadge = '';
+                if (balance <= levelMin) {
+                    statusBadge = `<span class="badge bg-danger">Problem</span>`;
+                } else if (balance > levelMax) {
+                    statusBadge = `<span class="badge bg-warning">Over</span>`;
+                } else {
+                    statusBadge = `<span class="badge bg-success">Aman</span>`;
+                }
+                $row.find('td:eq(16)').html(statusBadge);
+
+                const data = {
+                    _token: '{{ csrf_token() }}',
+                    bulan: $('#filter_bulan').val(),
+                    tahun: $('#filter_tahun').val(),
+                    customer: $row.find('td:eq(1)').text(),
+                    project: $row.find('td:eq(2)').text(),
+                    part_number: $row.find('td:eq(3)').text(),
+                    part_name: $row.find('td:eq(4)').text(),
+                    stock_awal: stockAwal,
+                    level_min: levelMin,
+                    level_safety: parseInt($row.find('td:eq(13)').text()) || 0,
+                    level_max: levelMax,
+                    advance_delivery: parseInt($row.find('input[name="advance_delivery"]').val()) || 0
+                };
+
+                for (let i = 1; i <= jumlahHari; i++) {
+                    data[`in_hari_${i}_d`] = $row.find(`input[name="in_hari_${i}_d"]`).val();
+                    data[`out_hari_${i}_d`] = $row.find(`input[name="out_hari_${i}_d"]`).val();
+                    data[`balance_hari_${i}_d`] = $row.find(`input[name="balance_hari_${i}_d"]`).val();
+                    data[`in_hari_${i}_n`] = $row.find(`input[name="in_hari_${i}_n"]`).val();
+                    data[`out_hari_${i}_n`] = $row.find(`input[name="out_hari_${i}_n"]`).val();
+                    data[`balance_hari_${i}_n`] = $row.find(`input[name="balance_hari_${i}_n"]`).val();
+                }
+
+                $.post('{{ route("monitoring.finishgood.save") }}', data)
+                    .done(res => {
+                        if (res.warning) {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'warning',
+                                title: `⚠️ Stock minus (Balance: ${res.balance})`,
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        } else {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: 'Stock Awal Disimpan',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        }
+                    })
+                    .fail(() => {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: 'Gagal menyimpan Stock Awal!',
                             showConfirmButton: false,
                             timer: 2000
                         });

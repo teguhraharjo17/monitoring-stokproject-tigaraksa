@@ -123,6 +123,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/data', [MonitoringFinishGoodsController::class, 'data'])->name('data');
             Route::post('/save', [MonitoringFinishGoodsController::class, 'save'])->name('save');
             Route::get('/export', [MonitoringFinishGoodsController::class, 'export'])->name('export');
+            Route::post('/update-stock-awal',[MonitoringFinishGoodsController::class, 'updateStockAwal'])->name('updateStockAwal');
         });
     });
 
