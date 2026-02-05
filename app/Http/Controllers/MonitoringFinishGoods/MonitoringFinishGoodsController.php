@@ -197,28 +197,36 @@ class MonitoringFinishGoodsController extends Controller
 
             $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
 
+            $balance = (int) $header->stock_awal;
+
             for ($i = 1; $i <= $jumlahHari; $i++) {
                 $inD = (int) $request->input("in_hari_{$i}_d", 0);
                 $inN = (int) $request->input("in_hari_{$i}_n", 0);
                 $outD = (int) $request->input("out_hari_{$i}_d", 0);
                 $outN = (int) $request->input("out_hari_{$i}_n", 0);
-                $balanceD = (int) $request->input("balance_hari_{$i}_d", 0);
-                $balanceN = (int) $request->input("balance_hari_{$i}_n", 0);
+
+                $balanceD = $balance + $inD - $outD;
+                $balanceN = $balanceD + $inN - $outN;
 
                 $totalIn += $inD + $inN;
                 $totalOut += $outD + $outN;
 
-                MonitoringFGDetail::updateOrCreate([
-                    'fg_header_id' => $header->id,
-                    'tanggal' => $i,
-                ], [
-                    'in_qty_d' => $inD,
-                    'in_qty_n' => $inN,
-                    'out_qty_d' => $outD,
-                    'out_qty_n' => $outN,
-                    'balance_d' => $balanceD,
-                    'balance_n' => $balanceN,
-                ]);
+                MonitoringFGDetail::updateOrCreate(
+                    [
+                        'fg_header_id' => $header->id,
+                        'tanggal' => $i,
+                    ],
+                    [
+                        'in_qty_d' => $inD,
+                        'in_qty_n' => $inN,
+                        'out_qty_d' => $outD,
+                        'out_qty_n' => $outN,
+                        'balance_d' => $balanceD,
+                        'balance_n' => $balanceN,
+                    ]
+                );
+
+                $balance = $balanceN;
             }
 
             $header->update([
@@ -234,6 +242,81 @@ class MonitoringFinishGoodsController extends Controller
                 'status' => 'error',
                 'message' => 'Gagal menyimpan data.',
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateStockAwal(Request $request)
+    {
+        $request->validate([
+            'bulan' => 'required|integer',
+            'tahun' => 'required|integer',
+            'customer' => 'required|string',
+            'kode_project' => 'nullable|string',
+            'part_number' => 'required|string',
+            'stock_awal' => 'required|integer',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $header = MonitoringFGHeader::where([
+                'bulan' => $request->bulan,
+                'tahun' => $request->tahun,
+                'customer' => $request->customer,
+                'project' => $request->kode_project,
+                'part_number' => $request->part_number,
+            ])->firstOrFail();
+
+            // update stock awal
+            $header->update(['stock_awal' => $request->stock_awal]);
+
+            RekapData::where([
+                'bulan' => $request->bulan,
+                'tahun' => $request->tahun,
+                'customer' => $request->customer,
+                'kode_project' => $request->kode_project,
+                'part_number' => $request->part_number,
+            ])->update([
+                'stock_awal_fg' => $request->stock_awal
+            ]);
+
+            $details = MonitoringFGDetail::where('fg_header_id', $header->id)
+                ->orderBy('tanggal')
+                ->get();
+
+            $balance = $request->stock_awal;
+
+            foreach ($details as $detail) {
+                $balanceD = $balance + $detail->in_qty_d - $detail->out_qty_d;
+                $balanceN = $balanceD + $detail->in_qty_n - $detail->out_qty_n;
+
+                $detail->update([
+                    'balance_d' => $balanceD,
+                    'balance_n' => $balanceN,
+                ]);
+
+                $balance = $balanceN;
+            }
+
+            // update stock on hand + status
+            $header->update([
+                'stock_on_hand' => $balance
+            ]);
+
+            DB::commit();
+            return response()->json(['status' => 'success']);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Update Stock Awal FG gagal', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal update stock awal'
             ], 500);
         }
     }
