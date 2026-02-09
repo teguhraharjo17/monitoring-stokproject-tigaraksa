@@ -31,7 +31,7 @@
 			</div>
 
 			{{-- Master Menu --}}
-			@if($isAdmin)
+			@if($isAdmin || in_array($role, ['PPIC']))
 				<div class="menu-item pt-5">
 					<div class="menu-content">
 						<span class="menu-heading fw-bold text-uppercase fs-7">Master Menu</span>
