@@ -147,7 +147,7 @@ class MonitoringFinishGoodsController extends Controller
             $advance = $header->advance_delivery ?? 0;
             $totalOut = $header->total_out ?? 0;
             $outstanding = max(0, ($row['total_po'] ?? 0) - $advance - $totalOut);
-            $percentage = $row['total_po'] > 0 ? round(($outstanding / $row['total_po']) * 100, 2) : 0;
+            $percentage = $row['total_po'] > 0 ? round(($totalOut / $row['total_po']) * 100, 2) : 0;
 
             $row['advance_delivery'] = $advance;
             $row['outstanding'] = $outstanding;
