@@ -54,6 +54,10 @@
         .input-merah { background-color: #fcdcdc !important; }
         .input-hijau { background-color: #d6f5d6 !important; }
         .input-biru { background-color: #d8e9ff !important; font-weight: bold; color: #004085; }
+        .dataTables_scrollHead table thead tr th {
+            border: 2px solid #343a40 !important;
+        }
+
         #fg_table thead th {
             text-align: center !important;
             vertical-align: middle !important;
@@ -245,6 +249,7 @@
                 paging: false,
                 scrollX: true,
                 scrollY: '60vh',
+                responsive: false,
                 order: [[1, 'asc']],
                 ajax: {
                     url: '{{ route("monitoring.finishgood.data") }}',
@@ -258,6 +263,10 @@
                 },
                 columns: generateTable(jumlahHari)
             });
+
+            setTimeout(() => {
+                table.columns.adjust().draw(false);
+            }, 300);
         }
 
         $(function () {
@@ -280,30 +289,50 @@
                 let stockAwal = parseInt($row.find('input[name="stock_awal"]').val()) || 0;
                 let balance = stockAwal;
 
+                let totalIn = 0;     // TAMBAHAN
                 let totalOut = 0;
 
+                // =======================
+                // HITUNG PER HARI
+                // =======================
                 for (let i = 1; i <= jumlahHari; i++) {
-                    const inD = parseInt($row.find(`input[name="in_hari_${i}_d"]`).val()) || 0;
+
+                    const inD  = parseInt($row.find(`input[name="in_hari_${i}_d"]`).val()) || 0;
                     const outD = parseInt($row.find(`input[name="out_hari_${i}_d"]`).val()) || 0;
-                    const inN = parseInt($row.find(`input[name="in_hari_${i}_n"]`).val()) || 0;
+                    const inN  = parseInt($row.find(`input[name="in_hari_${i}_n"]`).val()) || 0;
                     const outN = parseInt($row.find(`input[name="out_hari_${i}_n"]`).val()) || 0;
 
                     const balanceD = balance + inD - outD;
                     const balanceN = balanceD + inN - outN;
 
+                    // update tampilan BAL
                     $row.find(`input[name="balance_hari_${i}_d"]`).val(balanceD);
                     $row.find(`input[name="balance_hari_${i}_n"]`).val(balanceN);
 
                     balance = balanceN;
 
-                    totalOut += outD + outN;
+                    // hitung total in & out
+                    totalIn += (inD + inN);
+                    totalOut += (outD + outN);
                 }
 
+                // =======================
+                // UPDATE TOTAL IN & OUT
+                // =======================
+                $row.find('td:eq(10) span').text(totalIn);
+                $row.find('td:eq(11) span').text(totalOut);
+
+                // =======================
+                // Update Stock On Hand
+                // =======================
                 $row.find('td:eq(15) span').text(balance);
 
+                // =======================
+                // Update Status Stock
+                // =======================
                 const levelMin = parseInt($row.find('td:eq(12)').text()) || 0;
-                const levelSafety = parseInt($row.find('td:eq(13)').text()) || 0;
                 const levelMax = parseInt($row.find('td:eq(14)').text()) || 0;
+
                 let statusBadge = '';
                 if (balance <= levelMin) {
                     statusBadge = `<span class="badge bg-danger">Problem</span>`;
@@ -314,14 +343,21 @@
                 }
                 $row.find('td:eq(16)').html(statusBadge);
 
+                // =======================
+                // OUTSTANDING & %
+                // =======================
                 const totalPO = parseInt($row.find('td:eq(5)').text()) || 0;
                 const advanceDelivery = parseInt($row.find('input[name="advance_delivery"]').val()) || 0;
+
                 const outstanding = Math.max(0, totalPO - advanceDelivery - totalOut);
-                const percentage = totalPO > 0 ? ((outstanding / totalPO) * 100).toFixed(2) : 0;
+                const percentage = totalPO > 0 ? ((totalOut / totalPO) * 100).toFixed(2) : 0;
 
                 $row.find('td:eq(7) span').text(outstanding);
                 $row.find('td:eq(8) span').text(`${percentage}%`);
 
+                // =======================
+                // PERSIAPAN SEND DATA
+                // =======================
                 const data = {
                     _token: '{{ csrf_token() }}',
                     bulan: $('#filter_bulan').val(),
@@ -332,26 +368,44 @@
                     part_name: $row.find('td:eq(4)').text(),
                     stock_awal: stockAwal,
                     level_min: levelMin,
-                    level_safety: levelSafety,
+                    level_safety: parseInt($row.find('td:eq(13)').text()) || 0,
                     level_max: levelMax,
-                    advance_delivery: advanceDelivery
+                    advance_delivery: advanceDelivery,
                 };
 
                 for (let i = 1; i <= jumlahHari; i++) {
-                    data[`in_hari_${i}_d`] = $row.find(`input[name="in_hari_${i}_d"]`).val();
-                    data[`out_hari_${i}_d`] = $row.find(`input[name="out_hari_${i}_d"]`).val();
+                    data[`in_hari_${i}_d`]     = $row.find(`input[name="in_hari_${i}_d"]`).val();
+                    data[`out_hari_${i}_d`]    = $row.find(`input[name="out_hari_${i}_d"]`).val();
                     data[`balance_hari_${i}_d`] = $row.find(`input[name="balance_hari_${i}_d"]`).val();
-                    data[`in_hari_${i}_n`] = $row.find(`input[name="in_hari_${i}_n"]`).val();
-                    data[`out_hari_${i}_n`] = $row.find(`input[name="out_hari_${i}_n"]`).val();
+
+                    data[`in_hari_${i}_n`]     = $row.find(`input[name="in_hari_${i}_n"]`).val();
+                    data[`out_hari_${i}_n`]    = $row.find(`input[name="out_hari_${i}_n"]`).val();
                     data[`balance_hari_${i}_n`] = $row.find(`input[name="balance_hari_${i}_n"]`).val();
                 }
 
+                // =======================
+                // SAVE ke BACKEND
+                // =======================
                 $.post('{{ route("monitoring.finishgood.save") }}', data)
                     .done(() => {
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Tersimpan!', showConfirmButton: false, timer: 1500 });
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'Data berhasil disimpan!',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
                     })
                     .fail(() => {
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Gagal menyimpan data!', showConfirmButton: false, timer: 2000 });
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: 'Gagal menyimpan data!',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
                     });
             });
 
