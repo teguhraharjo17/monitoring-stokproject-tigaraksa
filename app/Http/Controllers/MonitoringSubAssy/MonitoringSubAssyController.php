@@ -127,7 +127,7 @@ class MonitoringSubAssyController extends Controller
             'bulan'        => 'required|integer|between:1,12',
             'tahun'        => 'required|integer|min:2020',
             'customer'     => 'required|string',
-            'project'      => 'required|string',
+            'project'      => 'nullable|string',
             'part_number'  => 'required|string',
             'part_name'    => 'required|string',
         ]);
