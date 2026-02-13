@@ -33,6 +33,25 @@
             z-index: 60;
         }
 
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            height: 64px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+        }
+
+        @media (max-width: 768px) {
+            .brand-logo { height: 34px; }
+        }
+
+
         .title {
             font-weight: 900;
             letter-spacing: .3px;
@@ -197,9 +216,16 @@
 <body>
 
 <div class="topbar d-flex justify-content-between align-items-center gap-3">
-    <div>
-        <div class="title">TV Display - Monitoring Stok</div>
-        <div class="meta" id="metaText">Memuat data...</div>
+    <div class="brand">
+        <img
+            src="{{ asset('assets/media/logos/logo_milenia_login.png') }}"
+            alt="Logo Perusahaan"
+            class="brand-logo"
+        >
+        <div>
+            <div class="title">TV Display - Monitoring Stok</div>
+            <div class="meta" id="metaText">Memuat data...</div>
+        </div>
     </div>
     <div class="d-flex gap-2 align-items-center">
         <span class="badge badge-soft" id="clock">--:--:--</span>
