@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\TV;
 
 use App\Http\Controllers\Controller;
-use App\Models\RekapData;
+use App\Models\MonitoringFGHeader;
+use App\Models\MonitoringMIPHeader;
 use App\Models\SubAssy;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class TVController extends Controller
 {
@@ -26,68 +25,45 @@ class TVController extends Controller
         $daysInMonth = Carbon::create($tahun, $bulan, 1)->daysInMonth;
 
         $today = now();
-        $todayDay = ($today->year === $tahun && $today->month === $bulan) ? (int)$today->day : null;
+        $isCurrentMonth = ($today->year === $tahun && $today->month === $bulan);
+        $todayDay = $isCurrentMonth ? (int)$today->day : null;
 
-        $spkMap = $this->buildSpkMapFromApi($bulan, $tahun);
-
-        $rekapData = RekapData::where('bulan', $bulan)
-            ->where('tahun', $tahun)
-            ->when($customer, fn ($q) => $q->where('customer', $customer))
+        $query = SubAssy::query()
+            ->ofBulanTahun($bulan, $tahun)
+            ->with('details')
             ->orderBy('customer')
-            ->orderBy('kode_project')
-            ->orderBy('part_number')
-            ->get();
+            ->orderBy('project')
+            ->orderBy('part_number');
 
-        $subAssies = SubAssy::with('details')
-            ->where('bulan', $bulan)
-            ->where('tahun', $tahun)
-            ->get()
-            ->keyBy(fn ($s) => $s->customer . '|' . $s->project . '|' . $s->part_number . '|' . $s->part_name);
+        if (!empty($customer)) {
+            $query->where('customer', $customer);
+        }
 
-        $rows = [];
+        $rows = $query->get()->map(function (SubAssy $item) use ($daysInMonth) {
+            $map = [
+                'spk' => [],
+                'produksi' => [],
+            ];
 
-        foreach ($rekapData as $rekap) {
-            $key = $rekap->customer . '|' . $rekap->kode_project . '|' . $rekap->part_number . '|' . $rekap->models;
-            $subAssy = $subAssies[$key] ?? null;
-
-            $spkDays = array_fill(1, $daysInMonth, 0);
-            $prodDays = array_fill(1, $daysInMonth, 0);
-
-            if ($subAssy) {
-                foreach ($subAssy->details as $detail) {
-                    $day = (int)$detail->tanggal;
-                    if ($day < 1 || $day > $daysInMonth) {
-                        continue;
-                    }
-
-                    if ($detail->tipe === 'Produksi') {
-                        $prodDays[$day] = (int)($detail->jumlah ?? 0);
-                    }
-                }
+            foreach ($item->details as $d) {
+                $day = (int)$d->tanggal;
+                $tipe = strtolower((string)$d->tipe);
+                if (!isset($map[$tipe])) continue;
+                $map[$tipe][$day] = (int)$d->jumlah;
             }
 
-            $apiKey = $rekap->customer . '|' . $rekap->part_number;
-            if (isset($spkMap[$apiKey])) {
-                foreach ($spkMap[$apiKey] as $day => $qty) {
-                    $day = (int)$day;
-                    if ($day < 1 || $day > $daysInMonth) {
-                        continue;
-                    }
-                    $spkDays[$day] = (int)$qty;
-                }
-            }
-
-            $wipSebelumnya = (int)($subAssy->wip_sebelumnya ?? 0);
+            $spkDays = [];
+            $prodDays = [];
+            $wipDays = [];
 
             $totalSpk = 0;
             $totalProd = 0;
-            $wipDays = [];
 
-            $wipPrev = $wipSebelumnya;
+            $wipPrev = (int)($item->wip_sebelumnya ?? 0);
 
             for ($i = 1; $i <= $daysInMonth; $i++) {
-                $spk = (int)$spkDays[$i];
-                $prod = (int)$prodDays[$i];
+                $spk = (int)($map['spk'][$i] ?? 0);
+                $prod = (int)($map['produksi'][$i] ?? 0);
 
                 $totalSpk += $spk;
                 $totalProd += $prod;
@@ -95,32 +71,32 @@ class TVController extends Controller
                 $wip = $wipPrev + $spk - $prod;
                 $wipPrev = $wip;
 
+                $spkDays[$i] = $spk;
+                $prodDays[$i] = $prod;
                 $wipDays[$i] = $wip;
             }
 
-            $wipAkhir = $wipDays[$daysInMonth] ?? $wipSebelumnya;
+            $wipAkhir = $wipDays[$daysInMonth] ?? 0;
             $produktivitas = $totalSpk > 0 ? (int)ceil(($totalProd / $totalSpk) * 100) : 0;
 
-            $rows[] = [
-                'customer' => $rekap->customer,
-                'project' => $rekap->kode_project,
-                'part_number' => $rekap->part_number,
-                'part_name' => $rekap->models,
-                'total_po' => (int)($rekap->total_qty_bulan_ini ?? 0),
-
-                'wip_sebelumnya' => $wipSebelumnya,
+            return [
+                'customer' => $item->customer,
+                'project' => $item->project,
+                'part_number' => $item->part_number,
+                'part_name' => $item->part_name,
+                'total_po' => null,
+                'wip_sebelumnya' => (int)($item->wip_sebelumnya ?? 0),
                 'total_spk' => $totalSpk,
                 'total_produksi' => $totalProd,
                 'wip_akhir' => $wipAkhir,
                 'produktivitas' => $produktivitas,
-
                 'days' => [
                     'spk' => $spkDays,
                     'produksi' => $prodDays,
                     'wip' => $wipDays,
                 ],
             ];
-        }
+        });
 
         return response()->json([
             'success' => true,
@@ -133,53 +109,225 @@ class TVController extends Controller
         ]);
     }
 
-    private function buildSpkMapFromApi(int $bulan, int $tahun): array
+    public function mipData(Request $request)
     {
-        $spkData = [];
+        $bulan = (int)($request->get('bulan') ?? now()->month);
+        $tahun = (int)($request->get('tahun') ?? now()->year);
+        $customer = $request->get('customer');
 
-        try {
-            $response = Http::timeout(10)->get('http://192.168.0.8:8080/sistem-spk-tigaraksa/api/spk-data');
-            if ($response->successful()) {
-                $spkData = $response->json();
-            }
-        } catch (\Exception $e) {
-            Log::error('TV SubAssy: Gagal fetch SPK: ' . $e->getMessage());
-            return [];
+        $daysInMonth = Carbon::create($tahun, $bulan, 1)->daysInMonth;
+
+        $today = now();
+        $isCurrentMonth = ($today->year === $tahun && $today->month === $bulan);
+        $todayDay = $isCurrentMonth ? (int)$today->day : null;
+
+        $query = MonitoringMIPHeader::query()
+            ->where('bulan', $bulan)
+            ->where('tahun', $tahun)
+            ->with('details')
+            ->orderBy('customer')
+            ->orderBy('project')
+            ->orderBy('part_number');
+
+        if (!empty($customer)) {
+            $query->where('customer', $customer);
         }
 
-        $spkMap = [];
+        $rows = $query->get()->map(function (MonitoringMIPHeader $h) use ($daysInMonth) {
+            $inDays = [];
+            $outDays = [];
+            $balDays = [];
 
-        foreach ($spkData as $spk) {
-            if (empty($spk['tanggal_produksi'])) {
-                continue;
+            for ($i = 1; $i <= $daysInMonth; $i++) {
+                $inDays[$i] = 0;
+                $outDays[$i] = 0;
+                $balDays[$i] = 0;
             }
 
-            try {
-                $tanggal = Carbon::parse($spk['tanggal_produksi']);
-            } catch (\Exception $e) {
-                continue;
+            foreach ($h->details as $d) {
+                $day = (int)$d->tanggal;
+                if ($day < 1 || $day > $daysInMonth) continue;
+
+                $inDays[$day] = (int)($d->in_qty ?? 0);
+                $outDays[$day] = (int)($d->out_qty ?? 0);
             }
 
-            if ((int)$tanggal->month !== $bulan || (int)$tanggal->year !== $tahun) {
-                continue;
+            $stockAwal = (int)($h->stock_awal ?? 0);
+            $running = $stockAwal;
+
+            $totalIn = 0;
+            $totalOut = 0;
+
+            for ($i = 1; $i <= $daysInMonth; $i++) {
+                $in = (int)($inDays[$i] ?? 0);
+                $out = (int)($outDays[$i] ?? 0);
+
+                $totalIn += $in;
+                $totalOut += $out;
+
+                $running = $running + $in - $out;
+                $balDays[$i] = $running;
             }
 
-            $day = (int)$tanggal->day;
+            $balanceAkhir = $balDays[$daysInMonth] ?? $stockAwal;
 
-            foreach (($spk['details'] ?? []) as $detail) {
-                $cust = (string)($detail['customer'] ?? '');
-                $pn = (string)($detail['part_number'] ?? '');
-                if ($cust === '' || $pn === '') {
-                    continue;
-                }
+            return [
+                'customer' => $h->customer,
+                'project' => $h->project,
+                'part_number' => $h->part_number,
+                'part_name' => $h->part_name,
 
-                $key = $cust . '|' . $pn;
-                $qty = (int)($detail['qty_order_prod'] ?? 0);
+                'stock_awal' => $stockAwal,
+                'total_in' => $totalIn,
+                'total_out' => $totalOut,
+                'balance_akhir' => $balanceAkhir,
 
-                $spkMap[$key][$day] = (int)($spkMap[$key][$day] ?? 0) + $qty;
-            }
+                'level_min' => (int)($h->level_min ?? 0),
+                'level_safety' => (int)($h->level_safety ?? 0),
+                'level_max' => (int)($h->level_max ?? 0),
+
+                'days' => [
+                    'in' => $inDays,
+                    'out' => $outDays,
+                    'balance' => $balDays,
+                ],
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'bulan' => $bulan,
+            'tahun' => $tahun,
+            'daysInMonth' => $daysInMonth,
+            'todayDay' => $todayDay,
+            'rows' => $rows,
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+    }
+
+    public function fgData(Request $request)
+    {
+        $bulan = (int)($request->get('bulan') ?? now()->month);
+        $tahun = (int)($request->get('tahun') ?? now()->year);
+        $customer = $request->get('customer');
+
+        $daysInMonth = Carbon::create($tahun, $bulan, 1)->daysInMonth;
+
+        $today = now();
+        $isCurrentMonth = ($today->year === $tahun && $today->month === $bulan);
+        $todayDay = $isCurrentMonth ? (int)$today->day : null;
+
+        $query = MonitoringFGHeader::query()
+            ->where('bulan', $bulan)
+            ->where('tahun', $tahun)
+            ->with('details')
+            ->orderBy('customer')
+            ->orderBy('project')
+            ->orderBy('part_number');
+
+        if (!empty($customer)) {
+            $query->where('customer', $customer);
         }
 
-        return $spkMap;
+        $rows = $query->get()->map(function (MonitoringFGHeader $h) use ($daysInMonth) {
+            $inD = $outD = $balD = [];
+            $inN = $outN = $balN = [];
+
+            for ($i = 1; $i <= $daysInMonth; $i++) {
+                $inD[$i] = 0; $outD[$i] = 0; $balD[$i] = 0;
+                $inN[$i] = 0; $outN[$i] = 0; $balN[$i] = 0;
+            }
+
+            foreach ($h->details as $d) {
+                $day = (int)$d->tanggal;
+                if ($day < 1 || $day > $daysInMonth) continue;
+
+                $inD[$day] = (int)($d->in_qty_d ?? 0);
+                $outD[$day] = (int)($d->out_qty_d ?? 0);
+                $inN[$day] = (int)($d->in_qty_n ?? 0);
+                $outN[$day] = (int)($d->out_qty_n ?? 0);
+            }
+
+            $stockAwal = (int)($h->stock_awal ?? 0);
+            $running = $stockAwal;
+
+            $totalIn = 0;
+            $totalOut = 0;
+
+            for ($i = 1; $i <= $daysInMonth; $i++) {
+                $dIn = $inD[$i] ?? 0;
+                $dOut = $outD[$i] ?? 0;
+                $nIn = $inN[$i] ?? 0;
+                $nOut = $outN[$i] ?? 0;
+
+                $totalIn += ($dIn + $nIn);
+                $totalOut += ($dOut + $nOut);
+
+                $balanceD = $running + $dIn - $dOut;
+                $balanceN = $balanceD + $nIn - $nOut;
+
+                $balD[$i] = $balanceD;
+                $balN[$i] = $balanceN;
+
+                $running = $balanceN;
+            }
+
+            $stockOnHand = $balN[$daysInMonth] ?? $stockAwal;
+
+            $totalPO = (int)($h->total_po ?? 0);
+            $advanceDelivery = (int)($h->advance_delivery ?? 0);
+
+            $outstanding = max(0, $totalPO - $advanceDelivery - $totalOut);
+            $percentage = $totalPO > 0 ? round(($totalOut / $totalPO) * 100, 2) : 0.0;
+
+            $levelMin = (int)($h->level_min ?? 0);
+            $levelMax = (int)($h->level_max ?? 0);
+
+            $statusStock = 'Aman';
+            if ($stockOnHand <= $levelMin) $statusStock = 'Problem';
+            elseif ($stockOnHand > $levelMax) $statusStock = 'Over';
+
+            return [
+                'customer' => $h->customer,
+                'project' => $h->project,
+                'part_number' => $h->part_number,
+                'part_name' => $h->part_name,
+
+                'total_po' => $totalPO,
+                'advance_delivery' => $advanceDelivery,
+                'outstanding' => $outstanding,
+                'percentage' => $percentage,
+
+                'stock_awal' => $stockAwal,
+                'total_in' => $totalIn,
+                'total_out' => $totalOut,
+
+                'level_min' => (int)($h->level_min ?? 0),
+                'level_safety' => (int)($h->level_safety ?? 0),
+                'level_max' => (int)($h->level_max ?? 0),
+
+                'stock_on_hand' => $stockOnHand,
+                'status_stock' => $statusStock,
+
+                'days' => [
+                    'in_d' => $inD,
+                    'out_d' => $outD,
+                    'bal_d' => $balD,
+                    'in_n' => $inN,
+                    'out_n' => $outN,
+                    'bal_n' => $balN,
+                ],
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'bulan' => $bulan,
+            'tahun' => $tahun,
+            'daysInMonth' => $daysInMonth,
+            'todayDay' => $todayDay,
+            'rows' => $rows,
+            'timestamp' => now()->toDateTimeString(),
+        ]);
     }
 }

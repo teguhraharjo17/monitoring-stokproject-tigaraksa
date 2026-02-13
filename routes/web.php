@@ -32,7 +32,10 @@ Route::get('/error', fn () => abort(500));
 // TV 
 Route::prefix('tv')->name('tv.')->group(function () {
     Route::get('/', [TVController::class, 'index'])->name('index');
+
     Route::get('/data/subassy', [TVController::class, 'subAssyData'])->name('data.subassy');
+    Route::get('/data/mip', [TVController::class, 'mipData'])->name('data.mip');
+    Route::get('/data/fg', [TVController::class, 'fgData'])->name('data.fg');
 }); 
 
 // ======================
