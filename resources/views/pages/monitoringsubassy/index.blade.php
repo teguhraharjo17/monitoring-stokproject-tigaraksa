@@ -440,6 +440,7 @@
                 return [...staticCols, ...dynamicCols];
             }
 
+            let dt;
             function reloadTable() {
                 const params = getParams();
                 const { bulan, tahun, customer } = params;
@@ -453,7 +454,7 @@
                 $('#subassy_table tbody').empty();
                 generateTableHeader(jumlahHari);
 
-                const table = $('#subassy_table').DataTable({
+                dt = $('#subassy_table').DataTable({
                     processing: true,
                     serverSide: true,
                     autoWidth: false,
@@ -474,7 +475,7 @@
                     columns: generateTableColumns(jumlahHari)
                 });
 
-                table.on('draw', function () {
+                dt.on('draw', function () {
                     $('#subassy_table tbody tr').each(function () {
                         calculateTotals($(this));
                     });
@@ -490,7 +491,9 @@
             $('#reload_table').on('click', function () {
                 $('#export_bulan').val($('#filter_bulan').val());
                 $('#export_tahun').val($('#filter_tahun').val());
+                reloadTable();
             });
+
 
             $('#export_form').on('submit', function () {
                 $('#export_bulan').val($('#filter_bulan').val());
@@ -557,6 +560,9 @@
 
             $('#subassy_table tbody').on('blur', 'input', function () {
                 const $row = $(this).closest('tr');
+                const rowData = dt.row($row).data();
+                if (!rowData) return;
+
                 const { bulan, tahun } = getParams();
                 const jumlahHari = $('#subassy_table thead tr:last th').length;
 
@@ -564,10 +570,10 @@
                     _token: '{{ csrf_token() }}',
                     bulan,
                     tahun,
-                    customer: $row.find('td:eq(1)').text(),
-                    project: $row.find('td:eq(2)').text(),
-                    part_number: $row.find('td:eq(3)').text(),
-                    part_name: $row.find('td:eq(4)').text(),
+                    customer: rowData.customer,
+                    project: rowData.project,
+                    part_number: rowData.part_number,
+                    part_name: rowData.part_name,
                     wip_sebelumnya: $row.find('input[name="wip_sebelumnya"]').val(),
                 };
 
@@ -579,26 +585,28 @@
 
                 $.post('{{ route("monitoring.subassy.save") }}', data)
                     .done(() => {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'success',
-                            title: 'Tersimpan!',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                    })
-                    .fail(() => {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'error',
-                            title: 'Gagal menyimpan data!',
-                            showConfirmButton: false,
-                            timer: 2000
-                        });
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Tersimpan!',
+                        showConfirmButton: false,
+                        timer: 1500
                     });
+                    })
+                    .fail((xhr) => {
+                    console.log('SAVE ERROR', xhr.status, xhr.responseJSON);
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: xhr.responseJSON?.message ?? 'Gagal menyimpan data!',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                });
             });
+
 
             function loadCustomerFilter() {
                 $.ajax({

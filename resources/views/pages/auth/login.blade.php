@@ -46,6 +46,14 @@
             </button>
         </div>
         <!--end::Submit button-->
+
+        <!--begin::TV Display link-->
+        <div class="text-center">
+            <a href="{{ route('tv.index') }}" target="_blank" class="link-primary fw-semibold">
+                Buka Display TV
+            </a>
+        </div>
+        <!--end::TV Display link-->
     </form>
     <!--end::Form-->
 

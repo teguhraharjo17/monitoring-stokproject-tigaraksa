@@ -22,11 +22,18 @@ use App\Http\Controllers\SpkPacking\ApproveFG\ApproveFGController;
 use App\Http\Controllers\SpkPacking\ApprovePackingMember\ApprovePackingMemberController;
 use App\Http\Controllers\SpkPacking\ApproveDiketahui\ApproveDiketahuiController;
 use App\Http\Controllers\SpkPacking\SpkList\SpkListController;
+use App\Http\Controllers\TV\TVController;
 
 // ======================
 // PUBLIC
 // ======================
 Route::get('/error', fn () => abort(500));
+
+// TV 
+Route::prefix('tv')->name('tv.')->group(function () {
+    Route::get('/', [TVController::class, 'index'])->name('index');
+    Route::get('/data/subassy', [TVController::class, 'subAssyData'])->name('data.subassy');
+}); 
 
 // ======================
 // AUTH + VERIFIED
