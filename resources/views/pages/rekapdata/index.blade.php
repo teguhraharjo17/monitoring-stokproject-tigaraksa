@@ -341,25 +341,20 @@
                     }
                 },
                 columns: [
-                    {
-                        data: null,
-                        title: 'No',
-                        orderable: false,
-                        searchable: false,
-                        render: (data, type, row, meta) => meta.row + 1
-                    },
-                    { data: 'part_number', name: 'part_number' },
-                    { data: 'customer', name: 'customer' },
-                    { data: 'kode_project', name: 'kode_project' },
-                    { data: 'models', name: 'models' },
-                    { data: 'stock_awal_mip', name: 'stock_awal_mip' },
-                    { data: 'stock_awal_fg', name: 'stock_awal_fg' },
-                    { data: 'wip_spk_sa', name: 'wip_spk_sa' },
-                    { data: 'total_stock', name: 'total_stock' },
-                    { data: 'os_bulan_lalu', name: 'os_bulan_lalu' },
-                    { data: 'po_bulan_ini', name: 'po_bulan_ini' },
-                    { data: 'total_qty_bulan_ini', name: 'total_qty_bulan_ini' },
-                    { data: 'selisih_stock', name: 'selisih_stock' },
+                    { data: null, orderable: false, searchable: false, render: (d,t,r,m) => m.row + 1 },
+
+                    { data: 'part_number',  name: 'master_items.part_number' },
+                    { data: 'customer',     name: 'master_items.customer' },
+                    { data: 'kode_project', name: 'master_items.kode_project' },
+                    { data: 'models',       name: 'master_items.nama_part' },
+                    { data: 'stock_awal_mip',       name: 'rekap_data.stock_awal_mip' },
+                    { data: 'stock_awal_fg',        name: 'rekap_data.stock_awal_fg' },
+                    { data: 'wip_spk_sa',           name: 'rekap_data.wip_spk_sa' },
+                    { data: 'total_stock',          name: 'rekap_data.total_stock' },
+                    { data: 'os_bulan_lalu',        name: 'rekap_data.os_bulan_lalu' },
+                    { data: 'po_bulan_ini',         name: 'rekap_data.po_bulan_ini' },
+                    { data: 'total_qty_bulan_ini',  name: 'rekap_data.total_qty_bulan_ini' },
+                    { data: 'selisih_stock',        name: 'rekap_data.selisih_stock' },
                     { data: null, orderable: false, searchable: false, render: () => '' }
                 ],
                 createdRow: function (row, data, dataIndex) {
