@@ -80,7 +80,7 @@
             <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between w-100">
                 <div>
                     <div class="fw-bold">Rekap Harian</div>
-                    <div class="text-muted small">SA(WIP), MIP(BAL), FG(BAL), Total, Level Min, Status</div>
+                    <div class="text-muted small">SA(WIP), MIP(BAL), FG(BAL), Total, Level Stock N, Status Level (Day)</div>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -109,8 +109,8 @@
                             <th class="text-end w-num sort" data-key="mip_bal" data-type="num">MIP (BAL)</th>
                             <th class="text-end w-num sort" data-key="fg_bal" data-type="num">FG (BAL)</th>
                             <th class="text-end w-num sort" data-key="total" data-type="num">Total</th>
-                            <th class="text-end w-num sort" data-key="level_stock_n" data-type="num">Level Min</th>
-                            <th class="text-end w-stat sort" data-key="status_level_day" data-type="num">Status</th>
+                            <th class="text-end w-num sort" data-key="level_stock_n" data-type="num">Level Stock N</th>
+                            <th class="text-end w-stat sort" data-key="status_level_day" data-type="num">Status Level (Day)</th>
                         </tr>
                     </thead>
 
@@ -224,7 +224,7 @@
                                             <div class="fw-bold">{{ number_format($r->total) }}</div>
                                         </div>
                                         <div class="col-6">
-                                            <div class="text-muted small">Level Min</div>
+                                            <div class="text-muted small">Level Stock N</div>
                                             <div class="fw-semibold">{{ number_format($r->level_stock_n) }}</div>
                                         </div>
                                     </div>
