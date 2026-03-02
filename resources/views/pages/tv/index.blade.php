@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TV Display</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -16,10 +16,38 @@
       --head:#122042;
       --today:#ff3b3b;
 
-      /* ====== ZOOM OUT (ubah ini) ====== */
-      --zoom: 0.85;        /* 0.80 - 0.95 biasanya enak buat TV */
-      --topbar-h: 92px;    /* tinggi topbar, buat hitung layout */
+      --zoom: 0.80;
+      --auto-fit: 1;
+      --design-w: 1920;
+      --design-h: 1080;
+
+      --topbar-h: 92px;
       --wrap-pad: 14px;
+
+      /* TABLE COMPACT */
+      --tbl-font: clamp(10px, 0.85vw, 13px);
+      --tbl-pad-y: 6px;
+      --tbl-pad-x: 8px;
+
+      --tbl-pill-font: clamp(10px, 0.82vw, 12px);
+      --tbl-pill-pad-y: 6px;
+      --tbl-pill-pad-x: 6px;
+      --tbl-pill-gap: 6px;
+
+      --tbl-legend-font: clamp(10px, 0.82vw, 12px);
+      --tbl-legend-pad-y: 6px;
+      --tbl-legend-pad-x: 6px;
+      --tbl-legend-gap: 6px;
+
+      --w-no: 54px;
+      --w-cust: 150px;
+      --w-proj: 130px;
+      --w-pn: 190px;
+      --w-name: 240px;
+      --w-status: 120px;
+      --w-num: 120px;
+      --w-date-min: 96px;
+      --w-date-max: 130px;
     }
 
     html, body { height: 100%; }
@@ -28,29 +56,30 @@
       background:var(--bg);
       color:var(--text);
       font-family:system-ui, Segoe UI, Roboto, Arial, sans-serif;
-      overflow:hidden; /* penting: biar yang scroll hanya table-wrap */
+      overflow:hidden;
     }
 
-    /* ====== APP LAYOUT: topbar + content flex ====== */
-    .app{
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      min-height:0;
+    .scale-stage{ position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
+    .scale-root{
+      position: absolute; top: 0; left: 0;
+      transform-origin: top left;
+      transform: scale(var(--zoom));
+      width: calc(100% / var(--zoom));
+      height: calc(100% / var(--zoom));
     }
+    @supports (zoom: 1){
+      .scale-root{ transform:none; width:100%; height:100%; zoom: var(--zoom); }
+    }
+
+    .app{ height:100%; display:flex; flex-direction:column; min-height:0; }
 
     .topbar{
       height: var(--topbar-h);
       padding: 14px 18px;
       border-bottom: 1px solid var(--line);
       background: rgba(15, 26, 51, .95);
-      position: sticky;
-      top: 0;
-      z-index: 200;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap: 12px;
+      position: sticky; top: 0; z-index: 200;
+      display:flex; justify-content:space-between; align-items:center; gap: 12px;
     }
 
     .brand{ display:flex; align-items:center; gap:12px; min-width:0; }
@@ -65,24 +94,7 @@
     .badge-soft{ background: rgba(255,255,255,.08); border:1px solid var(--line); }
     code{ color:#ffd0db; }
 
-    /* ====== ZOOM OUT ====== */
-    /* Chrome/Edge: zoom paling enak */
-    .zoom-root{ zoom: var(--zoom); }
-    /* fallback (kalau browser gak support zoom) */
-    @supports not (zoom: 1){
-      .zoom-root{
-        transform: scale(var(--zoom));
-        transform-origin: top left;
-        width: calc(100% / var(--zoom));
-        height: calc(100% / var(--zoom));
-      }
-    }
-
-    .wrap{
-      flex:1;
-      min-height:0;
-      padding: var(--wrap-pad) 18px;
-    }
+    .wrap{ flex:1; min-height:0; padding: var(--wrap-pad) 18px; }
 
     .panel{
       height:100%;
@@ -90,9 +102,7 @@
       border: 1px solid var(--line);
       border-radius: 14px;
       overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      min-height:0;
+      display:flex; flex-direction:column; min-height:0;
     }
 
     .tv-tabs{ flex:0 0 auto; }
@@ -103,16 +113,9 @@
       border-color: var(--line);
     }
 
-    .tab-content{
-      flex:1;
-      min-height:0;
-    }
-    .tab-pane{
-      height:100%;
-      min-height:0;
-    }
+    .tab-content{ flex:1; min-height:0; }
+    .tab-pane{ height:100%; min-height:0; }
 
-    /* ====== TABLE WRAP FULL HEIGHT ====== */
     .table-wrap{
       height:100%;
       overflow:auto;
@@ -120,88 +123,78 @@
       overscroll-behavior: contain;
       background: rgba(255,255,255,.02);
     }
-
     .table-wrap::-webkit-scrollbar{ height:12px; width:12px; }
     .table-wrap::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.18); border-radius:10px; }
 
-    table{
-      width:max-content;
-      min-width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      table-layout:auto;
-    }
+    table{ width:max-content; min-width:100%; border-collapse:separate; border-spacing:0; table-layout:auto; }
 
-    th, td{
+    .table-compact th, .table-compact td{
       border-right:1px solid var(--line);
       border-bottom:1px solid var(--line);
-      padding: 10px 12px;
+      padding: var(--tbl-pad-y) var(--tbl-pad-x);
       text-align:center;
       white-space:nowrap;
-      font-size: clamp(12px, 1.1vw, 16px);
+      font-size: var(--tbl-font);
       background: rgba(255,255,255,.02);
       vertical-align:middle;
     }
+    .table-compact thead th{ background: var(--head); }
 
-    thead th { background: var(--head); }.sticky-1,.sticky-2,.sticky-3,.sticky-4,.sticky-5,.sticky-6 { z-index: 600; }
-
-    .w-no{ width:64px; min-width:64px; }
-    .w-cust{ width:180px; min-width:180px; }
-    .w-proj{ width:150px; min-width:150px; }
-    .w-pn{ width:220px; min-width:220px; }
-    .w-name{ width:280px; min-width:280px; }
-    .w-status{ width:140px; min-width:140px; }
-    .w-num{ width:140px; min-width:140px; }
-    .w-date{ width: clamp(120px, 7vw, 160px); min-width: clamp(120px, 7vw, 160px); }
-
-    /* Sticky left (kolom awal) */
     .sticky-1,.sticky-2,.sticky-3,.sticky-4,.sticky-5,.sticky-6{
-      position: sticky;
-      left: 0;
-      z-index: 120;
+      position: sticky; left: 0; z-index: 120;
       background: var(--head) !important;
     }
-    td.sticky-1,td.sticky-2,td.sticky-3,td.sticky-4,td.sticky-5,td.sticky-6{
-      background:#101b36 !important;
-      z-index: 90;
+    .table-compact td.sticky-1,.table-compact td.sticky-2,.table-compact td.sticky-3,
+    .table-compact td.sticky-4,.table-compact td.sticky-5,.table-compact td.sticky-6{
+      background:#101b36 !important; z-index: 90;
     }
 
-    tbody tr:nth-child(odd) td{ background: rgba(255,255,255,.03); }
-    tbody tr:hover td{ background: rgba(255,255,255,.07); }
-    tbody tr:hover td.sticky-1,
-    tbody tr:hover td.sticky-2,
-    tbody tr:hover td.sticky-3,
-    tbody tr:hover td.sticky-4,
-    tbody tr:hover td.sticky-5,
-    tbody tr:hover td.sticky-6{ background:#14224a !important; }
+    .table-compact tbody tr:nth-child(odd) td{ background: rgba(255,255,255,.03); }
+    .table-compact tbody tr:hover td{ background: rgba(255,255,255,.07); }
+    .table-compact tbody tr:hover td.sticky-1,
+    .table-compact tbody tr:hover td.sticky-2,
+    .table-compact tbody tr:hover td.sticky-3,
+    .table-compact tbody tr:hover td.sticky-4,
+    .table-compact tbody tr:hover td.sticky-5,
+    .table-compact tbody tr:hover td.sticky-6{ background:#14224a !important; }
 
-    .cell-stack{ display:flex; flex-direction:column; gap:10px; width:100%; }
+    .cell-stack{ display:flex; flex-direction:column; gap: var(--tbl-pill-gap); width:100%; }
     .pill{
-      border-radius:10px;
-      padding:10px 10px;
-      font-weight:900;
-      line-height:1;
+      border-radius:8px;
+      padding: var(--tbl-pill-pad-y) var(--tbl-pill-pad-x);
+      font-weight:900; line-height:1;
       border:1px solid transparent;
-      font-size: clamp(12px, 1.0vw, 16px);
+      font-size: var(--tbl-pill-font);
     }
     .pill-spk{ background:#3a1220; border-color:#6b1f3a; color:#ffd0db; }
     .pill-prod{ background:#0f2a1b; border-color:#1c6b3a; color:#bff7d2; }
     .pill-wip{ background:#0f2236; border-color:#1d4f8a; color:#cce5ff; }
 
-    .legend{ display:flex; flex-direction:column; gap:10px; align-items:stretch; }
+    .legend{ display:flex; flex-direction:column; gap: var(--tbl-legend-gap); align-items:stretch; }
     .legend .tag{
-      border-radius:10px;
-      padding:10px 10px;
-      font-weight:900;
-      line-height:1;
+      border-radius:8px;
+      padding: var(--tbl-legend-pad-y) var(--tbl-legend-pad-x);
+      font-weight:900; line-height:1;
       border:1px solid transparent;
-      font-size: clamp(12px, 1.0vw, 15px);
+      font-size: var(--tbl-legend-font);
     }
     .tag-spk{ background:#3a1220; border-color:#6b1f3a; color:#ffd0db; }
     .tag-prod{ background:#0f2a1b; border-color:#1c6b3a; color:#bff7d2; }
     .tag-wip{ background:#0f2236; border-color:#1d4f8a; color:#cce5ff; }
 
-    .today-col{ outline:4px solid var(--today); outline-offset:-4px; }
+    .w-no{ width:var(--w-no); min-width:var(--w-no); }
+    .w-cust{ width:var(--w-cust); min-width:var(--w-cust); }
+    .w-proj{ width:var(--w-proj); min-width:var(--w-proj); }
+    .w-pn{ width:var(--w-pn); min-width:var(--w-pn); }
+    .w-name{ width:var(--w-name); min-width:var(--w-name); }
+    .w-status{ width:var(--w-status); min-width:var(--w-status); }
+    .w-num{ width:var(--w-num); min-width:var(--w-num); }
+    .w-date{
+      width: clamp(var(--w-date-min), 6vw, var(--w-date-max));
+      min-width: clamp(var(--w-date-min), 6vw, var(--w-date-max));
+    }
+
+    .today-col{ outline:3px solid var(--today); outline-offset:-3px; }
     .prod-low{ color:#ff6b6b; font-weight:900; }
     .prod-ok{ color:#9dffb1; font-weight:900; }
 
@@ -211,66 +204,123 @@
 </head>
 <body>
 
-<div class="app zoom-root">
+<div class="scale-stage">
+  <div class="scale-root" id="scaleRoot">
 
-  <div class="topbar">
-    <div class="brand">
-      <img
-        src="{{ asset('assets/media/logos/logo_milenia_login.png') }}"
-        alt="Logo Perusahaan"
-        class="brand-logo"
-      >
-      <div style="min-width:0">
-        <div class="title">TV Display - Monitoring Stok</div>
-        <div class="meta" id="metaText">Memuat data...</div>
-      </div>
-    </div>
+    <div class="app">
 
-    <div class="d-flex gap-2 align-items-center">
-      <span class="badge badge-soft" id="clock">--:--:--</span>
-      <button class="btn btn-sm btn-outline-light" id="btnReload">Refresh</button>
-    </div>
-  </div>
-
-  <div class="wrap">
-    <div class="panel">
-      <ul class="nav nav-tabs tv-tabs px-3 pt-3" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pane-subassy" type="button" role="tab">Sub Assy</button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pane-mip" type="button" role="tab">MIP</button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pane-fg" type="button" role="tab">Finish Goods</button>
-        </li>
-      </ul>
-
-      <div class="tab-content">
-        <div class="tab-pane fade show active" id="pane-subassy" role="tabpanel">
-          <div class="table-wrap" id="subassyWrap">
-            <div class="loading" id="subassyLoading">Memuat Sub Assy...</div>
-            <table class="table table-dark mb-0" id="subassyTable" style="display:none;">
-              <thead id="subassyThead"></thead>
-              <tbody id="subassyTbody"></tbody>
-            </table>
+      <div class="topbar">
+        <div class="brand">
+          <img src="{{ asset('assets/media/logos/logo_milenia_login.png') }}" alt="Logo Perusahaan" class="brand-logo">
+          <div style="min-width:0">
+            <div class="title">TV Display - Monitoring Stok</div>
+            <div class="meta" id="metaText">Memuat data...</div>
           </div>
         </div>
 
-        @include('pages.tv._mip')
-        @include('pages.tv._fg')
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge badge-soft" id="clock">--:--:--</span>
+          <button class="btn btn-sm btn-outline-light" id="btnReload">Refresh</button>
+        </div>
       </div>
-    </div>
-  </div>
 
-</div><!-- /app -->
+      <div class="wrap">
+        <div class="panel">
+
+          <ul class="nav nav-tabs tv-tabs px-3 pt-3" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pane-subassy" type="button" role="tab">Sub Assy</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pane-mip" type="button" role="tab">MIP</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pane-fg" type="button" role="tab">Finish Goods</button>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+
+            <div class="tab-pane fade show active" id="pane-subassy" role="tabpanel">
+              <div class="table-wrap" id="subassyWrap">
+                <div class="loading" id="subassyLoading">Memuat Sub Assy...</div>
+                <table class="table table-dark mb-0 table-compact" id="subassyTable" style="display:none;">
+                  <thead id="subassyThead"></thead>
+                  <tbody id="subassyTbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-mip" role="tabpanel">
+              <div class="table-wrap" id="mipWrap">
+                <div class="loading" id="mipLoading">Memuat MIP...</div>
+                <table class="table table-dark mb-0 table-compact" id="mipTable" style="display:none;">
+                  <thead id="mipThead"></thead>
+                  <tbody id="mipTbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-fg" role="tabpanel">
+              <div class="table-wrap" id="fgWrap">
+                <div class="loading" id="fgLoading">Memuat Finish Goods...</div>
+                <table class="table table-dark mb-0 table-compact" id="fgTable" style="display:none;">
+                  <thead id="fgThead"></thead>
+                  <tbody id="fgTbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+  // ====== ROUTES ======
   const subassyUrl = @json(route('tv.data.subassy'));
-  const mipUrl = @json(route('tv.data.mip'));
-  const fgUrl = @json(route('tv.data.fg'));
+  const mipUrl     = @json(route('tv.data.mip'));
+  const fgUrl      = @json(route('tv.data.fg'));
+
+  // ====== GLOBAL STATE (DECLARE ONCE!) ======
+  let lastTodayDaySubAssy = null;
+  let lastTodayDayMIP = null;
+  let lastTodayDayFG = null;
+
+  // ====== HELPERS ======
+  function clamp(n,min,max){ return Math.min(max, Math.max(min,n)); }
+  function applyZoom(value){ document.documentElement.style.setProperty('--zoom', String(value)); }
+  function getQueryParam(name){ return new URLSearchParams(location.search).get(name); }
+
+  function autoFitZoom(){
+    const autoFit = getComputedStyle(document.documentElement).getPropertyValue('--auto-fit').trim();
+    if (autoFit !== '1') return;
+
+    const designW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--design-w')) || 1920;
+    const designH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--design-h')) || 1080;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const fit = Math.min(vw / designW, vh / designH);
+    applyZoom(clamp(fit, 0.55, 0.95));
+  }
+
+  (function initZoom(){
+    const q = getQueryParam('zoom');
+    if (q){
+      document.documentElement.style.setProperty('--auto-fit', '0');
+      applyZoom(clamp(parseFloat(q), 0.45, 1.0));
+    } else {
+      autoFitZoom();
+    }
+  })();
 
   function pad(n){ return String(n).padStart(2,'0'); }
   function tickClock(){
@@ -309,61 +359,42 @@
     });
   }
 
-  /* ====== FREEZE HEADER SEMUA BARIS THEAD ======
-     - bikin tiap th sticky + top offset per baris
-     - otomatis aman untuk thead 2 baris, 3 baris, dst
-  */
-    function freezeTheadAllRows(tableId) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
+  function freezeTheadAllRows(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const thead = table.querySelector('thead');
+    if (!thead) return;
 
-        const thead = table.querySelector('thead');
-        if (!thead) return;
+    const rows = Array.from(thead.querySelectorAll('tr'));
+    if (!rows.length) return;
 
-        const rows = Array.from(thead.querySelectorAll('tr'));
-        if (!rows.length) return;
+    const rowHeights = rows.map(r => r.offsetHeight || 0);
+    const rowTops = [];
+    let acc = 0;
+    for (let i = 0; i < rowHeights.length; i++) { rowTops.push(acc); acc += rowHeights[i]; }
 
-        // ambil tinggi tiap baris (REAL height)
-        const rowHeights = rows.map(r => r.offsetHeight || 0);
+    rows.forEach((row, rIndex) => {
+      const ths = Array.from(row.querySelectorAll('th'));
+      ths.forEach(th => {
+        th.style.position = 'sticky';
+        th.style.top = rowTops[rIndex] + 'px';
 
-        // cumulative top per baris
-        const rowTops = [];
-        let acc = 0;
-        for (let i = 0; i < rowHeights.length; i++) {
-            rowTops.push(acc);
-            acc += rowHeights[i];
+        let z = 200 + (rows.length - rIndex);
+        if ([...th.classList].some(c => c.startsWith('sticky-'))) z = 500 + (rows.length - rIndex);
+        th.style.zIndex = String(z);
+
+        const span = parseInt(th.getAttribute('rowspan') || '1', 10);
+        if (span > 1) {
+          const total = rowHeights.slice(rIndex, rIndex + span).reduce((a,b) => a + b, 0);
+          if (total > 0) th.style.height = total + 'px';
+          th.style.verticalAlign = 'middle';
         }
 
-        // apply sticky per TH, handle rowspan
-        rows.forEach((row, rIndex) => {
-            const ths = Array.from(row.querySelectorAll('th'));
-            ths.forEach(th => {
-            th.style.position = 'sticky';
-            th.style.top = rowTops[rIndex] + 'px';
-
-            // z-index: makin atas makin tinggi
-            let z = 200 + (rows.length - rIndex);
-
-            // kalau sticky-left (sticky-1 dst) harus paling atas di intersection
-            if ([...th.classList].some(c => c.startsWith('sticky-'))) {
-                z = 500 + (rows.length - rIndex);
-            }
-            th.style.zIndex = String(z);
-
-            // handle rowspan: paksa height = total tinggi baris yang di-span
-            const span = parseInt(th.getAttribute('rowspan') || '1', 10);
-            if (span > 1) {
-                const total = rowHeights.slice(rIndex, rIndex + span).reduce((a,b) => a + b, 0);
-                if (total > 0) th.style.height = total + 'px';
-                th.style.verticalAlign = 'middle';
-            }
-
-            // pastikan background kebaca saat sticky
-            th.style.background = getComputedStyle(th).backgroundColor || 'var(--head)';
-            th.style.backgroundClip = 'padding-box';
-            });
-        });
-    }
+        th.style.background = getComputedStyle(th).backgroundColor || 'var(--head)';
+        th.style.backgroundClip = 'padding-box';
+      });
+    });
+  }
 
   function highlightTodayGeneric(tableId, todayDay){
     document.querySelectorAll(`#${tableId} [data-day]`).forEach(el => el.classList.remove('today-col'));
@@ -381,10 +412,8 @@
     const stickyLast = document.querySelector(stickyLastSelector);
     const stickyWidth = stickyLast ? (stickyLast.offsetLeft + stickyLast.offsetWidth) : 0;
 
-    const margin = 32;
-    const targetLeft = target.offsetLeft;
-    const desired = Math.max(0, targetLeft - stickyWidth - margin);
-    wrap.scrollLeft = desired;
+    const margin = 24;
+    wrap.scrollLeft = Math.max(0, target.offsetLeft - stickyWidth - margin);
   }
 
   const autoScrollState = {};
@@ -540,13 +569,10 @@
     });
   }
 
-  let lastTodayDaySubAssy = null;
-
   async function loadSubAssy(){
     const loading = document.getElementById('subassyLoading');
     const table = document.getElementById('subassyTable');
     const wrap = document.getElementById('subassyWrap');
-
     const keepScrollTop = wrap ? wrap.scrollTop : 0;
 
     loading.style.display = 'block';
@@ -569,10 +595,7 @@
 
     requestAnimationFrame(() => {
       if (wrap) wrap.scrollTop = keepScrollTop;
-
-      // Freeze header semua baris (ini yang kamu minta)
       freezeTheadAllRows('subassyTable');
-
       highlightTodayGeneric('subassyTable', json.todayDay);
 
       requestAnimationFrame(() => {
@@ -581,42 +604,6 @@
       });
     });
   }
-
-  document.getElementById('btnReload').addEventListener('click', () => {
-    loadSubAssy().catch(err => showErrorBox('subassyLoading', err));
-    loadMIP().catch(err => showErrorBox('mipLoading', err));
-    loadFG().catch(err => showErrorBox('fgLoading', err));
-  });
-
-  loadSubAssy().catch(err => showErrorBox('subassyLoading', err));
-  setInterval(() => loadSubAssy().catch(console.error), 1800000);
-
-  window.addEventListener('resize', () => {
-    freezeTheadAllRows('subassyTable');
-    applyStickyOffsetsFor('subassyTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
-    if (lastTodayDaySubAssy) focusTodayGeneric('subassyWrap','subassyTable','#subassyTable thead th.sticky-6', lastTodayDaySubAssy);
-
-    freezeTheadAllRows('mipTable');
-    applyStickyOffsetsFor('mipTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
-    if (lastTodayDayMIP) focusTodayGeneric('mipWrap','mipTable','#mipTable thead th.sticky-6', lastTodayDayMIP);
-
-    freezeTheadAllRows('fgTable');
-    applyStickyOffsetsFor('fgTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
-    if (lastTodayDayFG) focusTodayGeneric('fgWrap','fgTable','#fgTable thead th.sticky-6', lastTodayDayFG);
-  });
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden){
-      stopAutoScroll('subassyWrap'); stopAutoScroll('mipWrap'); stopAutoScroll('fgWrap');
-    } else {
-      startAutoScroll('subassyWrap'); startAutoScroll('mipWrap'); startAutoScroll('fgWrap');
-      if (lastTodayDaySubAssy) focusTodayGeneric('subassyWrap','subassyTable','#subassyTable thead th.sticky-6', lastTodayDaySubAssy);
-      if (lastTodayDayMIP) focusTodayGeneric('mipWrap','mipTable','#mipTable thead th.sticky-6', lastTodayDayMIP);
-      if (lastTodayDayFG) focusTodayGeneric('fgWrap','fgTable','#fgTable thead th.sticky-6', lastTodayDayFG);
-    }
-  });
-
-  window.addEventListener('load', () => startAutoScroll('subassyWrap'));
 </script>
 
 <!-- ========================= MIP ========================= -->
@@ -725,13 +712,10 @@
     });
   }
 
-  let lastTodayDayMIP = null;
-
   async function loadMIP(){
     const loading = document.getElementById('mipLoading');
     const table = document.getElementById('mipTable');
     const wrap = document.getElementById('mipWrap');
-
     const keepScrollTop = wrap ? wrap.scrollTop : 0;
 
     loading.style.display = 'block';
@@ -751,7 +735,6 @@
 
     requestAnimationFrame(() => {
       if (wrap) wrap.scrollTop = keepScrollTop;
-
       freezeTheadAllRows('mipTable');
       highlightTodayGeneric('mipTable', json.todayDay);
 
@@ -763,13 +746,9 @@
 
     startAutoScroll('mipWrap');
   }
-
-  loadMIP().catch(err => showErrorBox('mipLoading', err));
-  setInterval(() => loadMIP().catch(console.error), 1800000);
-  window.addEventListener('load', () => startAutoScroll('mipWrap'));
 </script>
 
-<!-- ========================= FINISH GOODS ========================= -->
+<!-- ========================= FG ========================= -->
 <script>
   function buildFGHeader(daysInMonth){
     const thead = document.getElementById('fgThead');
@@ -815,7 +794,6 @@
     }
     row2 += `</tr>`;
 
-    // Baris D/N (baris header ke-3)
     let dn = `
       <tr>
         <th class="sticky-1"></th>
@@ -916,13 +894,10 @@
     });
   }
 
-  let lastTodayDayFG = null;
-
   async function loadFG(){
     const loading = document.getElementById('fgLoading');
     const table = document.getElementById('fgTable');
     const wrap = document.getElementById('fgWrap');
-
     const keepScrollTop = wrap ? wrap.scrollTop : 0;
 
     loading.style.display = 'block';
@@ -942,7 +917,6 @@
 
     requestAnimationFrame(() => {
       if (wrap) wrap.scrollTop = keepScrollTop;
-
       freezeTheadAllRows('fgTable');
       highlightTodayGeneric('fgTable', json.todayDay);
 
@@ -954,10 +928,57 @@
 
     startAutoScroll('fgWrap');
   }
-
-  loadFG().catch(err => showErrorBox('fgLoading', err));
-  setInterval(() => loadFG().catch(console.error), 1800000);
-  window.addEventListener('load', () => startAutoScroll('fgWrap'));
 </script>
+
+<script>
+  // ====== BOOT ======
+  document.getElementById('btnReload').addEventListener('click', () => {
+    loadSubAssy().catch(err => showErrorBox('subassyLoading', err));
+    loadMIP().catch(err => showErrorBox('mipLoading', err));
+    loadFG().catch(err => showErrorBox('fgLoading', err));
+  });
+
+  loadSubAssy().catch(err => showErrorBox('subassyLoading', err));
+  loadMIP().catch(err => showErrorBox('mipLoading', err));
+  loadFG().catch(err => showErrorBox('fgLoading', err));
+
+  setInterval(() => loadSubAssy().catch(console.error), 1800000);
+  setInterval(() => loadMIP().catch(console.error), 1800000);
+  setInterval(() => loadFG().catch(console.error), 1800000);
+
+  window.addEventListener('resize', () => {
+    autoFitZoom();
+
+    freezeTheadAllRows('subassyTable');
+    applyStickyOffsetsFor('subassyTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
+    if (lastTodayDaySubAssy) focusTodayGeneric('subassyWrap','subassyTable','#subassyTable thead th.sticky-6', lastTodayDaySubAssy);
+
+    freezeTheadAllRows('mipTable');
+    applyStickyOffsetsFor('mipTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
+    if (lastTodayDayMIP) focusTodayGeneric('mipWrap','mipTable','#mipTable thead th.sticky-6', lastTodayDayMIP);
+
+    freezeTheadAllRows('fgTable');
+    applyStickyOffsetsFor('fgTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
+    if (lastTodayDayFG) focusTodayGeneric('fgWrap','fgTable','#fgTable thead th.sticky-6', lastTodayDayFG);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden){
+      stopAutoScroll('subassyWrap'); stopAutoScroll('mipWrap'); stopAutoScroll('fgWrap');
+    } else {
+      startAutoScroll('subassyWrap'); startAutoScroll('mipWrap'); startAutoScroll('fgWrap');
+      if (lastTodayDaySubAssy) focusTodayGeneric('subassyWrap','subassyTable','#subassyTable thead th.sticky-6', lastTodayDaySubAssy);
+      if (lastTodayDayMIP) focusTodayGeneric('mipWrap','mipTable','#mipTable thead th.sticky-6', lastTodayDayMIP);
+      if (lastTodayDayFG) focusTodayGeneric('fgWrap','fgTable','#fgTable thead th.sticky-6', lastTodayDayFG);
+    }
+  });
+
+  window.addEventListener('load', () => {
+    startAutoScroll('subassyWrap');
+    startAutoScroll('mipWrap');
+    startAutoScroll('fgWrap');
+  });
+</script>
+
 </body>
 </html>
