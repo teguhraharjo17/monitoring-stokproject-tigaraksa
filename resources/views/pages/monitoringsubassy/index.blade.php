@@ -209,20 +209,18 @@
             background-color: #fff8db !important;
         }
 
-        .freeze-col,
-        .freeze-group-tanggal {
+        .freeze-col {
             position: sticky;
             background: #fff !important;
             z-index: 2;
         }
 
-        #subassy_table tbody .freeze-col {
-            z-index: 2;
+        #subassy_table thead .freeze-col {
+            z-index: 8;
         }
 
-        #subassy_table thead .freeze-col,
-        #subassy_table thead .freeze-group-tanggal {
-            z-index: 8;
+        #subassy_table thead tr:first-child .freeze-col {
+            z-index: 9;
         }
 
         #subassy_table thead tr:first-child .freeze-col,
