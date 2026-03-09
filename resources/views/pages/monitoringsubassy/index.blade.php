@@ -5,9 +5,9 @@
         <div class="card-header">
             <h3 class="card-title">Monitoring Sub Assy</h3>
         </div>
+
         <div class="card-body">
             <div class="row g-3 align-items-end mb-4">
-                <!-- Bulan -->
                 <div class="col-md-3 col-sm-6">
                     <label for="filter_bulan" class="form-label fw-semibold">Bulan</label>
                     <select id="filter_bulan" class="form-select form-select-sm">
@@ -19,7 +19,6 @@
                     </select>
                 </div>
 
-                <!-- Tahun -->
                 <div class="col-md-3 col-sm-6">
                     <label for="filter_tahun" class="form-label fw-semibold">Tahun</label>
                     <select id="filter_tahun" class="form-select form-select-sm">
@@ -31,7 +30,6 @@
                     </select>
                 </div>
 
-                <!-- Customer -->
                 <div class="col-md-3 col-sm-6">
                     <label for="filter_customer" class="form-label fw-semibold">Customer</label>
                     <select id="filter_customer" class="form-select form-select-sm">
@@ -39,11 +37,8 @@
                     </select>
                 </div>
 
-                <!-- Actions -->
                 <div class="col-md-3 col-sm-6 d-flex gap-2 justify-content-md-end">
-                    <button id="reload_table" class="btn btn-primary btn-sm">
-                        🔄 Refresh
-                    </button>
+                    <button id="reload_table" class="btn btn-primary btn-sm">🔄 Refresh</button>
 
                     <form id="export_form"
                         action="{{ route('monitoring.subassy.export') }}"
@@ -52,239 +47,130 @@
                         class="d-inline">
                         <input type="hidden" name="bulan" id="export_bulan">
                         <input type="hidden" name="tahun" id="export_tahun">
-                        <button type="submit" class="btn btn-success btn-sm">
-                            📤 Export
-                        </button>
+                        <button type="submit" class="btn btn-success btn-sm">📤 Export</button>
                     </form>
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table id="subassy_table" class="table table-bordered table-striped w-100">
+            <div id="table_loading" class="alert alert-info py-2 px-3 d-none">
+                Memuat data...
+            </div>
+
+            <div class="table-wrap">
+                <table id="subassy_table" class="table mb-0">
                     <thead></thead>
                     <tbody></tbody>
                 </table>
             </div>
         </div>
     </div>
+
     <style>
-        #subassy_table tbody tr:hover {
-            background-color: #f5f7fa;
-            cursor: pointer;
-        }
-
-        .dataTables_wrapper .dataTable {
-            border-collapse: collapse;
+        .table-wrap {
             width: 100%;
-            font-size: 0.9rem;
-            color: #333;
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 70vh;
+            border: 2px solid #343a40;
+            position: relative;
+            background: #fff;
         }
 
-        .dataTables_wrapper .dataTable th,
-        .dataTables_wrapper .dataTable td {
-            padding: 10px 12px;
+        #subassy_table {
+            width: max-content;
+            min-width: 100%;
+            margin: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        #subassy_table th,
+        #subassy_table td {
             text-align: center;
             vertical-align: middle;
-        }
-
-        .dataTables_wrapper .dataTable thead th {
-            background-color: #f8f9fa;
-            border-bottom: 2px solid #e5e7eb;
-            font-weight: 600;
-            color: #444;
-        }
-
-        .dataTables_wrapper .dataTable tbody tr:nth-child(odd) {
-            background-color: #fcfcfc;
-        }
-
-        .table-responsive {
-            position: relative;
-            overflow: visible;
-        }
-
-        .custom-button {
-            font-size: 0.875rem;
-            padding: 6px 12px;
-            border-radius: 4px;
-            transition: 0.2s ease;
-        }
-
-        .custom-button:hover {
-            color: #fff;
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
-
-        .btn-xs {
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            line-height: 1.3;
-            min-width: 90px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #dee2e6;
-            transition: all 0.2s ease;
-            background: #f8f9fa;
-            color: #333;
-        }
-
-        .btn-xs:hover {
-            background-color: #0d6efd;
-            color: #fff;
-            border-color: #0d6efd;
-        }
-
-        @media (max-width: 768px) {
-            .dataTables_wrapper .dataTable {
-                font-size: 0.8rem;
-            }
-
-            .custom-buttons-container {
-                justify-content: center;
-                margin-bottom: 10px;
-            }
-
-            .custom-button {
-                margin-bottom: 5px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .opsi-buttons {
-                flex-direction: column;
-                align-items: stretch;
-            }
-        }
-
-        .modal-content {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            background-color: #ffffff;
-            transition: all 0.3s ease;
-        }
-
-        .modal-header {
-            background-color: #fdfdfd;
-            border-bottom: 1px solid #e6e6e6;
-            padding: 1.25rem 1.75rem;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .modal-title {
-            font-weight: 600;
-            font-size: 1.25rem;
-            color: #222;
-        }
-
-        .modal-footer {
-            border-top: 1px solid #e9ecef;
-            padding: 1rem 1.25rem;
-            background-color: #fafafa;
-            border-bottom-left-radius: 10px;
-            border-bottom-right-radius: 10px;
-        }
-
-        .modal.fade .modal-dialog {
-            transform: translateY(-10%);
-            transition: all 0.25s ease;
-        }
-
-        .modal.show .modal-dialog {
-            transform: translateY(0);
-        }
-
-        .modal-body label {
-            font-weight: 500;
-            color: #555;
-            font-size: 0.9rem;
-            margin-bottom: 0.25rem;
-            display: block;
-        }
-
-        .modal-body input.form-control,
-        .modal-body select.form-select {
-            border: none;
-            border-bottom: 1.5px solid #dcdcdc;
-            border-radius: 0;
-            background: transparent;
-            padding-left: 0;
-            padding-right: 0;
-            padding-top: 0.4rem;
-            padding-bottom: 0.4rem;
-            font-size: 0.95rem;
-            color: #333;
-            box-shadow: none;
-            transition: border-color 0.2s ease, color 0.2s ease;
-        }
-
-        .modal-body input.form-control:focus,
-        .modal-body select.form-select:focus {
-            border-color: #0d6efd;
-            outline: none;
-            box-shadow: none;
-        }
-
-        .modal-body input.form-control::placeholder {
-            color: #aaa;
-            font-size: 0.9rem;
-        }
-
-        .modal-body input.form-control:hover,
-        .modal-body select.form-select:hover {
-            border-color: #bfbfbf;
-        }
-
-        fieldset.border {
-            border: 1px dashed #e3e3e3 !important;
-            padding: 1.5rem;
-            margin-top: 1rem;
-            border-radius: 6px;
-            position: relative;
-        }
-
-        fieldset.border legend {
-            float: unset;
+            white-space: nowrap;
+            padding: 8px 10px;
+            font-size: 12px;
             background: #fff;
-            padding: 0 0.5rem;
-            margin-left: 1rem;
-            font-size: 0.95rem;
+            border-right: 1px solid #343a40;
+            border-bottom: 1px solid #343a40;
+        }
+
+        #subassy_table tr th:first-child,
+        #subassy_table tr td:first-child {
+            border-left: 1px solid #343a40;
+        }
+
+        #subassy_table thead tr:first-child th {
+            border-top: 1px solid #343a40;
+        }
+
+        #subassy_table thead th {
+            position: sticky;
+            background: #fff;
+            z-index: 3;
             font-weight: 700;
-            color: #444;
+            padding-top: 10px;
+            padding-bottom: 10px;
         }
 
-        .table-responsive {
-            scrollbar-width: thin;
-            scrollbar-color: #cfcfcf #f9f9f9;
+        #subassy_table thead tr:first-child th {
+            top: 0;
+            z-index: 5;
         }
 
-        .table-responsive::-webkit-scrollbar {
-            height: 6px;
+        #subassy_table thead tr:nth-child(2) th {
+            top: 42px;
+            z-index: 6;
+            background: #fff;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #343a40;
         }
 
-        .table-responsive::-webkit-scrollbar-thumb {
-            background-color: #cfcfcf;
-            border-radius: 4px;
+        #subassy_table thead tr:first-child th[rowspan="2"] {
+            border-bottom: 2px solid #343a40;
+        }
+
+        #subassy_table tbody td {
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+
+        .col-no { min-width: 50px; }
+        .col-customer { min-width: 120px; }
+        .col-project { min-width: 120px; }
+        .col-part-number { min-width: 140px; }
+        .col-part-name { min-width: 240px; text-align: left !important; }
+        .col-number { min-width: 95px; }
+        .col-status { min-width: 95px; }
+        .col-harian { min-width: 78px; }
+
+        .cell-input-group {
+            display: grid;
+            grid-template-rows: repeat(3, auto);
+            gap: 4px;
+            width: 64px;
+            margin: 0 auto;
+        }
+
+        .cell-input-group input {
+            width: 64px;
+            min-width: 64px;
+            max-width: 64px;
+            padding: 2px 4px;
+            font-size: 11px;
+            height: 24px;
+            text-align: center;
+            border-radius: 3px;
         }
 
         .input-hijau {
             background-color: #d6f5d6 !important;
         }
-        .input-hijau-gelap {
-            background-color: #a8e6a8 !important;
-        }
 
         .input-merah {
             background-color: #fcdcdc !important;
-        }
-        .input-merah-gelap {
-            background-color: #f8a3a3 !important;
         }
 
         .input-biru {
@@ -293,309 +179,370 @@
             color: #004085;
         }
 
-        .dataTables_scrollBody {
-            scrollbar-width: thin;
-            scrollbar-color: #bbb #f0f0f0;
+        .legend-badge-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
         }
 
-        .dataTables_scrollBody::-webkit-scrollbar {
-            height: 6px;
-            width: 6px;
-        }
-
-        .dataTables_scrollBody::-webkit-scrollbar-thumb {
-            background-color: #bbb;
+        .badge {
+            font-size: 10px;
+            padding: 4px 6px;
+            line-height: 1;
             border-radius: 4px;
         }
 
-        #subassy_table th,
-        #subassy_table td {
-            white-space: nowrap;
-        }
+        .badge.bg-danger { background-color: #dc3545 !important; }
+        .badge.bg-warning { background-color: #ffc107 !important; color: #212529 !important; }
+        .badge.bg-success { background-color: #28a745 !important; }
+        .badge.bg-primary { background-color: #0d6efd !important; }
 
-        #subassy_table th:nth-child(n+12),
-        #subassy_table td:nth-child(n+12) {
-            min-width: 50px;
-            max-width: 50px;
+        input[name="wip_sebelumnya"] {
+            width: 72px;
+            min-width: 72px;
             text-align: center;
+            margin: 0 auto;
         }
 
-        input[readonly] {
-            cursor: not-allowed;
+        .saving-row {
+            background-color: #fff8db !important;
         }
 
-        .form-label {
-            font-size: 0.85rem;
-            color: #555;
+        .freeze-col,
+        .freeze-group-tanggal {
+            position: sticky;
+            background: #fff !important;
+            z-index: 2;
         }
 
-        .card-body {
-            background: #fff;
+        #subassy_table tbody .freeze-col {
+            z-index: 2;
         }
 
+        #subassy_table thead .freeze-col,
+        #subassy_table thead .freeze-group-tanggal {
+            z-index: 8;
+        }
+
+        #subassy_table thead tr:first-child .freeze-col,
+        #subassy_table thead tr:first-child .freeze-group-tanggal {
+            z-index: 9;
+        }
+
+        #subassy_table thead tr:nth-child(2) .freeze-col {
+            z-index: 10;
+        }
+
+        .saving-row .freeze-col {
+            background-color: #fff8db !important;
+        }
+
+        .freeze-separator {
+            position: sticky;
+        }
+
+        .freeze-separator::after {
+            content: "";
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            width: 2px;
+            height: calc(100% + 2px);
+            background: #343a40;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        .produktifitas-kurang {
+            color: #dc3545;
+            font-weight: 700;
+        }
     </style>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
-        $(function () {
-            function getParams() {
-                return {
-                    bulan: parseInt($('#filter_bulan').val()),
-                    tahun: parseInt($('#filter_tahun').val()),
-                    customer: $('#filter_customer').val()
-                };
+        let currentData = [];
+
+        function getParams() {
+            return {
+                bulan: $('#filter_bulan').val(),
+                tahun: $('#filter_tahun').val(),
+                customer: $('#filter_customer').val()
+            };
+        }
+
+        function escapeHtml(text) {
+            return String(text ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function buildTableHeader(jumlahHari) {
+            let thead = `
+                <tr>
+                    <th rowspan="2" class="col-no freeze-col freeze-h-0">No</th>
+                    <th rowspan="2" class="col-customer freeze-col freeze-h-1">Customer</th>
+                    <th rowspan="2" class="col-project freeze-col freeze-h-2">Project</th>
+                    <th rowspan="2" class="col-part-number freeze-col freeze-h-3">Part Number</th>
+                    <th rowspan="2" class="col-part-name freeze-col freeze-h-4">Part Name</th>
+                    <th rowspan="2" class="col-number freeze-col freeze-h-5">Total PO</th>
+                    <th rowspan="2" class="col-number freeze-col freeze-h-6">WIP Sebelumnya</th>
+                    <th rowspan="2" class="col-number freeze-col freeze-h-7">Total SPK</th>
+                    <th rowspan="2" class="col-number freeze-col freeze-h-8">Total Produksi</th>
+                    <th rowspan="2" class="col-number freeze-col freeze-h-9">WIP Akhir</th>
+                    <th rowspan="2" class="col-number freeze-col freeze-h-10">Produktivitas</th>
+                    <th rowspan="2" class="col-status freeze-col freeze-h-11">Status</th>
+                    <th colspan="${jumlahHari}">Tanggal</th>
+                </tr>
+                <tr>
+            `;
+
+            for (let i = 1; i <= jumlahHari; i++) {
+                thead += `<th class="col-harian">${i}</th>`;
             }
 
-            function generateTableHeader(jumlahHari) {
-                let thead = `
-                    <tr>
-                        <th rowspan="2">No</th>
-                        <th rowspan="2">Customer</th>
-                        <th rowspan="2">Project</th>
-                        <th rowspan="2">Part Number</th>
-                        <th rowspan="2">Part Name</th>
-                        <th rowspan="2">Total PO</th>
-                        <th rowspan="2">WIP Sebelumnya</th>
-                        <th rowspan="2">Total SPK</th>
-                        <th rowspan="2">Total Produksi</th>
-                        <th rowspan="2">WIP Akhir</th>
-                        <th rowspan="2">Produktivitas</th>
-                        <th rowspan="2">Status</th>
-                        <th colspan="${jumlahHari}">Tanggal</th>
-                    </tr>
-                    <tr>`;
+            thead += `</tr>`;
 
-                for (let i = 1; i <= jumlahHari; i++) {
-                    thead += `<th>${i}</th>`;
-                }
+            $('#subassy_table thead').html(thead);
+        }
 
-                thead += `</tr>`;
-                $('#subassy_table thead').html(thead);
+        function buildProduktivitas(val) {
+            const angka = parseInt(val) || 0;
+            if (angka < 100) {
+                return `<span class="produktifitas-kurang">${angka}%</span>`;
+            }
+            return `<span>${angka}%</span>`;
+        }
+
+        function buildRow(row, index, jumlahHari) {
+            let html = `
+                <tr
+                    data-customer="${escapeHtml(row.customer)}"
+                    data-project="${escapeHtml(row.project)}"
+                    data-part-number="${escapeHtml(row.part_number)}"
+                    data-part-name="${escapeHtml(row.part_name)}"
+                >
+                    <td class="freeze-col freeze-b-0">${index + 1}</td>
+                    <td class="freeze-col freeze-b-1">${escapeHtml(row.customer)}</td>
+                    <td class="freeze-col freeze-b-2">${escapeHtml(row.project)}</td>
+                    <td class="freeze-col freeze-b-3">${escapeHtml(row.part_number)}</td>
+                    <td class="freeze-col freeze-b-4" style="text-align:left;">${escapeHtml(row.part_name)}</td>
+                    <td class="freeze-col freeze-b-5"><span>${row.total_po ?? 0}</span></td>
+                    <td class="freeze-col freeze-b-6">
+                        <input
+                            type="number"
+                            name="wip_sebelumnya"
+                            class="form-control form-control-sm text-center"
+                            value="${row.wip_sebelumnya ?? 0}"
+                        >
+                    </td>
+                    <td class="freeze-col freeze-b-7"><span>${row.total_spk ?? 0}</span></td>
+                    <td class="freeze-col freeze-b-8"><span>${row.total_produksi ?? 0}</span></td>
+                    <td class="freeze-col freeze-b-9"><span>${row.wip_akhir ?? 0}</span></td>
+                    <td class="freeze-col freeze-b-10">${buildProduktivitas(row.produktivitas ?? 0)}</td>
+                    <td class="freeze-col freeze-b-11">
+                        <div class="legend-badge-group">
+                            <span class="badge bg-danger">SPK</span>
+                            <span class="badge bg-success">Produksi</span>
+                            <span class="badge bg-primary">WIP</span>
+                        </div>
+                    </td>
+            `;
+
+            for (let i = 1; i <= jumlahHari; i++) {
+                html += `
+                    <td class="col-harian">
+                        <div class="cell-input-group">
+                            <input
+                                type="number"
+                                name="spk_hari_${i}"
+                                class="form-control form-control-sm text-center input-merah"
+                                value="${row[`spk_hari_${i}`] ?? 0}"
+                                readonly
+                                tabindex="-1"
+                            >
+                            <input
+                                type="number"
+                                name="produksi_hari_${i}"
+                                class="form-control form-control-sm text-center input-hijau"
+                                value="${row[`produksi_hari_${i}`] ?? 0}"
+                            >
+                            <input
+                                type="number"
+                                name="wip_hari_${i}"
+                                class="form-control form-control-sm text-center input-biru"
+                                value="${row[`wip_hari_${i}`] ?? 0}"
+                                readonly
+                                tabindex="-1"
+                            >
+                        </div>
+                    </td>
+                `;
             }
 
-            function generateTableColumns(jumlahHari) {
-                const staticCols = [
-                    {
-                        data: null,
-                        render: (data, type, row, meta) => meta.row + 1
-                    },
-                    { data: 'customer' },
-                    { data: 'project' },
-                    { data: 'part_number' },
-                    { data: 'part_name' },
-                    {
-                        data: 'total_po',
-                        render: d => `<span>${d ?? ''}</span>`
-                    },
-                    {
-                        data: 'wip_sebelumnya',
-                        render: d => `<input type="text" name="wip_sebelumnya" class="form-control form-control-sm text-center" value="${d ?? ''}">`
-                    },
-                    { data: 'total_spk', render: d => `<span>${d ?? ''}</span>` },
-                    { data: 'total_produksi', render: d => `<span>${d ?? ''}</span>` },
-                    { data: 'wip_akhir', render: d => `<span>${d ?? ''}</span>` },
-                    {
-                        data: 'produktivitas',
-                        render: d => {
-                            const val = parseInt(d);
-                            return isNaN(val)
-                                ? ''
-                                : (val < 100
-                                    ? `<span style="color:red;font-weight:bold">${val}%</span>`
-                                    : `${val}%`);
-                        }
-                    },
-                    {
-                        data: null,
-                        render: () => `
-                            <div class="d-flex flex-column gap-1 text-center">
-                                <span class="badge bg-danger">SPK</span>
-                                <span class="badge bg-success">Produksi</span>
-                                <span class="badge bg-primary">WIP</span>
-                            </div>
-                        `
-                    }
-                ];
+            html += `</tr>`;
+            return html;
+        }
 
-                const dynamicCols = [];
+        function renderTable(data) {
+            const bulan = parseInt($('#filter_bulan').val(), 10);
+            const tahun = parseInt($('#filter_tahun').val(), 10);
+            const jumlahHari = new Date(tahun, bulan, 0).getDate();
 
-                for (let i = 1; i <= jumlahHari; i++) {
-                    dynamicCols.push({
-                        data: null,
-                        render: row => {
-                            return `
-                                <div class="d-flex flex-column gap-1">
-                                    <input type="text" name="spk_hari_${i}" class="form-control form-control-sm text-center input-merah" value="${row[`spk_hari_${i}`] ?? ''}" readonly tabindex="-1">
-                                    <input type="text" name="produksi_hari_${i}" class="form-control form-control-sm text-center input-hijau" value="${row[`produksi_hari_${i}`] ?? ''}">
-                                    <input type="text" name="wip_hari_${i}" class="form-control form-control-sm text-center input-biru" value="${row[`wip_hari_${i}`] ?? ''}" readonly tabindex="-1">
-                                </div>
-                            `;
-                        }
-                    });
-                }
+            buildTableHeader(jumlahHari);
 
-                return [...staticCols, ...dynamicCols];
+            let tbody = '';
+            data.forEach((row, index) => {
+                tbody += buildRow(row, index, jumlahHari);
+            });
+
+            $('#subassy_table tbody').html(tbody);
+
+            $('#subassy_table tbody tr').each(function () {
+                calculateTotals($(this));
+            });
+
+            setTimeout(() => {
+                applyFreezeColumns();
+            }, 50);
+        }
+
+        function applyFreezeColumns() {
+            const freezeCount = 12;
+            const lefts = [];
+            const widths = [];
+
+            const $firstBodyRow = $('#subassy_table tbody tr:first');
+            if (!$firstBodyRow.length) return;
+
+            let left = 0;
+
+            for (let i = 0; i < freezeCount; i++) {
+                const $cell = $firstBodyRow.find(`.freeze-b-${i}`).first();
+                const width = Math.ceil($cell.outerWidth()) || 0;
+
+                widths[i] = width;
+                lefts[i] = left;
+                left += width;
             }
 
-            let dt;
-            function reloadTable() {
-                const params = getParams();
-                const { bulan, tahun, customer } = params;
-                const jumlahHari = new Date(tahun, bulan, 0).getDate();
+            $('.freeze-col, .freeze-group-tanggal').css({
+                left: '',
+                minWidth: '',
+                width: ''
+            });
 
-                if ($.fn.DataTable.isDataTable('#subassy_table')) {
-                    $('#subassy_table').DataTable().clear().destroy();
-                }
+            $('.freeze-separator').removeClass('freeze-separator');
 
-                $('#subassy_table thead').empty();
-                $('#subassy_table tbody').empty();
-                generateTableHeader(jumlahHari);
-
-                dt = $('#subassy_table').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    autoWidth: false,
-                    paging: false,
-                    scrollX: true,
-                    scrollY: '60vh',
-                    order: [[1, 'asc']],
-                    ajax: {
-                        url: '{{ route("monitoring.subassy.data") }}',
-                        type: 'POST',
-                        data: d => {
-                            d._token = '{{ csrf_token() }}';
-                            d.bulan = bulan;
-                            d.tahun = tahun;
-                            d.customer = customer;
-                        }
-                    },
-                    columns: generateTableColumns(jumlahHari)
-                });
-
-                dt.on('draw', function () {
-                    $('#subassy_table tbody tr').each(function () {
-                        calculateTotals($(this));
-                    });
-                });
+            for (let i = 0; i < freezeCount; i++) {
+                $(`.freeze-b-${i}, .freeze-h-${i}`).css('left', `${lefts[i]}px`);
             }
 
-            $('#filter_customer').select2({
-                placeholder: '-- Semua Customer --',
-                allowClear: true,
-                width: '100%'
-            });
+            $('.freeze-b-11, .freeze-h-11').addClass('freeze-separator');
+        }
 
-            $('#reload_table').on('click', function () {
-                $('#export_bulan').val($('#filter_bulan').val());
-                $('#export_tahun').val($('#filter_tahun').val());
-                reloadTable();
-            });
+        function calculateTotals($row) {
+            const jumlahHari = new Date(
+                parseInt($('#filter_tahun').val(), 10),
+                parseInt($('#filter_bulan').val(), 10),
+                0
+            ).getDate();
 
+            let totalSPK = 0;
+            let totalProduksi = 0;
 
-            $('#export_form').on('submit', function () {
-                $('#export_bulan').val($('#filter_bulan').val());
-                $('#export_tahun').val($('#filter_tahun').val());
-            });
+            const spkValues = {};
+            const produksiValues = {};
+            const wipValues = {};
 
-            function calculateTotals($row) {
-                const jumlahHari = $('#subassy_table thead tr:last th').length;
-                let totalSPK = 0;
-                let totalProduksi = 0;
+            for (let i = 1; i <= jumlahHari; i++) {
+                const spk = parseInt($row.find(`input[name="spk_hari_${i}"]`).val()) || 0;
+                const produksi = parseInt($row.find(`input[name="produksi_hari_${i}"]`).val()) || 0;
 
-                const spkValues = [];
-                const produksiValues = [];
-                const wipValues = [];
-
-                for (let i = 1; i <= jumlahHari; i++) {
-                    const spk = parseInt($row.find(`input[name="spk_hari_${i}"]`).val()) || 0;
-                    const produksi = parseInt($row.find(`input[name="produksi_hari_${i}"]`).val()) || 0;
-                    spkValues[i] = spk;
-                    produksiValues[i] = produksi;
-                    totalSPK += spk;
-                    totalProduksi += produksi;
-                }
-
-                const wipSebelumnya = parseInt($row.find('input[name="wip_sebelumnya"]').val()) || 0;
-                let wipSebelum = wipSebelumnya;
-
-                for (let i = 1; i <= jumlahHari; i++) {
-                    const wip = wipSebelum + spkValues[i] - produksiValues[i];
-                    $row.find(`input[name="wip_hari_${i}"]`).val(wip);
-                    wipValues[i] = wip;
-                    wipSebelum = wip;
-                }
-
-                const wipAkhir = wipValues[jumlahHari] || 0;
-                const produktivitas = totalSPK > 0 ? Math.ceil((totalProduksi / totalSPK) * 100) : 0;
-
-                $row.find('td:eq(7)').html(`<span>${totalSPK}</span>`);
-                $row.find('td:eq(8)').html(`<span>${totalProduksi}</span>`);
-                $row.find('td:eq(9)').html(`<span>${wipAkhir}</span>`);
-                $row.find('td:eq(10)').html(
-                produktivitas < 100
-                    ? `<span style="color:red;font-weight:bold">${produktivitas}%</span>`
-                    : `${produktivitas}%`
-                );
+                spkValues[i] = spk;
+                produksiValues[i] = produksi;
+                totalSPK += spk;
+                totalProduksi += produksi;
             }
 
-            $('#subassy_table tbody').on('input', 'input[name="wip_sebelumnya"]', function () {
-                const $row = $(this).closest('tr');
-                const jumlahHari = $('#subassy_table thead tr:last th').length;
+            const wipSebelumnya = parseInt($row.find('input[name="wip_sebelumnya"]').val()) || 0;
+            let wipSebelum = wipSebelumnya;
 
-                for (let i = 1; i <= jumlahHari; i++) {
-                    $row.find(`input[name="produksi_hari_${i}"]`).val(0);
-                }
+            for (let i = 1; i <= jumlahHari; i++) {
+                const wip = wipSebelum + spkValues[i] - produksiValues[i];
+                $row.find(`input[name="wip_hari_${i}"]`).val(wip);
+                wipValues[i] = wip;
+                wipSebelum = wip;
+            }
 
-                calculateTotals($row);
-            });
+            const wipAkhir = wipValues[jumlahHari] || 0;
+            const produktivitas = totalSPK > 0 ? Math.ceil((totalProduksi / totalSPK) * 100) : 0;
 
-            $('#subassy_table tbody').on('input', 'input[name^="produksi_hari_"]', function () {
-                const $row = $(this).closest('tr');
-                calculateTotals($row);
-            });
+            $row.find('td:eq(7) span').text(totalSPK);
+            $row.find('td:eq(8) span').text(totalProduksi);
+            $row.find('td:eq(9) span').text(wipAkhir);
+            $row.find('td:eq(10)').html(buildProduktivitas(produktivitas));
 
+            return {
+                totalSPK,
+                totalProduksi,
+                wipAkhir,
+                produktivitas
+            };
+        }
 
-            $('#subassy_table tbody').on('blur', 'input', function () {
-                const $row = $(this).closest('tr');
-                const rowData = dt.row($row).data();
-                if (!rowData) return;
+        function collectRowData($row) {
+            const jumlahHari = new Date(
+                parseInt($('#filter_tahun').val(), 10),
+                parseInt($('#filter_bulan').val(), 10),
+                0
+            ).getDate();
 
-                const { bulan, tahun } = getParams();
-                const jumlahHari = $('#subassy_table thead tr:last th').length;
+            calculateTotals($row);
 
-                const data = {
-                    _token: '{{ csrf_token() }}',
-                    bulan,
-                    tahun,
-                    customer: rowData.customer,
-                    project: rowData.project,
-                    part_number: rowData.part_number,
-                    part_name: rowData.part_name,
-                    wip_sebelumnya: $row.find('input[name="wip_sebelumnya"]').val(),
-                };
+            const data = {
+                _token: '{{ csrf_token() }}',
+                bulan: $('#filter_bulan').val(),
+                tahun: $('#filter_tahun').val(),
+                customer: $.trim($row.attr('data-customer')),
+                project: $.trim($row.attr('data-project')),
+                part_number: $.trim($row.attr('data-part-number')),
+                part_name: $.trim($row.attr('data-part-name')),
+                wip_sebelumnya: parseInt($row.find('input[name="wip_sebelumnya"]').val()) || 0
+            };
 
-                for (let i = 1; i <= jumlahHari; i++) {
-                    data[`spk_hari_${i}`] = $row.find(`input[name="spk_hari_${i}"]`).val();
-                    data[`produksi_hari_${i}`] = $row.find(`input[name="produksi_hari_${i}"]`).val();
-                    data[`wip_hari_${i}`] = $row.find(`input[name="wip_hari_${i}"]`).val();
-                }
+            for (let i = 1; i <= jumlahHari; i++) {
+                data[`spk_hari_${i}`] = parseInt($row.find(`input[name="spk_hari_${i}"]`).val()) || 0;
+                data[`produksi_hari_${i}`] = parseInt($row.find(`input[name="produksi_hari_${i}"]`).val()) || 0;
+                data[`wip_hari_${i}`] = parseInt($row.find(`input[name="wip_hari_${i}"]`).val()) || 0;
+            }
 
-                $.post('{{ route("monitoring.subassy.save") }}', data)
-                    .done(() => {
+            return data;
+        }
+
+        function saveRow($row, successTitle = 'Tersimpan!') {
+            const data = collectRowData($row);
+
+            $row.addClass('saving-row');
+
+            $.post('{{ route("monitoring.subassy.save") }}', data)
+                .done(() => {
                     Swal.fire({
                         toast: true,
                         position: 'top-end',
                         icon: 'success',
-                        title: 'Tersimpan!',
+                        title: successTitle,
                         showConfirmButton: false,
                         timer: 1500
                     });
-                    })
-                    .fail((xhr) => {
-                    console.log('SAVE ERROR', xhr.status, xhr.responseJSON);
+                })
+                .fail((xhr) => {
                     Swal.fire({
                         toast: true,
                         position: 'top-end',
@@ -604,43 +551,112 @@
                         showConfirmButton: false,
                         timer: 3000
                     });
+                })
+                .always(() => {
+                    $row.removeClass('saving-row');
                 });
+        }
+
+        function loadTable() {
+            const params = getParams();
+
+            $('#table_loading').removeClass('d-none');
+
+            $.ajax({
+                url: '{{ route("monitoring.subassy.data") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    bulan: params.bulan,
+                    tahun: params.tahun,
+                    customer: params.customer
+                },
+                success: function (res) {
+                    currentData = res.data || [];
+                    renderTable(currentData);
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal memuat data',
+                        text: 'Data table tidak bisa dimuat.'
+                    });
+                },
+                complete: function () {
+                    $('#table_loading').addClass('d-none');
+                }
             });
+        }
 
+        function loadCustomerFilter() {
+            $.ajax({
+                url: '{{ route("monitoring.subassy.data") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    bulan: $('#filter_bulan').val(),
+                    tahun: $('#filter_tahun').val(),
+                    only_customer: true
+                },
+                success: function (res) {
+                    const select = $('#filter_customer');
+                    const current = select.val();
 
-            function loadCustomerFilter() {
-                $.ajax({
-                    url: '{{ route("monitoring.subassy.data") }}',
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        bulan: $('#filter_bulan').val(),
-                        tahun: $('#filter_tahun').val(),
-                        only_customer: true
-                    },
-                    success: function (res) {
-                        const select = $('#filter_customer');
-                        select.empty().append('<option value=""></option>');
+                    select.empty();
+                    select.append('<option value="">-- Semua Customer --</option>');
 
-                        const customers = [...new Set(res.data.map(r => r.customer))].sort();
-                        customers.forEach(c => {
-                            select.append(`<option value="${c}">${c}</option>`);
-                        });
+                    (res.data || []).forEach(r => {
+                        select.append(`<option value="${r.customer}">${r.customer}</option>`);
+                    });
+
+                    if (current) {
+                        select.val(current);
                     }
-                });
-            }
+                }
+            });
+        }
 
-            $('#filter_bulan, #filter_tahun, #filter_customer').on('change', function () {
-                reloadTable();
+        $(function () {
+            loadCustomerFilter();
+            loadTable();
+
+            $('#reload_table').on('click', function () {
+                loadTable();
             });
 
             $('#filter_bulan, #filter_tahun').on('change', function () {
-                $('#filter_customer').val(null).trigger('change');
+                $('#filter_customer').val('');
                 loadCustomerFilter();
+                loadTable();
             });
 
-            loadCustomerFilter();
-            reloadTable();
+            $('#filter_customer').on('change', function () {
+                loadTable();
+            });
+
+            $('#export_form').on('submit', function () {
+                $('#export_bulan').val($('#filter_bulan').val());
+                $('#export_tahun').val($('#filter_tahun').val());
+            });
+
+            $('#subassy_table tbody').on('input', 'input[name="wip_sebelumnya"]', function () {
+                const $row = $(this).closest('tr');
+                calculateTotals($row);
+            });
+
+            $('#subassy_table tbody').on('input', 'input[name^="produksi_hari_"]', function () {
+                const $row = $(this).closest('tr');
+                calculateTotals($row);
+            });
+
+            $('#subassy_table tbody').on('blur', 'input[name="wip_sebelumnya"], input[name^="produksi_hari_"]', function () {
+                const $row = $(this).closest('tr');
+                saveRow($row);
+            });
+
+            $(window).on('resize', function () {
+                applyFreezeColumns();
+            });
         });
     </script>
 </x-default-layout>
