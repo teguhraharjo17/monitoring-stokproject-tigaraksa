@@ -9,7 +9,6 @@ use App\Models\MonitoringFGDetail;
 use App\Models\RekapData;
 use App\Models\MonitoringMIPHeader;
 use App\Models\MonitoringMIPDetail;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -27,8 +26,29 @@ class MonitoringFinishGoodsController extends Controller
     {
         $bulan = (int) $request->input('bulan', now()->month);
         $tahun = (int) $request->input('tahun', now()->year);
-        $customer = $request->customer;
+        $customer = $request->input('customer');
 
+        if ($request->only_customer) {
+            $rekapCustomer = RekapData::where('bulan', $bulan)
+                ->where('tahun', $tahun)
+                ->pluck('customer');
+
+            $fgCustomer = MonitoringFGHeader::where('bulan', $bulan)
+                ->where('tahun', $tahun)
+                ->pluck('customer');
+
+            $customers = $rekapCustomer
+                ->merge($fgCustomer)
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values()
+                ->map(fn ($c) => ['customer' => $c]);
+
+            return response()->json([
+                'data' => $customers
+            ]);
+        }
 
         $rekapList = RekapData::where('bulan', $bulan)
             ->where('tahun', $tahun)
@@ -39,29 +59,8 @@ class MonitoringFinishGoodsController extends Controller
             ->orderBy('kode_project')
             ->orderBy('part_number')
             ->get();
+
         $data = [];
-
-        if ($request->only_customer) {
-
-            $rekapCustomer = RekapData::where('bulan', $request->bulan)
-                ->where('tahun', $request->tahun)
-                ->pluck('customer');
-
-            $fgCustomer = MonitoringFGHeader::where('bulan', $request->bulan)
-                ->where('tahun', $request->tahun)
-                ->pluck('customer');
-
-            $customers = $rekapCustomer
-                ->merge($fgCustomer)
-                ->unique()
-                ->sort()
-                ->values()
-                ->map(fn ($c) => ['customer' => $c]);
-
-            return response()->json([
-                'data' => $customers
-            ]);
-        }
 
         foreach ($rekapList as $rekap) {
             $level = DB::table('level_stok_detail as d')
@@ -94,7 +93,9 @@ class MonitoringFinishGoodsController extends Controller
 
             $header->save();
 
-            $details = MonitoringFGDetail::where('fg_header_id', $header->id)->get()->keyBy('tanggal');
+            $details = MonitoringFGDetail::where('fg_header_id', $header->id)
+                ->get()
+                ->keyBy('tanggal');
 
             $mipHeader = MonitoringMIPHeader::where('bulan', $bulan)
                 ->where('tahun', $tahun)
@@ -113,18 +114,19 @@ class MonitoringFinishGoodsController extends Controller
                 'project' => $rekap->kode_project,
                 'part_number' => $rekap->part_number,
                 'part_name' => $rekap->models,
-                'total_po' => (int) $rekap->total_qty_bulan_ini ?? 0,
-                'stock_awal' => $header->stock_awal,
-                'total_in' => $header->total_in,
-                'total_out' => $header->total_out,
-                'level_min' => $header->level_min,
-                'level_safety' => $header->level_safety,
-                'level_max' => $header->level_max,
+                'total_po' => (int) ($rekap->total_qty_bulan_ini ?? 0),
+                'stock_awal' => (int) ($header->stock_awal ?? 0),
+                'total_in' => (int) ($header->total_in ?? 0),
+                'total_out' => (int) ($header->total_out ?? 0),
+                'level_min' => (int) ($header->level_min ?? 0),
+                'level_safety' => (int) ($header->level_safety ?? 0),
+                'level_max' => (int) ($header->level_max ?? 0),
             ];
 
-            $balance = $header->stock_awal;
+            $balance = (int) ($header->stock_awal ?? 0);
 
             $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
+
             for ($i = 1; $i <= $jumlahHari; $i++) {
                 $inD = (int) ($mipDetails[$i]->out_qty ?? 0);
                 $inN = (int) ($details[$i]->in_qty_n ?? 0);
@@ -144,20 +146,19 @@ class MonitoringFinishGoodsController extends Controller
                 $balance = $balanceN;
             }
 
-            $advance = $header->advance_delivery ?? 0;
-            $totalOut = $header->total_out ?? 0;
+            $advance = (int) ($header->advance_delivery ?? 0);
+            $totalOut = (int) ($header->total_out ?? 0);
             $outstanding = max(0, ($row['total_po'] ?? 0) - $advance - $totalOut);
             $percentage = $row['total_po'] > 0 ? round(($totalOut / $row['total_po']) * 100, 2) : 0;
 
             $row['advance_delivery'] = $advance;
             $row['outstanding'] = $outstanding;
             $row['percentage'] = $percentage;
+            $row['stock_on_hand'] = $balance;
 
-            $row['stock_on_hand'] = $balance ?? 0;
-
-            if ($row['stock_on_hand'] <= $header->level_min) {
+            if ($row['stock_on_hand'] <= $row['level_min']) {
                 $row['status_stock'] = 'Problem';
-            } elseif ($row['stock_on_hand'] > $header->level_max) {
+            } elseif ($row['stock_on_hand'] > $row['level_max']) {
                 $row['status_stock'] = 'Over';
             } else {
                 $row['status_stock'] = 'Aman';
@@ -166,7 +167,9 @@ class MonitoringFinishGoodsController extends Controller
             $data[] = $row;
         }
 
-        return DataTables::of($data)->toJson();
+        return response()->json([
+            'data' => $data
+        ]);
     }
 
     public function save(Request $request)
@@ -194,9 +197,7 @@ class MonitoringFinishGoodsController extends Controller
 
             $totalIn = 0;
             $totalOut = 0;
-
             $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
-
             $balance = (int) $header->stock_awal;
 
             for ($i = 1; $i <= $jumlahHari; $i++) {
@@ -232,12 +233,21 @@ class MonitoringFinishGoodsController extends Controller
             $header->update([
                 'total_in' => $totalIn,
                 'total_out' => $totalOut,
+                'stock_on_hand' => $balance,
             ]);
 
             DB::commit();
-            return response()->json(['status' => 'success']);
+
+            return response()->json([
+                'status' => 'success'
+            ]);
         } catch (\Throwable $e) {
             DB::rollBack();
+
+            Log::error('Save Monitoring FG gagal', [
+                'error' => $e->getMessage()
+            ]);
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal menyimpan data.',
@@ -268,8 +278,9 @@ class MonitoringFinishGoodsController extends Controller
                 'part_number' => $request->part_number,
             ])->firstOrFail();
 
-            // update stock awal
-            $header->update(['stock_awal' => $request->stock_awal]);
+            $header->update([
+                'stock_awal' => $request->stock_awal
+            ]);
 
             RekapData::where([
                 'bulan' => $request->bulan,
@@ -285,7 +296,7 @@ class MonitoringFinishGoodsController extends Controller
                 ->orderBy('tanggal')
                 ->get();
 
-            $balance = $request->stock_awal;
+            $balance = (int) $request->stock_awal;
 
             foreach ($details as $detail) {
                 $balanceD = $balance + $detail->in_qty_d - $detail->out_qty_d;
@@ -299,14 +310,15 @@ class MonitoringFinishGoodsController extends Controller
                 $balance = $balanceN;
             }
 
-            // update stock on hand + status
             $header->update([
                 'stock_on_hand' => $balance
             ]);
 
             DB::commit();
-            return response()->json(['status' => 'success']);
 
+            return response()->json([
+                'status' => 'success'
+            ]);
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -326,7 +338,7 @@ class MonitoringFinishGoodsController extends Controller
         $bulan = (int) $request->input('bulan', now()->month);
         $tahun = (int) $request->input('tahun', now()->year);
 
-        $namaBulan = \Carbon\Carbon::create()->month($bulan)->translatedFormat('F');
+        $namaBulan = Carbon::create()->month($bulan)->translatedFormat('F');
         $fileName = "Monitoring_Finish_Goods_{$namaBulan}_{$tahun}.xlsx";
 
         return Excel::download(new FinishGoodsExport($bulan, $tahun), $fileName);
