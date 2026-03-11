@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TV Display</title>
+  <title>TV Display - Monitoring Stok</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
@@ -24,7 +24,6 @@
       --topbar-h: 92px;
       --wrap-pad: 14px;
 
-      /* TABLE COMPACT */
       --tbl-font: clamp(10px, 0.85vw, 13px);
       --tbl-pad-y: 6px;
       --tbl-pad-x: 8px;
@@ -51,6 +50,7 @@
     }
 
     html, body { height: 100%; }
+
     body{
       margin:0;
       background:var(--bg);
@@ -59,42 +59,95 @@
       overflow:hidden;
     }
 
-    .scale-stage{ position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
+    .scale-stage{
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
     .scale-root{
-      position: absolute; top: 0; left: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
       transform-origin: top left;
       transform: scale(var(--zoom));
       width: calc(100% / var(--zoom));
       height: calc(100% / var(--zoom));
     }
+
     @supports (zoom: 1){
-      .scale-root{ transform:none; width:100%; height:100%; zoom: var(--zoom); }
+      .scale-root{
+        transform:none;
+        width:100%;
+        height:100%;
+        zoom: var(--zoom);
+      }
     }
 
-    .app{ height:100%; display:flex; flex-direction:column; min-height:0; }
+    .app{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
 
     .topbar{
       height: var(--topbar-h);
       padding: 14px 18px;
       border-bottom: 1px solid var(--line);
       background: rgba(15, 26, 51, .95);
-      position: sticky; top: 0; z-index: 200;
-      display:flex; justify-content:space-between; align-items:center; gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 300;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
     }
 
-    .brand{ display:flex; align-items:center; gap:12px; min-width:0; }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
     .brand-logo{
-      height:64px; width:auto; object-fit:contain; display:block;
+      height:64px;
+      width:auto;
+      object-fit:contain;
+      display:block;
       filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
     }
-    @media (max-width: 768px){ .brand-logo{ height:34px; } }
 
-    .title{ font-weight:900; letter-spacing:.3px; font-size: clamp(16px, 1.6vw, 22px); }
-    .meta{ color:var(--muted); font-size: clamp(12px, 1.1vw, 14px); }
-    .badge-soft{ background: rgba(255,255,255,.08); border:1px solid var(--line); }
+    @media (max-width: 768px){
+      .brand-logo{ height:34px; }
+    }
+
+    .title{
+      font-weight:900;
+      letter-spacing:.3px;
+      font-size: clamp(16px, 1.6vw, 22px);
+    }
+
+    .meta{
+      color:var(--muted);
+      font-size: clamp(12px, 1.1vw, 14px);
+    }
+
+    .badge-soft{
+      background: rgba(255,255,255,.08);
+      border:1px solid var(--line);
+    }
+
     code{ color:#ffd0db; }
 
-    .wrap{ flex:1; min-height:0; padding: var(--wrap-pad) 18px; }
+    .wrap{
+      flex:1;
+      min-height:0;
+      padding: var(--wrap-pad) 18px;
+    }
 
     .panel{
       height:100%;
@@ -102,19 +155,34 @@
       border: 1px solid var(--line);
       border-radius: 14px;
       overflow:hidden;
-      display:flex; flex-direction:column; min-height:0;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
     }
 
     .tv-tabs{ flex:0 0 auto; }
-    .tv-tabs .nav-link{ color:var(--muted); font-weight:900; letter-spacing:.2px; }
+
+    .tv-tabs .nav-link{
+      color:var(--muted);
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+
     .tv-tabs .nav-link.active{
       color:var(--text);
       background: rgba(255,255,255,.06);
       border-color: var(--line);
     }
 
-    .tab-content{ flex:1; min-height:0; }
-    .tab-pane{ height:100%; min-height:0; }
+    .tab-content{
+      flex:1;
+      min-height:0;
+    }
+
+    .tab-pane{
+      height:100%;
+      min-height:0;
+    }
 
     .table-wrap{
       height:100%;
@@ -123,12 +191,23 @@
       overscroll-behavior: contain;
       background: rgba(255,255,255,.02);
     }
+
     .table-wrap::-webkit-scrollbar{ height:12px; width:12px; }
-    .table-wrap::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.18); border-radius:10px; }
+    .table-wrap::-webkit-scrollbar-thumb{
+      background: rgba(255,255,255,.18);
+      border-radius:10px;
+    }
 
-    table{ width:max-content; min-width:100%; border-collapse:separate; border-spacing:0; table-layout:auto; }
+    table{
+      width:max-content;
+      min-width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      table-layout:auto;
+    }
 
-    .table-compact th, .table-compact td{
+    .table-compact th,
+    .table-compact td{
       border-right:1px solid var(--line);
       border-bottom:1px solid var(--line);
       padding: var(--tbl-pad-y) var(--tbl-pad-x);
@@ -138,46 +217,83 @@
       background: rgba(255,255,255,.02);
       vertical-align:middle;
     }
-    .table-compact thead th{ background: var(--head); }
+
+    .table-compact thead th{
+      background: var(--head);
+      box-shadow: inset 0 -1px 0 var(--line);
+    }
 
     .sticky-1,.sticky-2,.sticky-3,.sticky-4,.sticky-5,.sticky-6{
-      position: sticky; left: 0; z-index: 120;
+      position: sticky;
+      left: 0;
+      z-index: 120;
       background: var(--head) !important;
-    }
-    .table-compact td.sticky-1,.table-compact td.sticky-2,.table-compact td.sticky-3,
-    .table-compact td.sticky-4,.table-compact td.sticky-5,.table-compact td.sticky-6{
-      background:#101b36 !important; z-index: 90;
+      box-shadow: 1px 0 0 var(--line);
     }
 
-    .table-compact tbody tr:nth-child(odd) td{ background: rgba(255,255,255,.03); }
-    .table-compact tbody tr:hover td{ background: rgba(255,255,255,.07); }
+    .table-compact td.sticky-1,
+    .table-compact td.sticky-2,
+    .table-compact td.sticky-3,
+    .table-compact td.sticky-4,
+    .table-compact td.sticky-5,
+    .table-compact td.sticky-6{
+      background:#101b36 !important;
+      z-index: 90;
+    }
+
+    .table-compact tbody tr:nth-child(odd) td{
+      background: rgba(255,255,255,.03);
+    }
+
+    .table-compact tbody tr:hover td{
+      background: rgba(255,255,255,.07);
+    }
+
     .table-compact tbody tr:hover td.sticky-1,
     .table-compact tbody tr:hover td.sticky-2,
     .table-compact tbody tr:hover td.sticky-3,
     .table-compact tbody tr:hover td.sticky-4,
     .table-compact tbody tr:hover td.sticky-5,
-    .table-compact tbody tr:hover td.sticky-6{ background:#14224a !important; }
+    .table-compact tbody tr:hover td.sticky-6{
+      background:#14224a !important;
+    }
 
-    .cell-stack{ display:flex; flex-direction:column; gap: var(--tbl-pill-gap); width:100%; }
+    .cell-stack{
+      display:flex;
+      flex-direction:column;
+      gap: var(--tbl-pill-gap);
+      width:100%;
+    }
+
     .pill{
       border-radius:8px;
       padding: var(--tbl-pill-pad-y) var(--tbl-pill-pad-x);
-      font-weight:900; line-height:1;
+      font-weight:900;
+      line-height:1;
       border:1px solid transparent;
       font-size: var(--tbl-pill-font);
     }
+
     .pill-spk{ background:#3a1220; border-color:#6b1f3a; color:#ffd0db; }
     .pill-prod{ background:#0f2a1b; border-color:#1c6b3a; color:#bff7d2; }
     .pill-wip{ background:#0f2236; border-color:#1d4f8a; color:#cce5ff; }
 
-    .legend{ display:flex; flex-direction:column; gap: var(--tbl-legend-gap); align-items:stretch; }
+    .legend{
+      display:flex;
+      flex-direction:column;
+      gap: var(--tbl-legend-gap);
+      align-items:stretch;
+    }
+
     .legend .tag{
       border-radius:8px;
       padding: var(--tbl-legend-pad-y) var(--tbl-legend-pad-x);
-      font-weight:900; line-height:1;
+      font-weight:900;
+      line-height:1;
       border:1px solid transparent;
       font-size: var(--tbl-legend-font);
     }
+
     .tag-spk{ background:#3a1220; border-color:#6b1f3a; color:#ffd0db; }
     .tag-prod{ background:#0f2a1b; border-color:#1c6b3a; color:#bff7d2; }
     .tag-wip{ background:#0f2236; border-color:#1d4f8a; color:#cce5ff; }
@@ -194,19 +310,35 @@
       min-width: clamp(var(--w-date-min), 6vw, var(--w-date-max));
     }
 
-    .today-col{ outline:3px solid var(--today); outline-offset:-3px; }
+    .today-col{
+      outline:3px solid var(--today);
+      outline-offset:-3px;
+    }
+
     .prod-low{ color:#ff6b6b; font-weight:900; }
     .prod-ok{ color:#9dffb1; font-weight:900; }
 
-    .loading{ padding:18px; color:var(--muted); }
-    .errorbox{ padding:18px; color:#ff9a9a; white-space:normal; }
+    .loading{
+      padding:18px;
+      color:var(--muted);
+    }
+
+    .errorbox{
+      padding:18px;
+      color:#ff9a9a;
+      white-space:normal;
+    }
+
+    .emptybox{
+      padding:18px;
+      color:var(--muted);
+    }
   </style>
 </head>
 <body>
 
 <div class="scale-stage">
   <div class="scale-root" id="scaleRoot">
-
     <div class="app">
 
       <div class="topbar">
@@ -220,22 +352,22 @@
 
         <div class="d-flex gap-2 align-items-center">
           <span class="badge badge-soft" id="clock">--:--:--</span>
-          <button class="btn btn-sm btn-outline-light" id="btnReload">Refresh</button>
+          <button class="btn btn-sm btn-outline-light" id="btnReload" type="button">Refresh</button>
         </div>
       </div>
 
       <div class="wrap">
         <div class="panel">
 
-          <ul class="nav nav-tabs tv-tabs px-3 pt-3" role="tablist">
+          <ul class="nav nav-tabs tv-tabs px-3 pt-3" role="tablist" id="tvTabs">
             <li class="nav-item" role="presentation">
-              <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pane-subassy" type="button" role="tab">Sub Assy</button>
+              <button class="nav-link active" id="tab-subassy" data-bs-toggle="tab" data-bs-target="#pane-subassy" type="button" role="tab">Sub Assy</button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pane-mip" type="button" role="tab">MIP</button>
+              <button class="nav-link" id="tab-mip" data-bs-toggle="tab" data-bs-target="#pane-mip" type="button" role="tab">MIP</button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pane-fg" type="button" role="tab">Finish Goods</button>
+              <button class="nav-link" id="tab-fg" data-bs-toggle="tab" data-bs-target="#pane-fg" type="button" role="tab">Finish Goods</button>
             </li>
           </ul>
 
@@ -272,32 +404,51 @@
             </div>
 
           </div>
-
         </div>
       </div>
 
     </div>
-
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  // ====== ROUTES ======
   const subassyUrl = @json(route('tv.data.subassy'));
   const mipUrl     = @json(route('tv.data.mip'));
   const fgUrl      = @json(route('tv.data.fg'));
 
-  // ====== GLOBAL STATE (DECLARE ONCE!) ======
-  let lastTodayDaySubAssy = null;
-  let lastTodayDayMIP = null;
-  let lastTodayDayFG = null;
+  const state = {
+    subassy: { todayDay: null, bulan: null, tahun: null, timestamp: null, loaded: false },
+    mip:     { todayDay: null, bulan: null, tahun: null, timestamp: null, loaded: false },
+    fg:      { todayDay: null, bulan: null, tahun: null, timestamp: null, loaded: false }
+  };
 
-  // ====== HELPERS ======
-  function clamp(n,min,max){ return Math.min(max, Math.max(min,n)); }
-  function applyZoom(value){ document.documentElement.style.setProperty('--zoom', String(value)); }
-  function getQueryParam(name){ return new URLSearchParams(location.search).get(name); }
+  function escapeHtml(value){
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function n(value){
+    const num = Number(value);
+    return Number.isFinite(num) ? num : 0;
+  }
+
+  function clamp(n,min,max){
+    return Math.min(max, Math.max(min,n));
+  }
+
+  function applyZoom(value){
+    document.documentElement.style.setProperty('--zoom', String(value));
+  }
+
+  function getQueryParam(name){
+    return new URLSearchParams(location.search).get(name);
+  }
 
   function autoFitZoom(){
     const autoFit = getComputedStyle(document.documentElement).getPropertyValue('--auto-fit').trim();
@@ -322,76 +473,111 @@
     }
   })();
 
-  function pad(n){ return String(n).padStart(2,'0'); }
+  function pad(v){
+    return String(v).padStart(2, '0');
+  }
+
   function tickClock(){
     const d = new Date();
     document.getElementById('clock').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
-  setInterval(tickClock, 1000); tickClock();
+
+  setInterval(tickClock, 1000);
+  tickClock();
 
   function prodBadge(p){
     const val = parseInt(p || 0, 10);
-    return val < 100 ? `<span class="prod-low">${val}%</span>` : `<span class="prod-ok">${val}%</span>`;
+    return val < 100
+      ? `<span class="prod-low">${escapeHtml(val)}%</span>`
+      : `<span class="prod-ok">${escapeHtml(val)}%</span>`;
   }
 
   function getQueryUrl(baseUrl){
     const url = new URL(baseUrl, window.location.origin);
     const params = new URLSearchParams(window.location.search);
-    if (params.get('bulan')) url.searchParams.set('bulan', params.get('bulan'));
-    if (params.get('tahun')) url.searchParams.set('tahun', params.get('tahun'));
-    if (params.get('customer')) url.searchParams.set('customer', params.get('customer'));
+
+    ['bulan','tahun','customer'].forEach(key => {
+      const v = params.get(key);
+      if (v) url.searchParams.set(key, v);
+    });
+
     return url.toString();
   }
 
   function applyStickyOffsetsFor(tableId, stickyClasses){
     const table = document.getElementById(tableId);
-    if (!table) return;
+    if (!table || table.style.display === 'none') return;
+
     const headRow = table.querySelector('thead tr');
     if (!headRow) return;
 
     let left = 0;
-    stickyClasses.forEach(cls => {
+
+    stickyClasses.forEach((cls, index) => {
       const th = headRow.querySelector(`th.${cls}`);
       if (!th) return;
-      const w = th.offsetWidth;
-      table.querySelectorAll(`th.${cls}, td.${cls}`).forEach(el => el.style.left = left + 'px');
-      left += w;
+
+      const width = th.getBoundingClientRect().width;
+      const zBaseHead = 600 - index;
+      const zBaseBody = 300 - index;
+
+      table.querySelectorAll(`th.${cls}`).forEach(el => {
+        el.style.left = `${left}px`;
+        el.style.zIndex = String(zBaseHead);
+      });
+
+      table.querySelectorAll(`td.${cls}`).forEach(el => {
+        el.style.left = `${left}px`;
+        el.style.zIndex = String(zBaseBody);
+      });
+
+      left += width;
     });
   }
 
-  function freezeTheadAllRows(tableId) {
+  function freezeTheadAllRows(tableId){
     const table = document.getElementById(tableId);
-    if (!table) return;
+    if (!table || table.style.display === 'none') return;
+
     const thead = table.querySelector('thead');
     if (!thead) return;
 
     const rows = Array.from(thead.querySelectorAll('tr'));
     if (!rows.length) return;
 
-    const rowHeights = rows.map(r => r.offsetHeight || 0);
+    const rowHeights = rows.map(row => row.getBoundingClientRect().height || 0);
     const rowTops = [];
     let acc = 0;
-    for (let i = 0; i < rowHeights.length; i++) { rowTops.push(acc); acc += rowHeights[i]; }
+
+    for (let i = 0; i < rowHeights.length; i++){
+      rowTops.push(acc);
+      acc += rowHeights[i];
+    }
 
     rows.forEach((row, rIndex) => {
       const ths = Array.from(row.querySelectorAll('th'));
+
       ths.forEach(th => {
         th.style.position = 'sticky';
-        th.style.top = rowTops[rIndex] + 'px';
+        th.style.top = `${rowTops[rIndex]}px`;
 
         let z = 200 + (rows.length - rIndex);
-        if ([...th.classList].some(c => c.startsWith('sticky-'))) z = 500 + (rows.length - rIndex);
-        th.style.zIndex = String(z);
-
-        const span = parseInt(th.getAttribute('rowspan') || '1', 10);
-        if (span > 1) {
-          const total = rowHeights.slice(rIndex, rIndex + span).reduce((a,b) => a + b, 0);
-          if (total > 0) th.style.height = total + 'px';
-          th.style.verticalAlign = 'middle';
+        if ([...th.classList].some(c => c.startsWith('sticky-'))) {
+          z = 700 + (rows.length - rIndex);
         }
 
-        th.style.background = getComputedStyle(th).backgroundColor || 'var(--head)';
+        th.style.zIndex = String(z);
+        th.style.background = 'var(--head)';
         th.style.backgroundClip = 'padding-box';
+
+        const span = parseInt(th.getAttribute('rowspan') || '1', 10);
+        if (span > 1){
+          const totalHeight = rowHeights.slice(rIndex, rIndex + span).reduce((a,b) => a + b, 0);
+          if (totalHeight > 0){
+            th.style.height = `${totalHeight}px`;
+          }
+          th.style.verticalAlign = 'middle';
+        }
       });
     });
   }
@@ -399,80 +585,126 @@
   function highlightTodayGeneric(tableId, todayDay){
     document.querySelectorAll(`#${tableId} [data-day]`).forEach(el => el.classList.remove('today-col'));
     if (!todayDay) return;
+
     document.querySelectorAll(`#${tableId} th[data-day="${todayDay}"]`).forEach(el => el.classList.add('today-col'));
     document.querySelectorAll(`#${tableId} td.day-cell[data-day="${todayDay}"]`).forEach(el => el.classList.add('today-col'));
   }
 
   function focusTodayGeneric(wrapId, tableId, stickyLastSelector, todayDay){
     if (!todayDay) return;
+
     const wrap = document.getElementById(wrapId);
     const target = document.querySelector(`#${tableId} th[data-day="${todayDay}"]`);
     if (!wrap || !target) return;
 
     const stickyLast = document.querySelector(stickyLastSelector);
     const stickyWidth = stickyLast ? (stickyLast.offsetLeft + stickyLast.offsetWidth) : 0;
-
     const margin = 24;
+
     wrap.scrollLeft = Math.max(0, target.offsetLeft - stickyWidth - margin);
   }
 
-  const autoScrollState = {};
-  function startAutoScroll(wrapId){
-    stopAutoScroll(wrapId);
-    const wrap = document.getElementById(wrapId);
-    if (!wrap) return;
-
-    const stepPx = 2;
-    const intervalMs = 40;
-    const pauseAtLoopMs = 700;
-
-    autoScrollState[wrapId] = setInterval(() => {
-      const maxScrollTop = wrap.scrollHeight - wrap.clientHeight;
-      if (maxScrollTop <= 0) return;
-
-      if (wrap.scrollTop >= maxScrollTop - 2) {
-        stopAutoScroll(wrapId);
-        wrap.scrollTo({ top: 0, behavior: 'smooth' });
-        setTimeout(() => startAutoScroll(wrapId), pauseAtLoopMs);
-        return;
-      }
-      wrap.scrollTop = wrap.scrollTop + stepPx;
-    }, intervalMs);
-  }
-
-  function stopAutoScroll(wrapId){
-    if (autoScrollState[wrapId]){
-      clearInterval(autoScrollState[wrapId]);
-      delete autoScrollState[wrapId];
-    }
-  }
-
   async function fetchJsonOrThrow(url){
-    const res = await fetch(url, { headers: { 'Accept':'application/json' } });
+    const res = await fetch(url, {
+      headers: { 'Accept':'application/json' },
+      cache: 'no-store'
+    });
+
     const ct = res.headers.get('content-type') || '';
+
     if (!res.ok){
       const text = await res.text();
-      throw new Error(`HTTP ${res.status} | ${text.slice(0,250)}`);
+      throw new Error(`HTTP ${res.status} | ${text.slice(0, 250)}`);
     }
+
     if (!ct.includes('application/json')){
       const text = await res.text();
-      throw new Error(`Bukan JSON. Preview: ${text.slice(0,250)}`);
+      throw new Error(`Response bukan JSON. Preview: ${text.slice(0, 250)}`);
     }
+
     const json = await res.json();
-    if (!json.success) throw new Error('Response success=false');
+
+    if (!json || json.success !== true){
+      throw new Error('Response success=false');
+    }
+
     return json;
   }
 
-  function showErrorBox(loadingId, err){
-    const el = document.getElementById(loadingId);
-    el.style.display = 'block';
-    el.className = 'errorbox';
-    el.innerHTML = `Gagal memuat data:<br><code>${String(err)}</code>`;
+  function showErrorBox(loadingId, tableId, err){
+    const loading = document.getElementById(loadingId);
+    const table = document.getElementById(tableId);
+
+    if (table) table.style.display = 'none';
+
+    loading.style.display = 'block';
+    loading.className = 'errorbox';
+    loading.innerHTML = `Gagal memuat data:<br><code>${escapeHtml(String(err))}</code>`;
+
     console.error(err);
+  }
+
+  function showEmptyBox(loadingId, tableId, message){
+    const loading = document.getElementById(loadingId);
+    const table = document.getElementById(tableId);
+
+    if (table) table.style.display = 'none';
+
+    loading.style.display = 'block';
+    loading.className = 'emptybox';
+    loading.textContent = message;
+  }
+
+  function updateMetaTextByTab(tabKey){
+    const meta = document.getElementById('metaText');
+    const item = state[tabKey];
+
+    if (!item || !item.loaded){
+      meta.textContent = 'Memuat data...';
+      return;
+    }
+
+    const labelMap = {
+      subassy: 'Sub Assy',
+      mip: 'MIP',
+      fg: 'Finish Goods'
+    };
+
+    meta.textContent = `${labelMap[tabKey]} | ${pad(item.bulan)}-${item.tahun} | Update: ${item.timestamp}`;
+  }
+
+  function getActiveTabKey(){
+    const activeBtn = document.querySelector('#tvTabs .nav-link.active');
+    if (!activeBtn) return 'subassy';
+
+    if (activeBtn.id === 'tab-mip') return 'mip';
+    if (activeBtn.id === 'tab-fg') return 'fg';
+    return 'subassy';
+  }
+
+  function updateActiveMeta(){
+    updateMetaTextByTab(getActiveTabKey());
+  }
+
+  function postRenderTable({ tableId, wrapId, stickyLastSelector, todayDay, restoreScrollTop = true, keepScrollTop = 0 }){
+    const wrap = document.getElementById(wrapId);
+
+    requestAnimationFrame(() => {
+      if (wrap && restoreScrollTop){
+        wrap.scrollTop = keepScrollTop;
+      }
+
+      freezeTheadAllRows(tableId);
+      highlightTodayGeneric(tableId, todayDay);
+
+      requestAnimationFrame(() => {
+        applyStickyOffsetsFor(tableId, ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
+        focusTodayGeneric(wrapId, tableId, stickyLastSelector, todayDay);
+      });
+    });
   }
 </script>
 
-<!-- ========================= SUB ASSY ========================= -->
 <script>
   function buildHeader(daysInMonth){
     const thead = document.getElementById('subassyThead');
@@ -511,9 +743,10 @@
         <th class="w-num"></th>
     `;
 
-    for (let i=1;i<=daysInMonth;i++){
+    for (let i=1; i<=daysInMonth; i++){
       row2 += `<th class="w-date" data-day="${i}">${i}</th>`;
     }
+
     row2 += `</tr>`;
     thead.innerHTML = row1 + row2;
   }
@@ -527,10 +760,10 @@
 
       let html = `
         <td class="w-no sticky-1">${idx+1}</td>
-        <td class="w-cust sticky-2">${r.customer ?? ''}</td>
-        <td class="w-proj sticky-3">${r.project ?? ''}</td>
-        <td class="w-pn sticky-4">${r.part_number ?? ''}</td>
-        <td class="w-name sticky-5">${r.part_name ?? ''}</td>
+        <td class="w-cust sticky-2">${escapeHtml(r.customer ?? '')}</td>
+        <td class="w-proj sticky-3">${escapeHtml(r.project ?? '')}</td>
+        <td class="w-pn sticky-4">${escapeHtml(r.part_number ?? '')}</td>
+        <td class="w-name sticky-5">${escapeHtml(r.part_name ?? '')}</td>
 
         <td class="w-status sticky-6">
           <div class="legend">
@@ -540,25 +773,25 @@
           </div>
         </td>
 
-        <td class="w-num"><b>${r.total_po ?? 0}</b></td>
-        <td class="w-num"><b>${r.wip_sebelumnya ?? 0}</b></td>
-        <td class="w-num"><b>${r.total_spk ?? 0}</b></td>
-        <td class="w-num"><b>${r.total_produksi ?? 0}</b></td>
-        <td class="w-num"><b>${r.wip_akhir ?? 0}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.total_po))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.wip_sebelumnya))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.total_spk))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.total_produksi))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.wip_akhir))}</b></td>
         <td class="w-num">${prodBadge(r.produktivitas)}</td>
       `;
 
       for (let d=1; d<=daysInMonth; d++){
-        const spk  = (r.days?.spk?.[d] ?? 0);
-        const prod = (r.days?.produksi?.[d] ?? 0);
-        const wip  = (r.days?.wip?.[d] ?? 0);
+        const spk  = n(r.days?.spk?.[d]);
+        const prod = n(r.days?.produksi?.[d]);
+        const wip  = n(r.days?.wip?.[d]);
 
         html += `
           <td class="day-cell w-date" data-day="${d}">
             <div class="cell-stack">
-              <div class="pill pill-spk">${spk}</div>
-              <div class="pill pill-prod">${prod}</div>
-              <div class="pill pill-wip">${wip}</div>
+              <div class="pill pill-spk">${escapeHtml(spk)}</div>
+              <div class="pill pill-prod">${escapeHtml(prod)}</div>
+              <div class="pill pill-wip">${escapeHtml(wip)}</div>
             </div>
           </td>
         `;
@@ -582,31 +815,48 @@
 
     const json = await fetchJsonOrThrow(getQueryUrl(subassyUrl));
 
-    buildHeader(json.daysInMonth);
-    buildBody(json.rows || [], json.daysInMonth);
+    if (!Array.isArray(json.rows) || json.rows.length === 0){
+      document.getElementById('subassyThead').innerHTML = '';
+      document.getElementById('subassyTbody').innerHTML = '';
+      showEmptyBox('subassyLoading', 'subassyTable', 'Data Sub Assy kosong.');
+      state.subassy = {
+        todayDay: json.todayDay ?? null,
+        bulan: json.bulan ?? null,
+        tahun: json.tahun ?? null,
+        timestamp: json.timestamp ?? '-',
+        loaded: true
+      };
+      updateActiveMeta();
+      return;
+    }
 
-    document.getElementById('metaText').textContent =
-      `Sub Assy | ${pad(json.bulan)}-${json.tahun} | Update: ${json.timestamp}`;
+    buildHeader(json.daysInMonth);
+    buildBody(json.rows, json.daysInMonth);
 
     loading.style.display = 'none';
     table.style.display = 'table';
 
-    lastTodayDaySubAssy = json.todayDay;
+    state.subassy = {
+      todayDay: json.todayDay ?? null,
+      bulan: json.bulan ?? null,
+      tahun: json.tahun ?? null,
+      timestamp: json.timestamp ?? '-',
+      loaded: true
+    };
 
-    requestAnimationFrame(() => {
-      if (wrap) wrap.scrollTop = keepScrollTop;
-      freezeTheadAllRows('subassyTable');
-      highlightTodayGeneric('subassyTable', json.todayDay);
+    updateActiveMeta();
 
-      requestAnimationFrame(() => {
-        applyStickyOffsetsFor('subassyTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
-        focusTodayGeneric('subassyWrap','subassyTable','#subassyTable thead th.sticky-6', json.todayDay);
-      });
+    postRenderTable({
+      tableId: 'subassyTable',
+      wrapId: 'subassyWrap',
+      stickyLastSelector: '#subassyTable thead th.sticky-6',
+      todayDay: state.subassy.todayDay,
+      restoreScrollTop: true,
+      keepScrollTop
     });
   }
 </script>
 
-<!-- ========================= MIP ========================= -->
 <script>
   function buildMIPHeader(daysInMonth){
     const thead = document.getElementById('mipThead');
@@ -652,9 +902,10 @@
         <th class="w-num"></th>
     `;
 
-    for (let i=1;i<=daysInMonth;i++){
+    for (let i=1; i<=daysInMonth; i++){
       row2 += `<th class="w-date" data-day="${i}">${i}</th>`;
     }
+
     row2 += `</tr>`;
     thead.innerHTML = row1 + row2;
   }
@@ -668,10 +919,10 @@
 
       let html = `
         <td class="w-no sticky-1">${idx+1}</td>
-        <td class="w-cust sticky-2">${r.customer ?? ''}</td>
-        <td class="w-proj sticky-3">${r.project ?? ''}</td>
-        <td class="w-pn sticky-4">${r.part_number ?? ''}</td>
-        <td class="w-name sticky-5">${r.part_name ?? ''}</td>
+        <td class="w-cust sticky-2">${escapeHtml(r.customer ?? '')}</td>
+        <td class="w-proj sticky-3">${escapeHtml(r.project ?? '')}</td>
+        <td class="w-pn sticky-4">${escapeHtml(r.part_number ?? '')}</td>
+        <td class="w-name sticky-5">${escapeHtml(r.part_name ?? '')}</td>
 
         <td class="w-status sticky-6">
           <div class="legend">
@@ -681,27 +932,27 @@
           </div>
         </td>
 
-        <td class="w-num"><b>${r.stock_awal ?? 0}</b></td>
-        <td class="w-num"><b>${r.total_in ?? 0}</b></td>
-        <td class="w-num"><b>${r.total_out ?? 0}</b></td>
-        <td class="w-num"><b>${r.balance_akhir ?? 0}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.stock_awal))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.total_in))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.total_out))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.balance_akhir))}</b></td>
 
-        <td class="w-num"><b>${r.level_min ?? 0}</b></td>
-        <td class="w-num"><b>${r.level_safety ?? 0}</b></td>
-        <td class="w-num"><b>${r.level_max ?? 0}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.level_min))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.level_safety))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.level_max))}</b></td>
       `;
 
       for (let d=1; d<=daysInMonth; d++){
-        const inQty  = (r.days?.in?.[d] ?? 0);
-        const outQty = (r.days?.out?.[d] ?? 0);
-        const bal    = (r.days?.balance?.[d] ?? 0);
+        const inQty  = n(r.days?.in?.[d]);
+        const outQty = n(r.days?.out?.[d]);
+        const bal    = n(r.days?.balance?.[d]);
 
         html += `
           <td class="day-cell w-date" data-day="${d}">
             <div class="cell-stack">
-              <div class="pill pill-prod">${inQty}</div>
-              <div class="pill pill-spk">${outQty}</div>
-              <div class="pill pill-wip">${bal}</div>
+              <div class="pill pill-prod">${escapeHtml(inQty)}</div>
+              <div class="pill pill-spk">${escapeHtml(outQty)}</div>
+              <div class="pill pill-wip">${escapeHtml(bal)}</div>
             </div>
           </td>
         `;
@@ -725,30 +976,48 @@
 
     const json = await fetchJsonOrThrow(getQueryUrl(mipUrl));
 
+    if (!Array.isArray(json.rows) || json.rows.length === 0){
+      document.getElementById('mipThead').innerHTML = '';
+      document.getElementById('mipTbody').innerHTML = '';
+      showEmptyBox('mipLoading', 'mipTable', 'Data MIP kosong.');
+      state.mip = {
+        todayDay: json.todayDay ?? null,
+        bulan: json.bulan ?? null,
+        tahun: json.tahun ?? null,
+        timestamp: json.timestamp ?? '-',
+        loaded: true
+      };
+      updateActiveMeta();
+      return;
+    }
+
     buildMIPHeader(json.daysInMonth);
-    buildMIPBody(json.rows || [], json.daysInMonth);
+    buildMIPBody(json.rows, json.daysInMonth);
 
     loading.style.display = 'none';
     table.style.display = 'table';
 
-    lastTodayDayMIP = json.todayDay;
+    state.mip = {
+      todayDay: json.todayDay ?? null,
+      bulan: json.bulan ?? null,
+      tahun: json.tahun ?? null,
+      timestamp: json.timestamp ?? '-',
+      loaded: true
+    };
 
-    requestAnimationFrame(() => {
-      if (wrap) wrap.scrollTop = keepScrollTop;
-      freezeTheadAllRows('mipTable');
-      highlightTodayGeneric('mipTable', json.todayDay);
+    updateActiveMeta();
 
-      requestAnimationFrame(() => {
-        applyStickyOffsetsFor('mipTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
-        focusTodayGeneric('mipWrap','mipTable','#mipTable thead th.sticky-6', json.todayDay);
-      });
+    postRenderTable({
+      tableId: 'mipTable',
+      wrapId: 'mipWrap',
+      stickyLastSelector: '#mipTable thead th.sticky-6',
+      todayDay: state.mip.todayDay,
+      restoreScrollTop: true,
+      keepScrollTop
     });
-
-    startAutoScroll('mipWrap');
   }
 </script>
 
-<!-- ========================= FG ========================= -->
 <script>
   function buildFGHeader(daysInMonth){
     const thead = document.getElementById('fgThead');
@@ -789,12 +1058,13 @@
         <th class="w-num">Max</th>
     `;
 
-    for (let i=1;i<=daysInMonth;i++){
+    for (let i=1; i<=daysInMonth; i++){
       row2 += `<th class="w-date" data-day="${i}" colspan="2">${i}</th>`;
     }
+
     row2 += `</tr>`;
 
-    let dn = `
+    let row3 = `
       <tr>
         <th class="sticky-1"></th>
         <th class="sticky-2"></th>
@@ -808,18 +1078,27 @@
         <th></th><th></th><th></th>
         <th></th><th></th>
     `;
-    for (let i=1;i<=daysInMonth;i++){
-      dn += `<th class="w-date">D</th><th class="w-date">N</th>`;
-    }
-    dn += `</tr>`;
 
-    thead.innerHTML = row1 + row2 + dn;
+    for (let i=1; i<=daysInMonth; i++){
+      row3 += `<th class="w-date">D</th><th class="w-date">N</th>`;
+    }
+
+    row3 += `</tr>`;
+
+    thead.innerHTML = row1 + row2 + row3;
   }
 
   function statusStockBadge(v){
     const val = String(v || '').toLowerCase();
-    if (val === 'problem') return `<span class="tag tag-spk">Problem</span>`;
-    if (val === 'over') return `<span class="tag" style="background:#3a2f12;border-color:#6b5a1f;color:#ffe8b3;">Over</span>`;
+
+    if (val === 'problem'){
+      return `<span class="tag tag-spk">Problem</span>`;
+    }
+
+    if (val === 'over'){
+      return `<span class="tag" style="background:#3a2f12;border-color:#6b5a1f;color:#ffe8b3;">Over</span>`;
+    }
+
     return `<span class="tag tag-prod">Aman</span>`;
   }
 
@@ -832,10 +1111,10 @@
 
       let html = `
         <td class="w-no sticky-1">${idx+1}</td>
-        <td class="w-cust sticky-2">${r.customer ?? ''}</td>
-        <td class="w-proj sticky-3">${r.project ?? ''}</td>
-        <td class="w-pn sticky-4">${r.part_number ?? ''}</td>
-        <td class="w-name sticky-5">${r.part_name ?? ''}</td>
+        <td class="w-cust sticky-2">${escapeHtml(r.customer ?? '')}</td>
+        <td class="w-proj sticky-3">${escapeHtml(r.project ?? '')}</td>
+        <td class="w-pn sticky-4">${escapeHtml(r.part_number ?? '')}</td>
+        <td class="w-name sticky-5">${escapeHtml(r.part_name ?? '')}</td>
 
         <td class="w-status sticky-6">
           <div class="legend">
@@ -845,45 +1124,45 @@
           </div>
         </td>
 
-        <td class="w-num"><b>${r.total_po ?? 0}</b></td>
-        <td class="w-num"><b>${r.advance_delivery ?? 0}</b></td>
-        <td class="w-num"><b>${r.outstanding ?? 0}</b></td>
-        <td class="w-num"><b>${(r.percentage ?? 0)}%</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.total_po))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.advance_delivery))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.outstanding))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.percentage))}%</b></td>
 
-        <td class="w-num"><b>${r.stock_awal ?? 0}</b></td>
-        <td class="w-num"><b>${r.total_in ?? 0}</b></td>
-        <td class="w-num"><b>${r.total_out ?? 0}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.stock_awal))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.total_in))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.total_out))}</b></td>
 
-        <td class="w-num"><b>${r.level_min ?? 0}</b></td>
-        <td class="w-num"><b>${r.level_safety ?? 0}</b></td>
-        <td class="w-num"><b>${r.level_max ?? 0}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.level_min))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.level_safety))}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.level_max))}</b></td>
 
-        <td class="w-num"><b>${r.stock_on_hand ?? 0}</b></td>
+        <td class="w-num"><b>${escapeHtml(n(r.stock_on_hand))}</b></td>
         <td class="w-num">${statusStockBadge(r.status_stock)}</td>
       `;
 
       for (let d=1; d<=daysInMonth; d++){
-        const inD  = (r.days?.in_d?.[d] ?? 0);
-        const outD = (r.days?.out_d?.[d] ?? 0);
-        const balD = (r.days?.bal_d?.[d] ?? 0);
+        const inD  = n(r.days?.in_d?.[d]);
+        const outD = n(r.days?.out_d?.[d]);
+        const balD = n(r.days?.bal_d?.[d]);
 
-        const inN  = (r.days?.in_n?.[d] ?? 0);
-        const outN = (r.days?.out_n?.[d] ?? 0);
-        const balN = (r.days?.bal_n?.[d] ?? 0);
+        const inN  = n(r.days?.in_n?.[d]);
+        const outN = n(r.days?.out_n?.[d]);
+        const balN = n(r.days?.bal_n?.[d]);
 
         html += `
           <td class="day-cell w-date" data-day="${d}">
             <div class="cell-stack">
-              <div class="pill pill-prod">${inD}</div>
-              <div class="pill pill-spk">${outD}</div>
-              <div class="pill pill-wip">${balD}</div>
+              <div class="pill pill-prod">${escapeHtml(inD)}</div>
+              <div class="pill pill-spk">${escapeHtml(outD)}</div>
+              <div class="pill pill-wip">${escapeHtml(balD)}</div>
             </div>
           </td>
           <td class="day-cell w-date" data-day="${d}">
             <div class="cell-stack">
-              <div class="pill pill-prod">${inN}</div>
-              <div class="pill pill-spk">${outN}</div>
-              <div class="pill pill-wip">${balN}</div>
+              <div class="pill pill-prod">${escapeHtml(inN)}</div>
+              <div class="pill pill-spk">${escapeHtml(outN)}</div>
+              <div class="pill pill-wip">${escapeHtml(balN)}</div>
             </div>
           </td>
         `;
@@ -902,81 +1181,140 @@
 
     loading.style.display = 'block';
     loading.className = 'loading';
-    loading.textContent = 'Memuat Finish Good...';
+    loading.textContent = 'Memuat Finish Goods...';
     table.style.display = 'none';
 
     const json = await fetchJsonOrThrow(getQueryUrl(fgUrl));
 
+    if (!Array.isArray(json.rows) || json.rows.length === 0){
+      document.getElementById('fgThead').innerHTML = '';
+      document.getElementById('fgTbody').innerHTML = '';
+      showEmptyBox('fgLoading', 'fgTable', 'Data Finish Goods kosong.');
+      state.fg = {
+        todayDay: json.todayDay ?? null,
+        bulan: json.bulan ?? null,
+        tahun: json.tahun ?? null,
+        timestamp: json.timestamp ?? '-',
+        loaded: true
+      };
+      updateActiveMeta();
+      return;
+    }
+
     buildFGHeader(json.daysInMonth);
-    buildFGBody(json.rows || [], json.daysInMonth);
+    buildFGBody(json.rows, json.daysInMonth);
 
     loading.style.display = 'none';
     table.style.display = 'table';
 
-    lastTodayDayFG = json.todayDay;
+    state.fg = {
+      todayDay: json.todayDay ?? null,
+      bulan: json.bulan ?? null,
+      tahun: json.tahun ?? null,
+      timestamp: json.timestamp ?? '-',
+      loaded: true
+    };
 
-    requestAnimationFrame(() => {
-      if (wrap) wrap.scrollTop = keepScrollTop;
-      freezeTheadAllRows('fgTable');
-      highlightTodayGeneric('fgTable', json.todayDay);
+    updateActiveMeta();
 
-      requestAnimationFrame(() => {
-        applyStickyOffsetsFor('fgTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
-        focusTodayGeneric('fgWrap','fgTable','#fgTable thead th.sticky-6', json.todayDay);
-      });
+    postRenderTable({
+      tableId: 'fgTable',
+      wrapId: 'fgWrap',
+      stickyLastSelector: '#fgTable thead th.sticky-6',
+      todayDay: state.fg.todayDay,
+      restoreScrollTop: true,
+      keepScrollTop
     });
-
-    startAutoScroll('fgWrap');
   }
 </script>
 
 <script>
-  // ====== BOOT ======
-  document.getElementById('btnReload').addEventListener('click', () => {
-    loadSubAssy().catch(err => showErrorBox('subassyLoading', err));
-    loadMIP().catch(err => showErrorBox('mipLoading', err));
-    loadFG().catch(err => showErrorBox('fgLoading', err));
-  });
+  async function reloadAll(){
+    const btn = document.getElementById('btnReload');
+    btn.disabled = true;
+    btn.textContent = 'Refreshing...';
 
-  loadSubAssy().catch(err => showErrorBox('subassyLoading', err));
-  loadMIP().catch(err => showErrorBox('mipLoading', err));
-  loadFG().catch(err => showErrorBox('fgLoading', err));
+    const results = await Promise.allSettled([
+      loadSubAssy(),
+      loadMIP(),
+      loadFG()
+    ]);
 
-  setInterval(() => loadSubAssy().catch(console.error), 1800000);
-  setInterval(() => loadMIP().catch(console.error), 1800000);
-  setInterval(() => loadFG().catch(console.error), 1800000);
+    results.forEach((result, index) => {
+      if (result.status === 'rejected'){
+        if (index === 0) showErrorBox('subassyLoading', 'subassyTable', result.reason);
+        if (index === 1) showErrorBox('mipLoading', 'mipTable', result.reason);
+        if (index === 2) showErrorBox('fgLoading', 'fgTable', result.reason);
+      }
+    });
 
-  window.addEventListener('resize', () => {
+    updateActiveMeta();
+
+    btn.disabled = false;
+    btn.textContent = 'Refresh';
+  }
+
+  function reflowVisibleTables(){
     autoFitZoom();
 
-    freezeTheadAllRows('subassyTable');
-    applyStickyOffsetsFor('subassyTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
-    if (lastTodayDaySubAssy) focusTodayGeneric('subassyWrap','subassyTable','#subassyTable thead th.sticky-6', lastTodayDaySubAssy);
+    const activeTab = getActiveTabKey();
 
-    freezeTheadAllRows('mipTable');
-    applyStickyOffsetsFor('mipTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
-    if (lastTodayDayMIP) focusTodayGeneric('mipWrap','mipTable','#mipTable thead th.sticky-6', lastTodayDayMIP);
+    if (activeTab === 'subassy'){
+      freezeTheadAllRows('subassyTable');
+      applyStickyOffsetsFor('subassyTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
+      if (state.subassy.todayDay){
+        focusTodayGeneric('subassyWrap', 'subassyTable', '#subassyTable thead th.sticky-6', state.subassy.todayDay);
+      }
+    }
 
-    freezeTheadAllRows('fgTable');
-    applyStickyOffsetsFor('fgTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
-    if (lastTodayDayFG) focusTodayGeneric('fgWrap','fgTable','#fgTable thead th.sticky-6', lastTodayDayFG);
+    if (activeTab === 'mip'){
+      freezeTheadAllRows('mipTable');
+      applyStickyOffsetsFor('mipTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
+      if (state.mip.todayDay){
+        focusTodayGeneric('mipWrap', 'mipTable', '#mipTable thead th.sticky-6', state.mip.todayDay);
+      }
+    }
+
+    if (activeTab === 'fg'){
+      freezeTheadAllRows('fgTable');
+      applyStickyOffsetsFor('fgTable', ['sticky-1','sticky-2','sticky-3','sticky-4','sticky-5','sticky-6']);
+      if (state.fg.todayDay){
+        focusTodayGeneric('fgWrap', 'fgTable', '#fgTable thead th.sticky-6', state.fg.todayDay);
+      }
+    }
+  }
+
+  document.getElementById('btnReload').addEventListener('click', reloadAll);
+
+  document.querySelectorAll('#tvTabs .nav-link').forEach(btn => {
+    btn.addEventListener('shown.bs.tab', () => {
+      updateActiveMeta();
+      requestAnimationFrame(reflowVisibleTables);
+    });
+  });
+
+  reloadAll();
+
+  setInterval(() => {
+    loadSubAssy().catch(err => showErrorBox('subassyLoading', 'subassyTable', err));
+    loadMIP().catch(err => showErrorBox('mipLoading', 'mipTable', err));
+    loadFG().catch(err => showErrorBox('fgLoading', 'fgTable', err));
+  }, 1800000);
+
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(reflowVisibleTables, 120);
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden){
-      stopAutoScroll('subassyWrap'); stopAutoScroll('mipWrap'); stopAutoScroll('fgWrap');
-    } else {
-      startAutoScroll('subassyWrap'); startAutoScroll('mipWrap'); startAutoScroll('fgWrap');
-      if (lastTodayDaySubAssy) focusTodayGeneric('subassyWrap','subassyTable','#subassyTable thead th.sticky-6', lastTodayDaySubAssy);
-      if (lastTodayDayMIP) focusTodayGeneric('mipWrap','mipTable','#mipTable thead th.sticky-6', lastTodayDayMIP);
-      if (lastTodayDayFG) focusTodayGeneric('fgWrap','fgTable','#fgTable thead th.sticky-6', lastTodayDayFG);
+    if (!document.hidden){
+      requestAnimationFrame(reflowVisibleTables);
     }
   });
 
   window.addEventListener('load', () => {
-    startAutoScroll('subassyWrap');
-    startAutoScroll('mipWrap');
-    startAutoScroll('fgWrap');
+    requestAnimationFrame(reflowVisibleTables);
   });
 </script>
 
