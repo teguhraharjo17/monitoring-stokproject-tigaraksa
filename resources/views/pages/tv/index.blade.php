@@ -24,7 +24,7 @@
       --topbar-h: 92px;
       --wrap-pad: 14px;
 
-      --tbl-font: clamp(10px, 0.85vw, 13px);
+      --tbl-font: clamp(13px, 0.85vw, 13px);
       --tbl-pad-y: 6px;
       --tbl-pad-x: 8px;
 

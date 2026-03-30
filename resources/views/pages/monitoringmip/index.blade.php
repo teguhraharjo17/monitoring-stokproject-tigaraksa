@@ -89,7 +89,7 @@
             vertical-align: middle;
             white-space: nowrap;
             padding: 8px 10px;
-            font-size: 12px;
+            font-size: 14px;
             background: #fff;
             border-right: 1px solid #343a40;
             border-bottom: 1px solid #343a40;
