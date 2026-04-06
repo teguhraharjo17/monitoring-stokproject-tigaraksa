@@ -17,7 +17,7 @@ class MonitoringSubAssyController extends Controller
 {
     public function index()
     {
-        return view('pages.monitoringsubassy.index');
+        return view('pages.monitoringsubassy.redesign');
     }
 
     public function data(Request $request)

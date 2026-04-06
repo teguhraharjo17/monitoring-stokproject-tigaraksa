@@ -36,9 +36,7 @@
     </div>
     <!--end::App-->
 
-    @include('partials/_drawers')
-
-    @include('partials/_modals')
+    {{-- Demo Metronic drawers/modals dimatikan karena memanggil asset contoh yang tidak dipakai aplikasi --}}
 
     @include('partials/_scrolltop')
 
