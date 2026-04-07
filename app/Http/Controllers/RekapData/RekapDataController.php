@@ -14,7 +14,7 @@ class RekapDataController extends Controller
     {
         $masterItems = MasterItem::select('part_number', 'customer', 'kode_project', 'nama_part')->get();
 
-        return view('pages.rekapdata.index', compact('masterItems'));
+        return view('pages.rekapdata.redesign', compact('masterItems'));
     }
 
     public function data(Request $request)

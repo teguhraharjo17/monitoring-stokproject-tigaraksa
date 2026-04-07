@@ -19,7 +19,7 @@ class MonitoringMIPController extends Controller
 {
     public function index()
     {
-        return view('pages.monitoringmip.index');
+        return view('pages.monitoringmip.redesign');
     }
 
     public function data(Request $request)

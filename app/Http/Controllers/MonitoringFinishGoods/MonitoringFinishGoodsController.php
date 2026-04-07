@@ -19,7 +19,7 @@ class MonitoringFinishGoodsController extends Controller
 {
     public function index()
     {
-        return view('pages.monitoringfinishgood.index');
+        return view('pages.monitoringfinishgood.redesign');
     }
 
     public function data(Request $request)
