@@ -19,13 +19,14 @@ class LevelStockController extends Controller
         $selectedBulan = $request->bulan ?? $now->format('m');
         $selectedTahun = $request->tahun ?? $now->format('Y');
 
-        $latestLevel = LevelStok::where('bulan', $selectedBulan)
-            ->where('tahun', $selectedTahun)
-            ->first();
+        $latestLevel = LevelStok::firstOrCreate(
+            ['bulan' => (int) $selectedBulan, 'tahun' => (int) $selectedTahun],
+            ['jumlah_hari_kerja_atas_100' => 0, 'jumlah_hari_kerja_bawah_100' => 0]
+        );
 
         $masterItems = MasterItem::select('part_number', 'customer', 'kode_project', 'nama_part')->get();
 
-        return view('pages.levelstock.index', compact(
+        return view('pages.levelstock.redesign', compact(
             'selectedBulan',
             'selectedTahun',
             'latestLevel',
@@ -78,6 +79,30 @@ class LevelStockController extends Controller
                 ];
             })->values();
 
+            $orphanOverrides = $overrideDetails->filter(function ($detail) use ($rekapItems) {
+                return !$rekapItems->contains(function ($item) use ($detail) {
+                    return trim($detail->part_number) === trim($item->part_number)
+                        && trim($detail->customer) === trim($item->customer)
+                        && trim($detail->kode_projek) === trim($item->kode_project)
+                        && trim($detail->models) === trim($item->models);
+                });
+            })->map(function ($detail) {
+                return [
+                    'id' => $detail->id,
+                    'part_number' => $detail->part_number,
+                    'customer' => $detail->customer,
+                    'kode_projek' => $detail->kode_projek,
+                    'models' => $detail->models,
+                    'min' => $detail->min,
+                    'safety_mip' => $detail->safety_mip,
+                    'safety_fg' => $detail->safety_fg,
+                    'max' => $detail->max,
+                    'qty_set_box' => $detail->qty_set_box,
+                ];
+            })->values();
+
+            $finalData = $finalData->concat($orphanOverrides)->values();
+
             return DataTables::of($finalData->toArray())
                 ->setRowId(fn ($row) => $row['id'] ?? 'row_' . uniqid())
                 ->make(true);
@@ -96,6 +121,16 @@ class LevelStockController extends Controller
 
     public function storeDetail(Request $request)
     {
+        $levelStok = null;
+        if (!$request->filled('level_stok_id') && $request->filled('bulan') && $request->filled('tahun')) {
+            $levelStok = LevelStok::firstOrCreate(
+                ['bulan' => (int) $request->bulan, 'tahun' => (int) $request->tahun],
+                ['jumlah_hari_kerja_atas_100' => 0, 'jumlah_hari_kerja_bawah_100' => 0]
+            );
+
+            $request->merge(['level_stok_id' => $levelStok->id]);
+        }
+
         // Kosongkan field null agar tidak disimpan string kosong
         foreach (['min', 'safety_mip', 'safety_fg', 'max', 'qty_set_box'] as $field) {
             if ($request->has($field) && $request->input($field) === '') {
@@ -175,9 +210,10 @@ class LevelStockController extends Controller
             'tahun' => 'required|integer|min:2020',
         ]);
 
-        $level = LevelStok::where('bulan', $request->bulan)
-            ->where('tahun', $request->tahun)
-            ->first();
+        $level = LevelStok::firstOrCreate(
+            ['bulan' => (int) $request->bulan, 'tahun' => (int) $request->tahun],
+            ['jumlah_hari_kerja_atas_100' => 0, 'jumlah_hari_kerja_bawah_100' => 0]
+        );
 
         return response()->json(['id' => $level?->id]);
     }
