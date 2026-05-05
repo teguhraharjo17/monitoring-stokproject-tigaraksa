@@ -267,8 +267,53 @@
         @media (max-width: 991.98px) { .fg-hero .card-body { padding: 1.5rem; } .hero-stats, .quick-metrics { grid-template-columns: 1fr; } }
     </style>
 
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        /* Select2 Premium Styling */
+        .select2-container--default .select2-selection--multiple {
+            border: 0 !important;
+            background-color: #f1f5f9 !important;
+            border-radius: 12px !important;
+            padding: 4px 8px !important;
+            min-height: 42px !important;
+        }
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            background-color: #fff !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+            border: 1px solid #3b82f6 !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #3b82f6 !important;
+            border: none !important;
+            color: #fff !important;
+            border-radius: 6px !important;
+            padding: 2px 8px !important;
+            font-weight: 600 !important;
+            font-size: 0.85rem !important;
+            margin-top: 4px !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #fff !important;
+            margin-right: 5px !important;
+            border: none !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+            background-color: rgba(255,255,255,0.2) !important;
+        }
+        .select2-dropdown {
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+            overflow: hidden !important;
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #3b82f6 !important;
+        }
+    </style>
 
     <script>
         let currentData = [];
