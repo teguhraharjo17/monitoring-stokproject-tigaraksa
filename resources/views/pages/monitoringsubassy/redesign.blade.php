@@ -149,28 +149,150 @@
         #subassy_table th, #subassy_table td { text-align: center; vertical-align: middle; white-space: nowrap; padding: 8px 10px; font-size: 13px; background: #fff; border-right: 1px solid #dbe3ee; border-bottom: 1px solid #dbe3ee; }
         #subassy_table tr th:first-child, #subassy_table tr td:first-child { border-left: 1px solid #dbe3ee; }
         #subassy_table thead tr:first-child th { border-top: 1px solid #dbe3ee; top: 0; z-index: 5; }
-        #subassy_table thead th { position: sticky; background: #f8fafc; z-index: 3; font-weight: 700; padding-top: 10px; padding-bottom: 10px; color: #475569; text-transform: uppercase; letter-spacing: .04em; font-size: .76rem; }
-        #subassy_table thead tr:nth-child(2) th { top: 42px; z-index: 6; background: #f8fafc; padding-top: 12px; padding-bottom: 12px; border-bottom: 2px solid #94a3b8; }
-        #subassy_table thead tr:first-child th[rowspan="2"] { border-bottom: 2px solid #94a3b8; }
-        #subassy_table tbody td { padding-top: 12px; padding-bottom: 12px; }
-        #subassy_table tbody tr:hover td, #subassy_table tbody tr:hover .freeze-col { background: #f8fbff !important; }
-        .col-no { min-width: 50px; } .col-customer { min-width: 140px; } .col-project { min-width: 140px; } .col-part-number { min-width: 150px; } .col-part-name { min-width: 260px; text-align: left !important; } .col-number { min-width: 110px; } .col-status { min-width: 120px; } .col-harian { min-width: 78px; }
-        .cell-input-group { display: grid; grid-template-rows: repeat(3, auto); gap: 4px; width: 64px; margin: 0 auto; }
-        .cell-input-group input { width: 64px; min-width: 64px; max-width: 64px; padding: 2px 6px; font-size: 11px; height: 26px; text-align: center; border-radius: 6px; border: 1px solid #cbd5e1; }
-        .input-hijau { background-color: #dcfce7 !important; } .input-merah { background-color: #fee2e2 !important; } .input-biru { background-color: #dbeafe !important; font-weight: bold; color: #1d4ed8; }
+        #subassy_table thead th { 
+            position: sticky; 
+            background: #f8fafc; 
+            z-index: 3; 
+            font-weight: 800; 
+            padding: 10px 4px; 
+            color: #0f172a; 
+            text-transform: uppercase; 
+            letter-spacing: .02em; 
+            font-size: .78rem; 
+            white-space: normal !important; 
+            vertical-align: middle; 
+            line-height: 1.3; 
+            border-bottom: 2px solid #e2e8f0;
+            height: 54px;
+        }
+        #subassy_table thead tr:nth-child(2) th { 
+            top: 54px; 
+            z-index: 6; 
+            background: #f1f5f9; 
+            padding: 8px 2px; 
+            border-bottom: 2px solid #94a3b8; 
+            color: #334155;
+            font-size: .72rem;
+            height: 40px;
+        }
+        #subassy_table thead tr:first-child th[rowspan="2"] { border-bottom: 2px solid #94a3b8; height: 94px; }
+        #subassy_table tbody td { 
+            padding: 10px 4px; 
+            white-space: normal !important; 
+            word-break: break-word; 
+            font-size: 13.5px; 
+            vertical-align: middle;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        #subassy_table tbody tr:hover td, #subassy_table tbody tr:hover .freeze-col { background: #f0f7ff !important; }
+        
+        .col-no { min-width: 35px; width: 35px; } 
+        .col-customer { min-width: 80px; width: 80px; font-weight: 700; } 
+        .col-project { min-width: 80px; width: 80px; } 
+        .col-part-number { min-width: 110px; width: 110px; font-weight: 700; } 
+        .col-part-name { min-width: 150px; width: 150px; text-align: left !important; padding-left: 8px !important; font-size: 13.5px !important; } 
+        .col-number { min-width: 70px; width: 70px; font-weight: 700; } 
+        .col-status { min-width: 75px; width: 75px; } 
+        .col-harian { min-width: 75px; width: 75px; }
+
+        .cell-input-group { 
+            display: grid; 
+            grid-template-rows: repeat(3, auto); 
+            gap: 4px; 
+            width: 65px; 
+            margin: 0 auto; 
+            padding: 4px 0;
+        }
+        .cell-input-group input { 
+            width: 65px; 
+            min-width: 65px; 
+            max-width: 65px; 
+            padding: 0 !important; 
+            font-size: 13.5px; 
+            height: 30px; 
+            text-align: center !important; 
+            border-radius: 6px; 
+            border: 1px solid #cbd5e1; 
+            background: #fff;
+            transition: all 0.2s;
+            font-weight: 800;
+            appearance: none;
+            -moz-appearance: textfield;
+        }
+        .cell-input-group input::-webkit-outer-spin-button,
+        .cell-input-group input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .cell-input-group input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            outline: none;
+        }
+        .input-hijau { background-color: #ecfdf5 !important; color: #065f46 !important; border-color: #a7f3d0 !important; } 
+        .input-merah { background-color: #fff1f2 !important; color: #9f1239 !important; border-color: #fecdd3 !important; } 
+        .input-biru { background-color: #eff6ff !important; color: #1e40af !important; border-color: #bfdbfe !important; }
+        
         .legend-badge-group { display: flex; flex-direction: column; gap: 4px; align-items: center; }
-        .badge { font-size: 10px; padding: 5px 7px; line-height: 1; border-radius: 999px; }
-        .badge.bg-danger { background-color: #dc2626 !important; } .badge.bg-success { background-color: #16a34a !important; } .badge.bg-primary { background-color: #2563eb !important; }
-        input[name="wip_sebelumnya"] { width: 72px; min-width: 72px; text-align: center; margin: 0 auto; }
-        .saving-row { background-color: #fff8db !important; }
+        .badge { font-size: 10px; padding: 5px 8px; line-height: 1; border-radius: 6px; font-weight: 800; text-transform: uppercase; color: #fff !important; }
+        
+        input[name="wip_sebelumnya"] { 
+            width: 65px; 
+            min-width: 65px; 
+            text-align: center; 
+            margin: 0 auto; 
+            font-size: 14px; 
+            padding: 4px; 
+            height: 32px; 
+            border-radius: 6px;
+            font-weight: 800;
+            border: 1px solid #cbd5e1;
+        }
+        .cell-input-group input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            outline: none;
+        }
+        .input-hijau { background-color: #ecfdf5 !important; color: #065f46 !important; border-color: #a7f3d0 !important; } 
+        .input-merah { background-color: #fff1f2 !important; color: #9f1239 !important; border-color: #fecdd3 !important; } 
+        .input-biru { background-color: #eff6ff !important; color: #1e40af !important; border-color: #bfdbfe !important; }
+        
+        .legend-badge-group { display: flex; flex-direction: column; gap: 5px; align-items: center; }
+        .badge { font-size: 10px; padding: 5px 8px; line-height: 1; border-radius: 6px; font-weight: 800; text-transform: uppercase; color: #fff !important; }
+        
+        input[name="wip_sebelumnya"] { 
+            width: 70px; 
+            min-width: 70px; 
+            text-align: center; 
+            margin: 0 auto; 
+            font-size: 14px; 
+            padding: 4px; 
+            height: 32px; 
+            border-radius: 6px;
+            font-weight: 800;
+            border: 1px solid #cbd5e1;
+        }
+        
         .freeze-col { position: sticky; background: #fff !important; z-index: 2; }
         #subassy_table thead .freeze-col { z-index: 8; }
-        #subassy_table thead tr:first-child .freeze-col, #subassy_table thead tr:first-child .freeze-group-tanggal { z-index: 9; }
+        #subassy_table thead tr:first-child .freeze-col { z-index: 9; }
         #subassy_table thead tr:nth-child(2) .freeze-col { z-index: 10; }
-        .saving-row .freeze-col { background-color: #fff8db !important; }
+        
         .freeze-separator { position: sticky; }
-        .freeze-separator::after { content: ""; position: absolute; top: -1px; right: -1px; width: 2px; height: calc(100% + 2px); background: #94a3b8; z-index: 30; pointer-events: none; }
-        .produktifitas-kurang { color: #dc2626; font-weight: 700; } .produktifitas-baik { color: #0f766e; font-weight: 700; }
+        .freeze-separator::after { 
+            content: ""; 
+            position: absolute; 
+            top: 0; 
+            right: -4px; 
+            width: 4px; 
+            height: 100%; 
+            background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); 
+            z-index: 30; 
+            pointer-events: none; 
+        }
+        .produktifitas-kurang { color: #dc2626; font-weight: 800; } 
+        .produktifitas-baik { color: #059669; font-weight: 800; }
         @media (max-width: 991.98px) { .subassy-hero .card-body { padding: 1.5rem; } .hero-stats, .quick-metrics { grid-template-columns: 1fr; } }
     </style>
 
@@ -191,7 +313,9 @@
 
         function buildTableHeader(jumlahHari) {
             let thead = '<tr><th rowspan="2" class="col-no freeze-col freeze-h-0">No</th><th rowspan="2" class="col-customer freeze-col freeze-h-1">Customer</th><th rowspan="2" class="col-project freeze-col freeze-h-2">Project</th><th rowspan="2" class="col-part-number freeze-col freeze-h-3">Part Number</th><th rowspan="2" class="col-part-name freeze-col freeze-h-4">Part Name</th><th rowspan="2" class="col-number freeze-col freeze-h-5">Total PO</th><th rowspan="2" class="col-number freeze-col freeze-h-6">WIP Sebelumnya</th><th rowspan="2" class="col-number freeze-col freeze-h-7">Total SPK</th><th rowspan="2" class="col-number freeze-col freeze-h-8">Total Produksi</th><th rowspan="2" class="col-number freeze-col freeze-h-9">WIP Akhir</th><th rowspan="2" class="col-number freeze-col freeze-h-10">Produktivitas</th><th rowspan="2" class="col-status freeze-col freeze-h-11">Status</th><th colspan="' + jumlahHari + '">Tanggal</th></tr><tr>';
-            for (let i = 1; i <= jumlahHari; i++) thead += '<th class="col-harian">' + i + '</th>';
+            for (let i = 1; i <= jumlahHari; i++) {
+                thead += '<th class="col-harian ' + (i === 1 ? 'ps-3' : '') + '">' + i + '</th>';
+            }
             $('#subassy_table thead').html(thead + '</tr>');
         }
 
@@ -201,8 +325,10 @@
         }
 
         function buildRow(row, index, jumlahHari) {
-            let html = '<tr data-customer="' + escapeHtml(row.customer) + '" data-project="' + escapeHtml(row.project) + '" data-part-number="' + escapeHtml(row.part_number) + '" data-part-name="' + escapeHtml(row.part_name) + '"><td class="freeze-col freeze-b-0">' + (index + 1) + '</td><td class="freeze-col freeze-b-1">' + escapeHtml(row.customer) + '</td><td class="freeze-col freeze-b-2">' + escapeHtml(row.project) + '</td><td class="freeze-col freeze-b-3">' + escapeHtml(row.part_number) + '</td><td class="freeze-col freeze-b-4" style="text-align:left;">' + escapeHtml(row.part_name) + '</td><td class="freeze-col freeze-b-5"><span>' + (row.total_po ?? 0) + '</span></td><td class="freeze-col freeze-b-6"><input type="number" name="wip_sebelumnya" class="form-control form-control-sm text-center" value="' + (row.wip_sebelumnya ?? 0) + '"></td><td class="freeze-col freeze-b-7"><span>' + (row.total_spk ?? 0) + '</span></td><td class="freeze-col freeze-b-8"><span>' + (row.total_produksi ?? 0) + '</span></td><td class="freeze-col freeze-b-9"><span>' + (row.wip_akhir ?? 0) + '</span></td><td class="freeze-col freeze-b-10">' + buildProduktivitas(row.produktivitas ?? 0) + '</td><td class="freeze-col freeze-b-11"><div class="legend-badge-group"><span class="badge bg-danger">SPK</span><span class="badge bg-success">Produksi</span><span class="badge bg-primary">WIP</span></div></td>';
-            for (let i = 1; i <= jumlahHari; i++) html += '<td class="col-harian"><div class="cell-input-group"><input type="number" name="spk_hari_' + i + '" class="form-control form-control-sm text-center input-merah" value="' + (row['spk_hari_' + i] ?? 0) + '" readonly tabindex="-1"><input type="number" name="produksi_hari_' + i + '" class="form-control form-control-sm text-center input-hijau" value="' + (row['produksi_hari_' + i] ?? 0) + '"><input type="number" name="wip_hari_' + i + '" class="form-control form-control-sm text-center input-biru" value="' + (row['wip_hari_' + i] ?? 0) + '" readonly tabindex="-1"></div></td>';
+            let html = '<tr data-customer="' + escapeHtml(row.customer) + '" data-project="' + escapeHtml(row.project) + '" data-part-number="' + escapeHtml(row.part_number) + '" data-part-name="' + escapeHtml(row.part_name) + '"><td class="freeze-col freeze-b-0">' + (index + 1) + '</td><td class="freeze-col freeze-b-1">' + escapeHtml(row.customer) + '</td><td class="freeze-col freeze-b-2">' + escapeHtml(row.project) + '</td><td class="freeze-col freeze-b-3">' + escapeHtml(row.part_number) + '</td><td class="freeze-col freeze-b-4" style="text-align:left;">' + escapeHtml(row.part_name) + '</td><td class="freeze-col freeze-b-5"><span>' + (row.total_po ?? 0) + '</span></td><td class="freeze-col freeze-b-6"><input type="number" name="wip_sebelumnya" class="form-control form-control-sm text-center" value="' + (row.wip_sebelumnya ?? 0) + '"></td><td class="freeze-col freeze-b-7"><span>' + (row.total_spk ?? 0) + '</span></td><td class="freeze-col freeze-b-8"><span>' + (row.total_produksi ?? 0) + '</span></td><td class="freeze-col freeze-b-9"><span>' + (row.wip_akhir ?? 0) + '</span></td><td class="freeze-col freeze-b-10">' + buildProduktivitas(row.produktivitas ?? 0) + '</td><td class="freeze-col freeze-b-11"><div class="legend-badge-group"><span class="badge bg-danger">SPK</span><span class="badge bg-success">PRODUKSI</span><span class="badge bg-primary">WIP</span></div></td>';
+            for (let i = 1; i <= jumlahHari; i++) {
+                html += '<td class="col-harian ' + (i === 1 ? 'ps-3' : '') + '"><div class="cell-input-group"><input type="number" name="spk_hari_' + i + '" class="form-control form-control-sm text-center input-merah" value="' + (row['spk_hari_' + i] ?? 0) + '" readonly tabindex="-1"><input type="number" name="produksi_hari_' + i + '" class="form-control form-control-sm text-center input-hijau" value="' + (row['produksi_hari_' + i] ?? 0) + '"><input type="number" name="wip_hari_' + i + '" class="form-control form-control-sm text-center input-biru" value="' + (row['wip_hari_' + i] ?? 0) + '" readonly tabindex="-1"></div></td>';
+            }
             return html + '</tr>';
         }
 
