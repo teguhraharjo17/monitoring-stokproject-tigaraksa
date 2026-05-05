@@ -41,7 +41,7 @@ Route::prefix('tv')->name('tv.')->group(function () {
 // ======================
 // AUTH + VERIFIED
 // ======================
-Route::get('/', function() {
+Route::any('/', function () {
     return auth()->check() ? redirect()->route('dashboard.index') : redirect()->route('login');
 });
 
