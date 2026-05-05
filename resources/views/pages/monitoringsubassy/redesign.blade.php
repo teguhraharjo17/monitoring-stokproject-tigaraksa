@@ -48,8 +48,7 @@
                                 </div>
                                 <div class="col-md-3 col-sm-6">
                                     <label for="filter_customer" class="form-label fw-semibold">Customer</label>
-                                    <select id="filter_customer" class="form-select form-select-solid">
-                                        <option value="">Semua Customer</option>
+                                    <select id="filter_customer" class="form-select form-select-solid" multiple="multiple" data-placeholder="Semua Customer">
                                     </select>
                                 </div>
                                 <div class="col-md-3 col-sm-6">
@@ -158,11 +157,11 @@
             color: #0f172a; 
             text-transform: uppercase; 
             letter-spacing: .02em; 
-            font-size: .78rem; 
+            font-size: 14px; 
             white-space: normal !important; 
             vertical-align: middle; 
             line-height: 1.3; 
-            border-bottom: 2px solid #e2e8f0;
+            border: 1px solid #94a3b8 !important;
             height: 54px;
         }
         #subassy_table thead tr:nth-child(2) th { 
@@ -170,12 +169,12 @@
             z-index: 6; 
             background: #f1f5f9; 
             padding: 8px 2px; 
-            border-bottom: 2px solid #94a3b8; 
             color: #334155;
-            font-size: .72rem;
+            font-size: 13px;
             height: 40px;
+            border: 1px solid #94a3b8 !important;
         }
-        #subassy_table thead tr:first-child th[rowspan="2"] { border-bottom: 2px solid #94a3b8; height: 94px; }
+        #subassy_table thead tr:first-child th[rowspan="2"] { height: 94px; }
         #subassy_table tbody td { 
             padding: 10px 4px; 
             white-space: normal !important; 
@@ -183,7 +182,7 @@
             font-size: 13.5px; 
             vertical-align: middle;
             color: #0f172a;
-            border-bottom: 1px solid #f1f5f9;
+            border: 1px solid #cbd5e1 !important;
         }
         #subassy_table tbody tr:hover td, #subassy_table tbody tr:hover .freeze-col { background: #f0f7ff !important; }
         
@@ -470,12 +469,13 @@
                 data: { _token: '{{ csrf_token() }}', bulan: $('#filter_bulan').val(), tahun: $('#filter_tahun').val(), only_customer: true },
                 success: function (res) {
                     const select = $('#filter_customer');
-                    const current = select.val();
-                    select.empty().append('<option value="">Semua Customer</option>');
+                    const currentValues = select.val() || [];
+                    select.empty();
                     (res.data || []).forEach((row) => {
-                        select.append('<option value="' + escapeHtml(row.customer) + '">' + escapeHtml(row.customer) + '</option>');
+                        const isSelected = currentValues.includes(row.customer) ? 'selected' : '';
+                        select.append('<option value="' + escapeHtml(row.customer) + '" ' + isSelected + '>' + escapeHtml(row.customer) + '</option>');
                     });
-                    if (current) select.val(current);
+                    select.trigger('change.select2');
                 }
             });
         }
@@ -488,11 +488,17 @@
                 }
             });
 
+            $('#filter_customer').select2({
+                allowClear: true,
+                width: '100%',
+                placeholder: 'Semua Customer'
+            });
+
             loadCustomerFilter();
             loadTable();
             $('#reload_table').on('click', loadTable);
             $('#filter_bulan, #filter_tahun').on('change', function () {
-                $('#filter_customer').val('');
+                $('#filter_customer').val(null).trigger('change.select2');
                 loadCustomerFilter();
                 loadTable();
             });
