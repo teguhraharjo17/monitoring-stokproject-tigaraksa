@@ -41,9 +41,11 @@ Route::prefix('tv')->name('tv.')->group(function () {
 // ======================
 // AUTH + VERIFIED
 // ======================
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::get('/', function() {
+    return auth()->check() ? redirect()->route('dashboard.index') : redirect()->route('login');
+});
 
-    Route::get('/', fn () => redirect()->route('dashboard.index'));
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     // Dashboard

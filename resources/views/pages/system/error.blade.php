@@ -36,7 +36,7 @@
 
         <!--begin::Link-->
         <div class="mb-0">
-            <a href="/" class="btn btn-sm btn-primary">Return Home</a>
+            <a href="{{ url('/') }}" class="btn btn-sm btn-primary">Return Home</a>
         </div>
         <!--end::Link-->
 

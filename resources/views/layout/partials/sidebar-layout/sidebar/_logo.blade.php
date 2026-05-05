@@ -1,7 +1,7 @@
 <!--begin::Logo-->
 <div class="app-sidebar-logo px-6" id="kt_app_sidebar_logo">
 	<!--begin::Logo image-->
-	<a href="/">
+	<a href="{{ route('dashboard.index') }}">
 		<img alt="Logo" src="{{ image('logos/logo_mileniagroup_large.svg') }}" class="h-35px app-sidebar-logo-default" />
 		<img alt="Logo" src="{{ image('logos/logo_mileniagroup_small.svg') }}" class="h-35px app-sidebar-logo-minimize" />
 	</a>
