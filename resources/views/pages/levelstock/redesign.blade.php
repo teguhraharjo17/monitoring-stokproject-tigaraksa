@@ -163,6 +163,13 @@
         const masterItems = @json($masterItems);
 
         $(function () {
+            // Disable scroll-to-change on number inputs
+            $(document).on('wheel', 'input[type=number]', function (e) {
+                if ($(this).is(':focus')) {
+                    $(this).blur();
+                }
+            });
+
             const Toast = Swal.mixin({
                 toast: true,
                 position: 'top-end',

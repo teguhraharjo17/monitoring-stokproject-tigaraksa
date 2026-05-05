@@ -179,6 +179,13 @@
             const masterItems = @json($masterItems);
             const readonlyFields = ['total_stock', 'total_qty_bulan_ini', 'selisih_stock'];
 
+            // Disable scroll-to-change on number inputs
+            $(document).on('wheel', 'input[type=number]', function (e) {
+                if ($(this).is(':focus')) {
+                    $(this).blur();
+                }
+            });
+
             function updateSummary(meta = {}) {
                 const rows = meta.rows ?? 0;
                 const totalStock = meta.totalStock ?? 0;

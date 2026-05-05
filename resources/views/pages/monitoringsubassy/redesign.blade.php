@@ -355,6 +355,13 @@
         }
 
         $(function () {
+            // Disable scroll-to-change on number inputs
+            $(document).on('wheel', 'input[type=number]', function (e) {
+                if ($(this).is(':focus')) {
+                    $(this).blur();
+                }
+            });
+
             loadCustomerFilter();
             loadTable();
             $('#reload_table').on('click', loadTable);
