@@ -342,7 +342,8 @@
             $('#summary_produksi').text(totalProduksi.toLocaleString('id-ID'));
             $('#summary_wip').text(totalWip.toLocaleString('id-ID'));
             $('#summary_days').text(new Date(tahun, bulan, 0).getDate().toLocaleString('id-ID'));
-            $('#summary_customer').text($('#filter_customer').val() || 'Semua');
+            const cust = $('#filter_customer').val();
+            $('#summary_customer').text(cust && cust.length > 0 ? cust.join(', ') : 'Semua');
         }
 
         function filterVisibleData() {
@@ -502,7 +503,9 @@
                 loadCustomerFilter();
                 loadTable();
             });
-            $('#filter_customer').on('change', loadTable);
+            $('#filter_customer').on('change', function() {
+                loadTable();
+            });
             $('#table_search').on('input', refreshVisibleTable);
             $('#export_form').on('submit', function () {
                 $('#export_bulan').val($('#filter_bulan').val());
