@@ -90,6 +90,9 @@
                         <span class="legend-item"><span class="legend-box hasil"></span>Hasil hitung otomatis</span>
                     </div>
                 </div>
+                <div id="table_progress_bar" class="progress-container d-none">
+                    <div class="progress-bar-fill"></div>
+                </div>
                 <div class="table-wrap">
                     <table id="rekap_table" class="table align-middle mb-0">
                         <thead>
@@ -167,6 +170,52 @@
         .dataTables_scrollBody::-webkit-scrollbar { height: 6px; width: 6px; }
         .dataTables_scrollBody::-webkit-scrollbar-thumb { background-color: #bbb; border-radius: 4px; }
         #filter_customer + .select2 { display: block !important; }
+
+        /* Premium Skeleton Loading */
+        .skeleton-row td { padding: 15px 10px !important; }
+        .skeleton-box { 
+            height: 18px; 
+            background: #e2e8f0; 
+            border-radius: 6px; 
+            position: relative; 
+            overflow: hidden; 
+        }
+        .skeleton-box::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+        .progress-container {
+            height: 3px;
+            width: 100%;
+            background: #f1f5f9;
+            overflow: hidden;
+            margin-bottom: 10px;
+            border-radius: 999px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 30%;
+            background: linear-gradient(90deg, #1d4ed8, #60a5fa);
+            border-radius: 999px;
+            animation: progress-move 1.2s infinite ease-in-out;
+        }
+        @keyframes progress-move {
+            0% { margin-left: -30%; }
+            100% { margin-left: 100%; }
+        }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         @media (max-width: 991.98px) { .rekap-hero .card-body { padding: 1.5rem; } .hero-stats, .quick-metrics { grid-template-columns: 1fr; } }
     </style>
 
@@ -252,6 +301,23 @@
                 });
             }
 
+            function showSkeleton() {
+                let skeletonRows = '';
+                for (let i = 0; i < 5; i++) {
+                    skeletonRows += '<tr class="skeleton-row">';
+                    for (let j = 0; j < 14; j++) {
+                        skeletonRows += '<td><div class="skeleton-box"></div></td>';
+                    }
+                    skeletonRows += '</tr>';
+                }
+                $('#rekap_table tbody').html(skeletonRows);
+                $('#table_progress_bar').removeClass('d-none');
+            }
+
+            function hideSkeleton() {
+                $('#table_progress_bar').addClass('d-none');
+            }
+
             const table = $('#rekap_table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -267,7 +333,11 @@
                         d.tahun = $('#filter_tahun').val();
                         d.customer = $('#filter_customer').val();
                     },
+                    beforeSend: function() {
+                        showSkeleton();
+                    },
                     dataSrc: function (json) {
+                        hideSkeleton();
                         const rows = json.data || [];
                         updateSummary({
                             rows: rows.length,
@@ -302,6 +372,10 @@
                         $(this).html(buildCell(key, data[key]));
                     });
                     inisialisasiSelect2($(row));
+                },
+                drawCallback: function() {
+                    $('#rekap_table tbody').addClass('fade-in');
+                    setTimeout(() => $('#rekap_table tbody').removeClass('fade-in'), 500);
                 }
             });
 

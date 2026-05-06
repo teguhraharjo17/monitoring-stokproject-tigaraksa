@@ -240,6 +240,28 @@ class MonitoringFinishGoodsController extends Controller
                 'stock_on_hand' => $balance,
             ]);
 
+            // --- OTOMATISASI STOK AWAL FG REKAP DATA BULAN DEPAN (100% OTOMATIS) ---
+            try {
+                $nextMonth = $bulan == 12 ? 1 : $bulan + 1;
+                $nextYear = $bulan == 12 ? $tahun + 1 : $tahun;
+
+                RekapData::updateOrCreate(
+                    [
+                        'bulan' => $nextMonth,
+                        'tahun' => $nextYear,
+                        'customer' => $request->customer,
+                        'kode_project' => $request->project,
+                        'part_number' => $request->part_number,
+                    ],
+                    [
+                        'models' => $request->part_name,
+                        'stock_awal_fg' => $balance
+                    ]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Gagal sinkronisasi Stok Awal FG Rekap Data bulan depan', ['error' => $e->getMessage()]);
+            }
+
             DB::commit();
 
             return response()->json([
@@ -317,6 +339,24 @@ class MonitoringFinishGoodsController extends Controller
             $header->update([
                 'stock_on_hand' => $balance
             ]);
+
+            // --- OTOMATISASI STOK AWAL FG REKAP DATA BULAN DEPAN (100% OTOMATIS) ---
+            $nextMonth = (int)$request->bulan == 12 ? 1 : (int)$request->bulan + 1;
+            $nextYear = (int)$request->bulan == 12 ? (int)$request->tahun + 1 : (int)$request->tahun;
+
+            RekapData::updateOrCreate(
+                [
+                    'bulan' => $nextMonth,
+                    'tahun' => $nextYear,
+                    'customer' => $request->customer,
+                    'kode_project' => $request->kode_project,
+                    'part_number' => $request->part_number,
+                ],
+                [
+                    'models' => $header->part_name,
+                    'stock_awal_fg' => $balance
+                ]
+            );
 
             DB::commit();
 

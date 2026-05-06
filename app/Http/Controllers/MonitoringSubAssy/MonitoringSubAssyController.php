@@ -117,7 +117,6 @@ class MonitoringSubAssyController extends Controller
                 'part_number' => $rekap->part_number,
                 'part_name' => $rekap->models,
                 'total_po' => (int) ($rekap->total_qty_bulan_ini ?? 0),
-                // WIP Sebelumnya: Ambil dari Rekap Data (wip_spk_sa) jika belum pernah disimpan
                 'wip_sebelumnya' => (int) ($subAssy && $subAssy->wip_sebelumnya != 0 ? $subAssy->wip_sebelumnya : ($rekap->wip_spk_sa ?? 0)),
                 'total_spk' => (int) ($subAssy->total_spk ?? 0),
                 'total_produksi' => (int) ($subAssy->total_produksi ?? 0),
@@ -172,7 +171,7 @@ class MonitoringSubAssyController extends Controller
 
             $row['total_spk'] = $totalSPK;
             $row['total_produksi'] = $totalProduksi;
-            $row['wip_akhir'] = $wipSebelum; // WIP Akhir MURNI HASIL HITUNG
+            $row['wip_akhir'] = $wipSebelum; 
             $row['produktivitas'] = $totalSPK > 0 ? (int) ceil(($totalProduksi / $totalSPK) * 100) : 0;
 
             $data[] = $row;
@@ -202,7 +201,6 @@ class MonitoringSubAssyController extends Controller
         $totalProduksi = (int) ($request->total_produksi ?? 0);
         $wipSebelumnya = (int) ($request->input('wip_sebelumnya', 0));
         
-        // WIP Akhir dihitung di server untuk keamanan, tapi basisnya tetap math
         $wipAkhir = $wipSebelumnya + $totalSPK - $totalProduksi;
         $produktivitas = $totalSPK > 0 ? (int) ceil(($totalProduksi / $totalSPK) * 100) : 0;
 
@@ -247,6 +245,28 @@ class MonitoringSubAssyController extends Controller
 
             if (!empty($details)) {
                 SubAssyDetail::insert($details);
+            }
+
+            // --- OTOMATISASI WIP + SPK SA REKAP DATA BULAN DEPAN (100% OTOMATIS) ---
+            try {
+                $nextMonth = $bulan == 12 ? 1 : $bulan + 1;
+                $nextYear = $bulan == 12 ? $tahun + 1 : $tahun;
+
+                RekapData::updateOrCreate(
+                    [
+                        'bulan' => $nextMonth,
+                        'tahun' => $nextYear,
+                        'customer' => $request->customer,
+                        'kode_project' => $request->project,
+                        'part_number' => $request->part_number,
+                    ],
+                    [
+                        'models' => $request->part_name,
+                        'wip_spk_sa' => $wipAkhir // WIP Akhir bulan ini jadi WIP bulan depan
+                    ]
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Gagal sinkronisasi WIP Rekap Data bulan depan', ['error' => $e->getMessage()]);
             }
 
             return response()->json([

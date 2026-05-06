@@ -100,6 +100,9 @@
                         <span class="legend-item"><span class="legend-box wip"></span>WIP</span>
                     </div>
                 </div>
+                <div id="table_progress_bar" class="progress-container d-none">
+                    <div class="progress-bar-fill"></div>
+                </div>
                 <div id="empty_state" class="empty-state d-none">
                     <div class="empty-icon"><i class="fas fa-table"></i></div>
                     <div class="fw-bold fs-4 mb-2">Belum ada data untuk filter ini</div>
@@ -292,6 +295,52 @@
         }
         .produktifitas-kurang { color: #dc2626; font-weight: 800; } 
         .produktifitas-baik { color: #059669; font-weight: 800; }
+
+        /* Premium Skeleton Loading */
+        .skeleton-row td { padding: 12px 8px !important; }
+        .skeleton-box { 
+            height: 20px; 
+            background: #e2e8f0; 
+            border-radius: 6px; 
+            position: relative; 
+            overflow: hidden; 
+        }
+        .skeleton-box::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+        .progress-container {
+            height: 3px;
+            width: 100%;
+            background: #f1f5f9;
+            overflow: hidden;
+            margin-bottom: 10px;
+            border-radius: 999px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 30%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 999px;
+            animation: progress-move 1.2s infinite ease-in-out;
+        }
+        @keyframes progress-move {
+            0% { margin-left: -30%; }
+            100% { margin-left: 100%; }
+        }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         @media (max-width: 991.98px) { .subassy-hero .card-body { padding: 1.5rem; } .hero-stats, .quick-metrics { grid-template-columns: 1fr; } }
     </style>
 
@@ -441,7 +490,8 @@
             buildTableHeader(jumlahHari);
             let tbody = '';
             data.forEach((row, index) => { tbody += buildRow(row, index, jumlahHari); });
-            $('#subassy_table tbody').html(tbody);
+            $('#subassy_table tbody').html(tbody).addClass('fade-in');
+            setTimeout(() => $('#subassy_table tbody').removeClass('fade-in'), 500);
             $('#empty_state').toggleClass('d-none', data.length > 0);
             $('#table_wrap').toggleClass('d-none', data.length === 0);
             updateSummary(data);
@@ -451,6 +501,25 @@
 
         function refreshVisibleTable() {
             renderTable(filterVisibleData());
+        }
+
+        function showSkeleton() {
+            const jumlahHari = new Date(parseInt($('#filter_tahun').val(), 10), parseInt($('#filter_bulan').val(), 10), 0).getDate();
+            buildTableHeader(jumlahHari);
+            let skeletonRows = '';
+            for (let i = 0; i < 5; i++) {
+                skeletonRows += '<tr class="skeleton-row">';
+                for (let j = 0; j < (12 + jumlahHari); j++) {
+                    skeletonRows += '<td><div class="skeleton-box"></div></td>';
+                }
+                skeletonRows += '</tr>';
+            }
+            $('#subassy_table tbody').html(skeletonRows);
+            $('#table_progress_bar').removeClass('d-none');
+        }
+
+        function hideSkeleton() {
+            $('#table_progress_bar').addClass('d-none');
         }
 
         function collectRowData($row) {
@@ -493,6 +562,7 @@
         function loadTable() {
             const params = getParams();
             $('#table_loading').removeClass('d-none');
+            showSkeleton();
             $.ajax({
                 url: '{{ route("monitoring.subassy.data") }}',
                 type: 'POST',
@@ -506,6 +576,7 @@
                 },
                 complete: function () {
                     $('#table_loading').addClass('d-none');
+                    hideSkeleton();
                 }
             });
         }

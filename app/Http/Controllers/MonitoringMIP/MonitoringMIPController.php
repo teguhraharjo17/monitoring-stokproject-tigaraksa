@@ -242,6 +242,29 @@ class MonitoringMIPController extends Controller
             );
         }
 
+        // --- OTOMATISASI STOK AWAL REKAP DATA BULAN DEPAN (100% OTOMATIS) ---
+        try {
+            $nextMonth = $bulan == 12 ? 1 : $bulan + 1;
+            $nextYear = $bulan == 12 ? $tahun + 1 : $tahun;
+
+            // Gunakan updateOrCreate agar data tercipta otomatis jika belum ada di Rekap Data
+            RekapData::updateOrCreate(
+                [
+                    'bulan' => $nextMonth,
+                    'tahun' => $nextYear,
+                    'customer' => $request->customer,
+                    'kode_project' => $request->project,
+                    'part_number' => $request->part_number,
+                ],
+                [
+                    'models' => $request->part_name, // Pastikan Part Name ikut tersalin
+                    'stock_awal_mip' => $balance
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Gagal sinkronisasi Stok Awal Rekap Data bulan depan', ['error' => $e->getMessage()]);
+        }
+
         return response()->json([
             'status' => 'success'
         ]);
@@ -273,7 +296,7 @@ class MonitoringMIPController extends Controller
                 'stock_awal' => $request->stock_awal
             ]);
 
-            RekapData::where([
+             RekapData::where([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'customer' => $request->customer,
@@ -296,6 +319,24 @@ class MonitoringMIPController extends Controller
                     'balance' => $balance
                 ]);
             }
+
+            // --- OTOMATISASI STOK AWAL REKAP DATA BULAN DEPAN (100% OTOMATIS) ---
+            $nextMonth = (int)$request->bulan == 12 ? 1 : (int)$request->bulan + 1;
+            $nextYear = (int)$request->bulan == 12 ? (int)$request->tahun + 1 : (int)$request->tahun;
+
+            RekapData::updateOrCreate(
+                [
+                    'bulan' => $nextMonth,
+                    'tahun' => $nextYear,
+                    'customer' => $request->customer,
+                    'kode_project' => $request->project,
+                    'part_number' => $request->part_number,
+                ],
+                [
+                    'models' => $header->part_name,
+                    'stock_awal_mip' => $balance
+                ]
+            );
 
             DB::commit();
 
