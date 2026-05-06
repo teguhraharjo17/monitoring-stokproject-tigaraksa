@@ -37,23 +37,31 @@ class SpkListController extends Controller
                 return $row->details->max('updated_at')?->format('d M Y H:i') ?? '-';
             })
             ->addColumn('status', function ($row) {
-                $statuses = [
-                    'PPIC'       => $row->approved_ppic_at,
-                    'MIP'        => $row->approved_mip_at,
-                    'Finish Good'=> $row->approved_fg_at,
-                    'Packing'    => $row->approved_packing_member_at,
-                    'Diketahui'  => $row->approved_diketahui_at,
+                $steps = [
+                    ['label' => 'PPIC', 'at' => $row->approved_ppic_at, 'icon' => 'fa-user-gear'],
+                    ['label' => 'MIP',  'at' => $row->approved_mip_at,  'icon' => 'fa-boxes-stacked'],
+                    ['label' => 'FG',   'at' => $row->approved_fg_at,   'icon' => 'fa-truck-fast'],
+                    ['label' => 'Pack', 'at' => $row->approved_packing_member_at, 'icon' => 'fa-box-open'],
+                    ['label' => 'Spv',  'at' => $row->approved_diketahui_at, 'icon' => 'fa-user-check'],
                 ];
 
-                $result = '<div class="d-flex flex-column align-items-start gap-1">';
-                foreach ($statuses as $label => $approvedAt) {
-                    $badge = $approvedAt
-                        ? '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>' . $label . '</span>'
-                        : '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>' . $label . '</span>';
-                    $result .= $badge;
+                $html = '<div class="approval-tracker d-flex justify-content-center gap-2">';
+                foreach ($steps as $step) {
+                    $isApproved = !empty($step['at']);
+                    $dateText = $isApproved ? \Carbon\Carbon::parse($step['at'])->format('d/m') : '-';
+                    $timeText = $isApproved ? \Carbon\Carbon::parse($step['at'])->format('H:i') : '';
+                    $statusClass = $isApproved ? 'approved' : 'pending';
+                    
+                    $html .= '
+                        <div class="approval-step ' . $statusClass . '">
+                            <div class="step-icon"><i class="fas ' . $step['icon'] . '"></i></div>
+                            <div class="step-label">' . $step['label'] . '</div>
+                            <div class="step-date">' . $dateText . '</div>
+                            <div class="step-time">' . $timeText . '</div>
+                        </div>';
                 }
-                $result .= '</div>';
-                return $result;
+                $html .= '</div>';
+                return $html;
             })
             ->addColumn('action', function ($row) {
                 return '<a href="' . route('spkpacking.spklist.export', $row->id) . '" class="btn btn-sm btn-success">📥 Export</a>';

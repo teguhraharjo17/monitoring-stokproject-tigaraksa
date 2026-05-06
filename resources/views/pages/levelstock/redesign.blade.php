@@ -4,11 +4,12 @@
     <style>
         .level-shell { display: grid; gap: 1.5rem; }
         .surface-card { border: 1px solid #dbe4f0; border-radius: 24px; background: linear-gradient(180deg, #fff 0%, #f8fbff 100%); box-shadow: 0 16px 40px rgba(15, 23, 42, .06); }
-        .hero-card { padding: 1.75rem; background: radial-gradient(circle at top right, rgba(14, 165, 233, .16), transparent 28%), linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); }
-        .eyebrow { display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .85rem; border-radius: 999px; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #0f766e; background: rgba(20, 184, 166, .12); }
-        .hero-title { margin: .9rem 0 .65rem; font-size: clamp(1.7rem, 2vw, 2.4rem); line-height: 1.1; font-weight: 800; color: #0f172a; }
-        .hero-copy, .section-copy { color: #64748b; line-height: 1.7; }
-        .hero-metrics, .stats-grid, .filter-grid { display: grid; gap: 1rem; }
+        .hero-card { padding: 2.5rem; background: radial-gradient(circle at top right, rgba(14, 165, 233, .16), transparent 28%), linear-gradient(135deg, #f8fbff 0%, #ffffff 100%); position: relative; overflow: hidden; }
+        .hero-card::before { content: ""; position: absolute; top: -50px; left: -50px; width: 150px; height: 150px; background: rgba(20, 184, 166, 0.05); border-radius: 50%; filter: blur(40px); }
+        .eyebrow { display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .85rem; border-radius: 999px; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #0f766e; background: rgba(20, 184, 166, .12); margin-bottom: 1.5rem; }
+        .hero-title { margin: 0 0 .65rem; font-size: clamp(2rem, 3vw, 2.8rem); line-height: 1.1; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; }
+        .hero-copy, .section-copy { color: #64748b; line-height: 1.7; font-size: 1.05rem; }
+        .hero-metrics, .stats-grid, .filter-grid { display: grid; gap: 1.25rem; }
         .hero-metrics, .stats-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
         .filter-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
         .metric-card, .stat-card, .formula-item { padding: 1rem 1.1rem; border-radius: 18px; background: #fff; border: 1px solid #dce6f3; }
@@ -42,6 +43,52 @@
         .select2-container--default .select2-selection--single { min-height: 38px; border-radius: 12px; border: 1px solid #d6e0ec; display: flex; align-items: center; }
         .select2-container .select2-selection__rendered { padding-left: .85rem !important; line-height: 36px !important; }
         .select2-container .select2-selection__arrow { height: 36px !important; }
+
+        /* Premium Skeleton Loading */
+        .skeleton-row td { padding: 18px 10px !important; }
+        .skeleton-box { 
+            height: 20px; 
+            background: #e2e8f0; 
+            border-radius: 8px; 
+            position: relative; 
+            overflow: hidden; 
+        }
+        .skeleton-box::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+        .progress-container {
+            height: 3px;
+            width: 100%;
+            background: #f1f5f9;
+            overflow: hidden;
+            margin-bottom: 12px;
+            border-radius: 999px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 30%;
+            background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+            border-radius: 999px;
+            animation: progress-move 1.2s infinite ease-in-out;
+        }
+        @keyframes progress-move {
+            0% { margin-left: -30%; }
+            100% { margin-left: 100%; }
+        }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         @media (max-width: 768px) { .surface-card { border-radius: 18px; } .table-toolbar { flex-direction: column; } }
     </style>
 
@@ -122,6 +169,10 @@
                     <button id="tambah_baris" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Baris</button>
                     <button id="refresh_table" class="btn btn-light-primary"><i class="fas fa-rotate-right"></i> Refresh Data</button>
                 </div>
+            </div>
+
+            <div id="table_progress_bar" class="progress-container d-none">
+                <div class="progress-bar-fill"></div>
             </div>
 
             <div class="table-help mb-3">
@@ -236,7 +287,6 @@
                     width: '100%'
                 });
             }
-
             function getActionMarkup(isManual) {
                 if (!isManual) {
                     return `
@@ -256,6 +306,23 @@
                         </div>
                     </div>
                 `;
+            }
+
+            function showSkeleton() {
+                let skeletonRows = '';
+                for (let i = 0; i < 5; i++) {
+                    skeletonRows += '<tr class="skeleton-row">';
+                    for (let j = 0; j < 11; j++) {
+                        skeletonRows += '<td><div class="skeleton-box"></div></td>';
+                    }
+                    skeletonRows += '</tr>';
+                }
+                $('#levelstock_table tbody').html(skeletonRows);
+                $('#table_progress_bar').removeClass('d-none');
+            }
+
+            function hideSkeleton() {
+                $('#table_progress_bar').addClass('d-none');
             }
 
             function buildRowPayload($row) {
@@ -385,7 +452,14 @@
                 order: [[1, 'asc']],
                 ajax: {
                     url: '{{ route("datastock.levelstock.data") }}',
-                    data: d => Object.assign(d, getFilterParams())
+                    data: d => Object.assign(d, getFilterParams()),
+                    beforeSend: function() {
+                        showSkeleton();
+                    },
+                    dataSrc: function(json) {
+                        hideSkeleton();
+                        return json.data || [];
+                    }
                 },
                 columns: [
                     { data: null, render: (data, type, row, meta) => meta.row + 1, orderable: false, searchable: false },
@@ -413,6 +487,8 @@
                     $(row).attr('data-id', data.id || '');
                 },
                 drawCallback: function () {
+                    $('#levelstock_table tbody').addClass('fade-in');
+                    setTimeout(() => $('#levelstock_table tbody').removeClass('fade-in'), 500);
                     enhanceSelect2($('#levelstock_table'));
                     updateSummary();
                 },
