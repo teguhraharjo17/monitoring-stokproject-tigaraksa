@@ -9,6 +9,7 @@ use App\Models\SubAssyDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Exports\SubAssyExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
@@ -116,7 +117,8 @@ class MonitoringSubAssyController extends Controller
                 'part_number' => $rekap->part_number,
                 'part_name' => $rekap->models,
                 'total_po' => (int) ($rekap->total_qty_bulan_ini ?? 0),
-                'wip_sebelumnya' => (int) ($subAssy->wip_sebelumnya ?? 0),
+                // WIP Sebelumnya: Ambil dari Rekap Data (wip_spk_sa) jika belum pernah disimpan
+                'wip_sebelumnya' => (int) ($subAssy && $subAssy->wip_sebelumnya != 0 ? $subAssy->wip_sebelumnya : ($rekap->wip_spk_sa ?? 0)),
                 'total_spk' => (int) ($subAssy->total_spk ?? 0),
                 'total_produksi' => (int) ($subAssy->total_produksi ?? 0),
                 'wip_akhir' => (int) ($subAssy->wip_akhir ?? 0),
@@ -170,7 +172,7 @@ class MonitoringSubAssyController extends Controller
 
             $row['total_spk'] = $totalSPK;
             $row['total_produksi'] = $totalProduksi;
-            $row['wip_akhir'] = $wipSebelum;
+            $row['wip_akhir'] = $wipSebelum; // WIP Akhir MURNI HASIL HITUNG
             $row['produktivitas'] = $totalSPK > 0 ? (int) ceil(($totalProduksi / $totalSPK) * 100) : 0;
 
             $data[] = $row;
@@ -196,63 +198,63 @@ class MonitoringSubAssyController extends Controller
         $tahun = (int) $request->tahun;
         $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
 
-        $totalSPK = 0;
-        $totalProduksi = 0;
-
-        for ($i = 1; $i <= $jumlahHari; $i++) {
-            $spk = (int) $request->input("spk_hari_{$i}", 0);
-            $produksi = (int) $request->input("produksi_hari_{$i}", 0);
-
-            $totalSPK += $spk;
-            $totalProduksi += $produksi;
-        }
-
-        $wipSebelumnya = (int) $request->input('wip_sebelumnya', 0);
+        $totalSPK = (int) ($request->total_spk ?? 0);
+        $totalProduksi = (int) ($request->total_produksi ?? 0);
+        $wipSebelumnya = (int) ($request->input('wip_sebelumnya', 0));
+        
+        // WIP Akhir dihitung di server untuk keamanan, tapi basisnya tetap math
         $wipAkhir = $wipSebelumnya + $totalSPK - $totalProduksi;
         $produktivitas = $totalSPK > 0 ? (int) ceil(($totalProduksi / $totalSPK) * 100) : 0;
 
-        $subAssy = SubAssy::updateOrCreate(
-            [
-                'bulan' => $bulan,
-                'tahun' => $tahun,
-                'customer' => $request->customer,
-                'project' => $request->project,
-                'part_number' => $request->part_number,
-                'part_name' => $request->part_name,
-            ],
-            [
-                'wip_sebelumnya' => $wipSebelumnya,
-                'total_spk' => $totalSPK,
-                'total_produksi' => $totalProduksi,
-                'wip_akhir' => $wipAkhir,
-                'produktivitas' => $produktivitas,
-            ]
-        );
+        return DB::transaction(function() use ($request, $bulan, $tahun, $wipSebelumnya, $totalSPK, $totalProduksi, $wipAkhir, $produktivitas, $jumlahHari) {
+            $subAssy = SubAssy::updateOrCreate(
+                [
+                    'bulan' => $bulan,
+                    'tahun' => $tahun,
+                    'customer' => $request->customer,
+                    'project' => $request->project,
+                    'part_number' => $request->part_number,
+                    'part_name' => $request->part_name,
+                ],
+                [
+                    'wip_sebelumnya' => $wipSebelumnya,
+                    'total_spk' => $totalSPK,
+                    'total_produksi' => $totalProduksi,
+                    'wip_akhir' => $wipAkhir,
+                    'produktivitas' => $produktivitas,
+                ]
+            );
 
-        foreach (['SPK', 'Produksi', 'WIP'] as $tipe) {
-            $prefix = strtolower($tipe);
+            SubAssyDetail::where('sub_assy_id', $subAssy->id)->delete();
 
-            for ($i = 1; $i <= $jumlahHari; $i++) {
-                $jumlah = (int) $request->input("{$prefix}_hari_{$i}", 0);
+            $details = [];
+            $now = now();
 
-                SubAssyDetail::updateOrCreate(
-                    [
+            foreach (['SPK', 'Produksi', 'WIP'] as $tipe) {
+                $prefix = strtolower($tipe);
+                for ($i = 1; $i <= $jumlahHari; $i++) {
+                    $jumlah = (int) $request->input("{$prefix}_hari_{$i}", 0);
+                    $details[] = [
                         'sub_assy_id' => $subAssy->id,
                         'tanggal' => $i,
                         'tipe' => $tipe,
-                    ],
-                    [
                         'jumlah' => $jumlah,
-                    ]
-                );
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
             }
-        }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data berhasil disimpan.',
-            'id' => $subAssy->id,
-        ]);
+            if (!empty($details)) {
+                SubAssyDetail::insert($details);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data berhasil disimpan.',
+                'id' => $subAssy->id,
+            ]);
+        });
     }
 
     public function export(Request $request)

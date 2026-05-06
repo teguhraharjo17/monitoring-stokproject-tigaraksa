@@ -464,7 +464,9 @@
                 project: $.trim($row.attr('data-project')),
                 part_number: $.trim($row.attr('data-part-number')),
                 part_name: $.trim($row.attr('data-part-name')),
-                wip_sebelumnya: parseInt($row.find('input[name="wip_sebelumnya"]').val(), 10) || 0
+                wip_sebelumnya: parseInt($row.find('input[name="wip_sebelumnya"]').val(), 10) || 0,
+                total_spk: parseInt($row.find('td:eq(7) span').text(), 10) || 0,
+                total_produksi: parseInt($row.find('td:eq(8) span').text(), 10) || 0
             };
             for (let i = 1; i <= jumlahHari; i++) {
                 data['spk_hari_' + i] = parseInt($row.find('input[name="spk_hari_' + i + '"]').val(), 10) || 0;
