@@ -17,6 +17,8 @@ use Carbon\Carbon;
 
 class MonitoringSubAssyController extends Controller
 {
+    private const MAX_STORED_PRODUCTIVITY = 999.99;
+
     public function index()
     {
         return view('pages.monitoringsubassy.redesign');
@@ -26,6 +28,30 @@ class MonitoringSubAssyController extends Controller
     {
         $str = $str ?? '';
         return strtoupper(str_replace([' ', '-', '_'], '', $str));
+    }
+
+    private function rekapKey($customer, $project, $partNumber, $partName): string
+    {
+        return $this->normalize($customer) . '|'
+            . $this->normalize($project) . '|'
+            . $this->normalize($partNumber) . '|'
+            . $this->normalize($partName);
+    }
+
+    private function spkKey($customer, $partNumber): string
+    {
+        return $this->normalize($customer) . '|' . $this->normalize($partNumber);
+    }
+
+    private function calculateProductivity(int $totalProduksi, int $totalSpk): float
+    {
+        if ($totalSpk <= 0) {
+            return 0;
+        }
+
+        $value = ceil(($totalProduksi / $totalSpk) * 100);
+
+        return min((float) $value, self::MAX_STORED_PRODUCTIVITY);
     }
 
     public function data(Request $request)
@@ -78,11 +104,11 @@ class MonitoringSubAssyController extends Controller
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->get()
-            ->keyBy(fn ($s) => $this->normalize($s->customer) . '|' . $this->normalize($s->project) . '|' . $this->normalize($s->part_number) . '|' . $this->normalize($s->part_name));
+            ->keyBy(fn ($s) => $this->rekapKey($s->customer, $s->project, $s->part_number, $s->part_name));
 
         $aggregatedRekap = [];
         foreach ($rekapData as $rekap) {
-            $key = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number) . '|' . $this->normalize($rekap->models);
+            $key = $this->rekapKey($rekap->customer, $rekap->kode_project, $rekap->part_number, $rekap->models);
             
             if (!isset($aggregatedRekap[$key])) {
                 $aggregatedRekap[$key] = $rekap;
@@ -97,7 +123,7 @@ class MonitoringSubAssyController extends Controller
         $data = [];
 
         foreach ($aggregatedRekap as $rekap) {
-            $key = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $rekap->part_number . '|' . $this->normalize($rekap->models);
+            $key = $this->rekapKey($rekap->customer, $rekap->kode_project, $rekap->part_number, $rekap->models);
             $subAssy = $subAssies[$key] ?? null;
 
             $row = [
@@ -134,7 +160,7 @@ class MonitoringSubAssyController extends Controller
                 }
             }
 
-            $apiKeyNormalized = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->part_number);
+            $apiKeyNormalized = $this->spkKey($rekap->customer, $rekap->part_number);
             
             if (isset($spkMap[$apiKeyNormalized])) {
                 foreach ($spkMap[$apiKeyNormalized] as $day => $jumlah) {
@@ -163,7 +189,7 @@ class MonitoringSubAssyController extends Controller
             $row['total_spk'] = $totalSPK;
             $row['total_produksi'] = $totalProduksi;
             $row['wip_akhir'] = $wipSebelum; 
-            $row['produktivitas'] = $totalSPK > 0 ? (int) ceil(($totalProduksi / $totalSPK) * 100) : 0;
+            $row['produktivitas'] = $this->calculateProductivity($totalProduksi, $totalSPK);
 
             $data[] = $row;
         }
@@ -196,7 +222,8 @@ class MonitoringSubAssyController extends Controller
         $bulan = (int) $request->bulan;
         $tahun = (int) $request->tahun;
         $customer = trim($request->customer);
-        $project = trim($request->project);
+        $project = trim((string) $request->project);
+        $project = $project === '' ? null : $project;
         $partNumber = trim($request->part_number);
         $partName = trim($request->part_name);
 
@@ -204,7 +231,7 @@ class MonitoringSubAssyController extends Controller
 
         // 1. Ambil data SPK terbaru dari Map (Backend/Cache source of truth)
         $spkMap = $this->getSpkMap($bulan, $tahun);
-        $apiKeyNormalized = $this->normalize($customer) . '|' . $this->normalize($partNumber);
+        $apiKeyNormalized = $this->spkKey($customer, $partNumber);
         $localSpkData = $spkMap[$apiKeyNormalized] ?? [];
 
         // 2. Hitung ulang total SPK dan Produksi berdasarkan data harian
@@ -213,8 +240,9 @@ class MonitoringSubAssyController extends Controller
         $dailyData = [];
 
         for ($i = 1; $i <= $jumlahHari; $i++) {
-            // SPK selalu ambil dari API/Cache, jangan percaya frontend jika sedang simpan
-            $spkVal = (int) ($localSpkData[$i] ?? 0);
+            // SPK utama dari API/cache. Jika API sedang tidak tersedia dan cache kosong,
+            // pertahankan angka SPK yang sedang tampil agar update produksi tetap bisa disimpan.
+            $spkVal = (int) ($localSpkData[$i] ?? $request->input("spk_hari_{$i}", 0));
             $prodVal = (int) ($request->input("produksi_hari_{$i}", 0));
             
             $totalSPK += $spkVal;
@@ -228,9 +256,10 @@ class MonitoringSubAssyController extends Controller
 
         $wipSebelumnya = (int) ($request->input('wip_sebelumnya', 0));
         $wipAkhir = $wipSebelumnya + $totalSPK - $totalProduksi;
-        $produktivitas = $totalSPK > 0 ? (int) ceil(($totalProduksi / $totalSPK) * 100) : 0;
+        $produktivitas = $this->calculateProductivity($totalProduksi, $totalSPK);
 
-        return DB::transaction(function() use ($request, $bulan, $tahun, $customer, $project, $partNumber, $partName, $wipSebelumnya, $totalSPK, $totalProduksi, $wipAkhir, $produktivitas, $jumlahHari, $dailyData) {
+        try {
+            return DB::transaction(function() use ($request, $bulan, $tahun, $customer, $project, $partNumber, $partName, $wipSebelumnya, $totalSPK, $totalProduksi, $wipAkhir, $produktivitas, $jumlahHari, $dailyData) {
             $subAssy = SubAssy::updateOrCreate(
                 [
                     'bulan' => $bulan,
@@ -304,12 +333,12 @@ class MonitoringSubAssyController extends Controller
                     [
                         'bulan' => $nextMonth,
                         'tahun' => $nextYear,
-                        'customer' => $request->customer,
-                        'kode_project' => $request->project,
-                        'part_number' => $request->part_number,
+                        'customer' => $customer,
+                        'kode_project' => $project,
+                        'part_number' => $partNumber,
                     ],
                     [
-                        'models' => $request->part_name,
+                        'models' => $partName,
                         'wip_spk_sa' => $wipAkhir // WIP Akhir bulan ini jadi WIP bulan depan
                     ]
                 );
@@ -322,7 +351,21 @@ class MonitoringSubAssyController extends Controller
                 'message' => 'Data berhasil disimpan.',
                 'id' => $subAssy->id,
             ]);
-        });
+            });
+        } catch (\Throwable $e) {
+            Log::error('MonitoringSubAssyController::save Error: ' . $e->getMessage(), [
+                'customer' => $customer,
+                'project' => $project,
+                'part_number' => $partNumber,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data gagal disimpan: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function export(Request $request)
@@ -346,7 +389,7 @@ class MonitoringSubAssyController extends Controller
      */
     private function getSpkMap($bulan, $tahun, $forceRefresh = false)
     {
-        $cacheKeyMap = "spk_map_{$bulan}_{$tahun}";
+        $cacheKeyMap = "spk_map_v2_{$bulan}_{$tahun}";
         
         if (!$forceRefresh && Cache::has($cacheKeyMap)) {
             return Cache::get($cacheKeyMap);
@@ -358,22 +401,22 @@ class MonitoringSubAssyController extends Controller
 
         // 1. Ambil data mentah (raw)
         if (!$forceRefresh && Cache::has($cacheKeyRaw)) {
-            $spkData = Cache::get($cacheKeyRaw);
+            $spkData = $this->extractSpkRows(Cache::get($cacheKeyRaw));
         } else {
             try {
                 $apiUrl = config('services.spk_api.url', 'http://192.168.0.8:8080/sistem-spk-tigaraksa/api/spk-data');
                 $response = Http::timeout(15)->get($apiUrl);
                 
                 if ($response->successful()) {
-                    $spkData = $response->json();
+                    $spkData = $this->extractSpkRows($response->json());
                     Cache::put($cacheKeyRaw, $spkData, 600); // 10 menit
                     Cache::forever($cacheKeyLastGood, $spkData); // Simpan sebagai Last Known Good
                 } else {
-                    $spkData = Cache::get($cacheKeyLastGood, []);
+                    $spkData = $this->extractSpkRows(Cache::get($cacheKeyLastGood, []));
                     Log::warning('SPK API returned error, using Last Known Good data.');
                 }
             } catch (\Throwable $e) {
-                $spkData = Cache::get($cacheKeyLastGood, []);
+                $spkData = $this->extractSpkRows(Cache::get($cacheKeyLastGood, []));
                 Log::error('Gagal fetch SPK SubAssy, using Last Known Good data', [
                     'error' => $e->getMessage()
                 ]);
@@ -391,7 +434,7 @@ class MonitoringSubAssyController extends Controller
 
                 $tgl = $tanggal->day;
                 foreach (($spk['details'] ?? []) as $detail) {
-                    $key = ($detail['customer'] ?? '') . '|' . ($detail['part_number'] ?? '');
+                    $key = $this->spkKey($detail['customer'] ?? '', $detail['part_number'] ?? '');
                     $spkMap[$key][$tgl] = ($spkMap[$key][$tgl] ?? 0) + (int) ($detail['qty_order_prod'] ?? 0);
                 }
             } catch (\Throwable $e) {
@@ -403,5 +446,20 @@ class MonitoringSubAssyController extends Controller
         Cache::put($cacheKeyMap, $spkMap, 600); // 10 menit
 
         return $spkMap;
+    }
+
+    private function extractSpkRows($payload): array
+    {
+        if (!is_array($payload)) {
+            return [];
+        }
+
+        foreach (['data', 'results', 'items'] as $key) {
+            if (isset($payload[$key]) && is_array($payload[$key])) {
+                return $payload[$key];
+            }
+        }
+
+        return $payload;
     }
 }

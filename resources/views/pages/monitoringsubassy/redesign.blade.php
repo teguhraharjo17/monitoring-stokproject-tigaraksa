@@ -395,6 +395,7 @@
     <script>
         let currentData = [];
         let visibleData = [];
+        const maxStoredProductivity = 999.99;
 
         function getParams() {
             return { bulan: $('#filter_bulan').val(), tahun: $('#filter_tahun').val(), customer: $('#filter_customer').val() };
@@ -413,7 +414,7 @@
         }
 
         function buildProduktivitas(val) {
-            const angka = parseInt(val, 10) || 0;
+            const angka = Math.min(parseFloat(val) || 0, maxStoredProductivity);
             return angka < 100 ? '<span class="produktifitas-kurang">' + angka + '%</span>' : '<span class="produktifitas-baik">' + angka + '%</span>';
         }
 
@@ -476,7 +477,7 @@
                 wipValues[i] = wip;
                 wipSebelum = wip;
             }
-            const produktivitas = totalSPK > 0 ? Math.ceil((totalProduksi / totalSPK) * 100) : 0;
+            const produktivitas = totalSPK > 0 ? Math.min(Math.ceil((totalProduksi / totalSPK) * 100), maxStoredProductivity) : 0;
             $row.find('td:eq(7) span').text(totalSPK);
             $row.find('td:eq(8) span').text(totalProduksi);
             $row.find('td:eq(9) span').text(wipValues[jumlahHari] || 0);
