@@ -31,4 +31,8 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'spk_api' => [
+        'url' => env('SPK_API_URL', 'http://192.168.0.8:8080/sistem-spk-tigaraksa/api/spk-data'),
+    ],
+
 ];

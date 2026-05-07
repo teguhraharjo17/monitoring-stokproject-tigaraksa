@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Exports\SubAssyExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class MonitoringSubAssyController extends Controller
@@ -49,39 +50,8 @@ class MonitoringSubAssyController extends Controller
             ]);
         }
 
-        $spkData = [];
-        try {
-            $response = Http::timeout(10)->get('http://192.168.0.8:8080/sistem-spk-tigaraksa/api/spk-data');
-            if ($response->successful()) {
-                $spkData = $response->json();
-            }
-        } catch (\Throwable $e) {
-            Log::error('Gagal fetch SPK SubAssy', [
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        $spkMap = [];
-
-        foreach ($spkData as $spk) {
-            try {
-                $tanggal = Carbon::parse($spk['tanggal_produksi']);
-                $tgl = $tanggal->day;
-                $bln = $tanggal->month;
-                $thn = $tanggal->year;
-
-                if ($bln !== $bulan || $thn !== $tahun) {
-                    continue;
-                }
-
-                foreach (($spk['details'] ?? []) as $detail) {
-                    $key = ($detail['customer'] ?? '') . '|' . ($detail['part_number'] ?? '');
-                    $spkMap[$key][$tgl] = ($spkMap[$key][$tgl] ?? 0) + (int) ($detail['qty_order_prod'] ?? 0);
-                }
-            } catch (\Throwable $e) {
-                Log::warning('SPK row skip', ['error' => $e->getMessage()]);
-            }
-        }
+        $forceRefresh = $request->boolean('force_refresh');
+        $spkMap = $this->getSpkMap($bulan, $tahun, $forceRefresh);
 
         $rekapData = RekapData::where('bulan', $bulan)
             ->where('tahun', $tahun)
@@ -291,5 +261,69 @@ class MonitoringSubAssyController extends Controller
             new SubAssyExport($bulan, $tahun),
             "Monitoring_SubAssy_{$bulan}_{$tahun}.xlsx"
         );
+    }
+
+    /**
+     * Mengambil SPK Map dengan sistem caching dan fallback Last Known Good.
+     */
+    private function getSpkMap($bulan, $tahun, $forceRefresh = false)
+    {
+        $cacheKeyMap = "spk_map_{$bulan}_{$tahun}";
+        
+        if (!$forceRefresh && Cache::has($cacheKeyMap)) {
+            return Cache::get($cacheKeyMap);
+        }
+
+        $spkData = [];
+        $cacheKeyRaw = 'spk_data_raw';
+        $cacheKeyLastGood = 'spk_data_last_good';
+
+        // 1. Ambil data mentah (raw)
+        if (!$forceRefresh && Cache::has($cacheKeyRaw)) {
+            $spkData = Cache::get($cacheKeyRaw);
+        } else {
+            try {
+                $apiUrl = config('services.spk_api.url', 'http://192.168.0.8:8080/sistem-spk-tigaraksa/api/spk-data');
+                $response = Http::timeout(15)->get($apiUrl);
+                
+                if ($response->successful()) {
+                    $spkData = $response->json();
+                    Cache::put($cacheKeyRaw, $spkData, 600); // 10 menit
+                    Cache::forever($cacheKeyLastGood, $spkData); // Simpan sebagai Last Known Good
+                } else {
+                    $spkData = Cache::get($cacheKeyLastGood, []);
+                    Log::warning('SPK API returned error, using Last Known Good data.');
+                }
+            } catch (\Throwable $e) {
+                $spkData = Cache::get($cacheKeyLastGood, []);
+                Log::error('Gagal fetch SPK SubAssy, using Last Known Good data', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        // 2. Proses data mentah menjadi map yang siap pakai
+        $spkMap = [];
+        foreach ($spkData as $spk) {
+            try {
+                $tanggal = Carbon::parse($spk['tanggal_produksi']);
+                if ($tanggal->month !== $bulan || $tanggal->year !== $tahun) {
+                    continue;
+                }
+
+                $tgl = $tanggal->day;
+                foreach (($spk['details'] ?? []) as $detail) {
+                    $key = ($detail['customer'] ?? '') . '|' . ($detail['part_number'] ?? '');
+                    $spkMap[$key][$tgl] = ($spkMap[$key][$tgl] ?? 0) + (int) ($detail['qty_order_prod'] ?? 0);
+                }
+            } catch (\Throwable $e) {
+                continue;
+            }
+        }
+
+        // 3. Simpan ke cache map (per bulan/tahun)
+        Cache::put($cacheKeyMap, $spkMap, 600); // 10 menit
+
+        return $spkMap;
     }
 }

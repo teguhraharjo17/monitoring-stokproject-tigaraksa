@@ -559,14 +559,14 @@
                 });
         }
 
-        function loadTable() {
+        function loadTable(forceRefresh = false) {
             const params = getParams();
             $('#table_loading').removeClass('d-none');
             showSkeleton();
             $.ajax({
                 url: '{{ route("monitoring.subassy.data") }}',
                 type: 'POST',
-                data: { _token: '{{ csrf_token() }}', bulan: params.bulan, tahun: params.tahun, customer: params.customer },
+                data: { _token: '{{ csrf_token() }}', bulan: params.bulan, tahun: params.tahun, customer: params.customer, force_refresh: forceRefresh },
                 success: function (res) {
                     currentData = res.data || [];
                     refreshVisibleTable();
@@ -615,7 +615,9 @@
 
             loadCustomerFilter();
             loadTable();
-            $('#reload_table').on('click', loadTable);
+            $('#reload_table').on('click', function() {
+                loadTable(true);
+            });
             $('#filter_bulan, #filter_tahun').on('change', function () {
                 $('#filter_customer').val(null).trigger('change.select2');
                 loadCustomerFilter();
