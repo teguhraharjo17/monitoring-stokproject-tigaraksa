@@ -397,6 +397,12 @@
         let visibleData = [];
         const maxStoredProductivity = 999.99;
 
+        $.ajaxSetup({
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
         function getParams() {
             return { bulan: $('#filter_bulan').val(), tahun: $('#filter_tahun').val(), customer: $('#filter_customer').val() };
         }
@@ -548,12 +554,31 @@
 
         function saveRow($row, successTitle = 'Tersimpan') {
             $row.addClass('saving-row');
-            $.post('{{ route("monitoring.subassy.save") }}', collectRowData($row))
-                .done(() => {
+            $.ajax({
+                url: '{{ route("monitoring.subassy.save") }}',
+                type: 'POST',
+                data: collectRowData($row),
+                dataType: 'json'
+            })
+                .done((res) => {
+                    if (!res || res.status !== 'success') {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: res?.message ?? 'Data belum tersimpan di server', showConfirmButton: false, timer: 3000 });
+                        return;
+                    }
+
+                    if (res.id) {
+                        $row.attr('data-id', res.id);
+                    }
+
                     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: successTitle, showConfirmButton: false, timer: 1500 });
                 })
                 .fail((xhr) => {
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: xhr.responseJSON?.message ?? 'Gagal menyimpan data', showConfirmButton: false, timer: 3000 });
+                    const message = xhr.responseJSON?.message
+                        ?? (xhr.status === 401 ? 'Session login habis, silakan login ulang.'
+                        : xhr.status === 419 ? 'Session halaman kadaluarsa, silakan refresh lalu login ulang.'
+                        : 'Gagal menyimpan data');
+
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: message, showConfirmButton: false, timer: 3500 });
                 })
                 .always(() => {
                     $row.removeClass('saving-row');
@@ -567,6 +592,7 @@
             $.ajax({
                 url: '{{ route("monitoring.subassy.data") }}',
                 type: 'POST',
+                dataType: 'json',
                 data: { _token: '{{ csrf_token() }}', bulan: params.bulan, tahun: params.tahun, customer: params.customer, force_refresh: forceRefresh },
                 success: function (res) {
                     currentData = res.data || [];
@@ -586,6 +612,7 @@
             $.ajax({
                 url: '{{ route("monitoring.subassy.data") }}',
                 type: 'POST',
+                dataType: 'json',
                 data: { _token: '{{ csrf_token() }}', bulan: $('#filter_bulan').val(), tahun: $('#filter_tahun').val(), only_customer: true },
                 success: function (res) {
                     const select = $('#filter_customer');
