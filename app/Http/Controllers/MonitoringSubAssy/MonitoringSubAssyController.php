@@ -167,14 +167,35 @@ class MonitoringSubAssyController extends Controller
         $tahun = (int) $request->tahun;
         $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
 
-        $totalSPK = (int) ($request->total_spk ?? 0);
-        $totalProduksi = (int) ($request->total_produksi ?? 0);
+        // 1. Ambil data SPK terbaru dari Map (Backend/Cache source of truth)
+        $spkMap = $this->getSpkMap($bulan, $tahun);
+        $apiKey = $request->customer . '|' . $request->part_number;
+        $localSpkData = $spkMap[$apiKey] ?? [];
+
+        // 2. Hitung ulang total SPK dan Produksi berdasarkan data harian
+        $totalSPK = 0;
+        $totalProduksi = 0;
+        $dailyData = [];
+
+        for ($i = 1; $i <= $jumlahHari; $i++) {
+            // SPK selalu ambil dari API/Cache, jangan percaya frontend jika sedang simpan
+            $spkVal = (int) ($localSpkData[$i] ?? 0);
+            $prodVal = (int) ($request->input("produksi_hari_{$i}", 0));
+            
+            $totalSPK += $spkVal;
+            $totalProduksi += $prodVal;
+            
+            $dailyData[$i] = [
+                'SPK' => $spkVal,
+                'Produksi' => $prodVal,
+            ];
+        }
+
         $wipSebelumnya = (int) ($request->input('wip_sebelumnya', 0));
-        
         $wipAkhir = $wipSebelumnya + $totalSPK - $totalProduksi;
         $produktivitas = $totalSPK > 0 ? (int) ceil(($totalProduksi / $totalSPK) * 100) : 0;
 
-        return DB::transaction(function() use ($request, $bulan, $tahun, $wipSebelumnya, $totalSPK, $totalProduksi, $wipAkhir, $produktivitas, $jumlahHari) {
+        return DB::transaction(function() use ($request, $bulan, $tahun, $wipSebelumnya, $totalSPK, $totalProduksi, $wipAkhir, $produktivitas, $jumlahHari, $dailyData) {
             $subAssy = SubAssy::updateOrCreate(
                 [
                     'bulan' => $bulan,
@@ -193,24 +214,46 @@ class MonitoringSubAssyController extends Controller
                 ]
             );
 
+            // Hapus detail lama dan ganti dengan yang baru (recalculated)
             SubAssyDetail::where('sub_assy_id', $subAssy->id)->delete();
 
             $details = [];
             $now = now();
+            $wipSmt = $wipSebelumnya;
 
-            foreach (['SPK', 'Produksi', 'WIP'] as $tipe) {
-                $prefix = strtolower($tipe);
-                for ($i = 1; $i <= $jumlahHari; $i++) {
-                    $jumlah = (int) $request->input("{$prefix}_hari_{$i}", 0);
-                    $details[] = [
-                        'sub_assy_id' => $subAssy->id,
-                        'tanggal' => $i,
-                        'tipe' => $tipe,
-                        'jumlah' => $jumlah,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
-                }
+            for ($i = 1; $i <= $jumlahHari; $i++) {
+                $spk = $dailyData[$i]['SPK'];
+                $prod = $dailyData[$i]['Produksi'];
+                $wip = $wipSmt + $spk - $prod;
+                $wipSmt = $wip;
+
+                // Insert SPK
+                $details[] = [
+                    'sub_assy_id' => $subAssy->id,
+                    'tanggal' => $i,
+                    'tipe' => 'SPK',
+                    'jumlah' => $spk,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+                // Insert Produksi
+                $details[] = [
+                    'sub_assy_id' => $subAssy->id,
+                    'tanggal' => $i,
+                    'tipe' => 'Produksi',
+                    'jumlah' => $prod,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+                // Insert WIP
+                $details[] = [
+                    'sub_assy_id' => $subAssy->id,
+                    'tanggal' => $i,
+                    'tipe' => 'WIP',
+                    'jumlah' => $wip,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
             }
 
             if (!empty($details)) {
