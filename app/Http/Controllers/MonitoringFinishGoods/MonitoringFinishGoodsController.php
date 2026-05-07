@@ -22,158 +22,175 @@ class MonitoringFinishGoodsController extends Controller
         return view('pages.monitoringfinishgood.redesign');
     }
 
+    private function normalize($str)
+    {
+        $str = $str ?? '';
+        return strtoupper(str_replace([' ', '-', '_'], '', $str));
+    }
+
     public function data(Request $request)
     {
-        $bulan = (int) $request->input('bulan', now()->month);
-        $tahun = (int) $request->input('tahun', now()->year);
-        $customer = $request->input('customer');
+        try {
+            $bulan = (int) $request->input('bulan', now()->month);
+            $tahun = (int) $request->input('tahun', now()->year);
+            $customer = $request->input('customer');
 
-        if ($request->only_customer) {
-            $rekapCustomer = RekapData::where('bulan', $bulan)
+            if ($request->only_customer) {
+                $rekapCustomer = RekapData::where('bulan', $bulan)
+                    ->where('tahun', $tahun)
+                    ->pluck('customer');
+
+                $fgCustomer = MonitoringFGHeader::where('bulan', $bulan)
+                    ->where('tahun', $tahun)
+                    ->pluck('customer');
+
+                $customers = $rekapCustomer
+                    ->merge($fgCustomer)
+                    ->filter()
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->map(fn ($c) => ['customer' => $c]);
+
+                return response()->json([
+                    'data' => $customers
+                ]);
+            }
+
+            // 1. Load RekapData & Aggregate duplicates
+            $rekapListRaw = RekapData::where('bulan', $bulan)
                 ->where('tahun', $tahun)
-                ->pluck('customer');
+                ->when($customer, function ($q) use ($customer) {
+                    if (is_array($customer)) {
+                        $q->whereIn('customer', $customer);
+                    } else {
+                        $q->where('customer', $customer);
+                    }
+                })
+                ->get();
 
-            $fgCustomer = MonitoringFGHeader::where('bulan', $bulan)
-                ->where('tahun', $tahun)
-                ->pluck('customer');
-
-            $customers = $rekapCustomer
-                ->merge($fgCustomer)
-                ->filter()
-                ->unique()
-                ->sort()
-                ->values()
-                ->map(fn ($c) => ['customer' => $c]);
-
-            return response()->json([
-                'data' => $customers
-            ]);
-        }
-
-        $rekapList = RekapData::where('bulan', $bulan)
-            ->where('tahun', $tahun)
-            ->when($customer, function ($q) use ($customer) {
-                if (is_array($customer)) {
-                    $q->whereIn('customer', $customer);
+            $aggregatedRekap = [];
+            foreach ($rekapListRaw as $rekap) {
+                $key = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number) . '|' . $this->normalize($rekap->models);
+                if (!isset($aggregatedRekap[$key])) {
+                    $aggregatedRekap[$key] = $rekap;
                 } else {
-                    $q->where('customer', $customer);
+                    $aggregatedRekap[$key]->total_qty_bulan_ini += $rekap->total_qty_bulan_ini;
+                    $aggregatedRekap[$key]->stock_awal_fg = max($aggregatedRekap[$key]->stock_awal_fg, $rekap->stock_awal_fg);
                 }
-            })
-            ->orderBy('customer')
-            ->orderBy('kode_project')
-            ->orderBy('part_number')
-            ->get();
+            }
 
-        $data = [];
-
-        foreach ($rekapList as $rekap) {
-            $level = DB::table('level_stok_detail as d')
+            // 2. Bulk Load Level Stok
+            $levelStokMap = DB::table('level_stok_detail as d')
                 ->join('level_stok as l', 'l.id', '=', 'd.level_stok_id')
                 ->where('l.bulan', $bulan)
                 ->where('l.tahun', $tahun)
-                ->where('d.customer', $rekap->customer)
-                ->where('d.kode_projek', $rekap->kode_project)
-                ->where('d.part_number', $rekap->part_number)
-                ->select('d.min', 'd.safety_fg', 'd.max')
-                ->first();
-
-            $header = MonitoringFGHeader::firstOrNew([
-                'bulan' => $bulan,
-                'tahun' => $tahun,
-                'customer' => $rekap->customer,
-                'project' => $rekap->kode_project,
-                'part_number' => $rekap->part_number,
-            ]);
-
-            $header->fill([
-                'part_name' => $rekap->models,
-                'stock_awal' => (int) $rekap->stock_awal_fg,
-                'total_in' => $header->total_in ?? 0,
-                'total_out' => $header->total_out ?? 0,
-                'level_min' => $level->min ?? 0,
-                'level_safety' => $level->safety_fg ?? 0,
-                'level_max' => $level->max ?? 0,
-            ]);
-
-            $header->save();
-
-            $details = MonitoringFGDetail::where('fg_header_id', $header->id)
                 ->get()
-                ->keyBy('tanggal');
+                ->keyBy(fn($l) => $this->normalize($l->customer) . '|' . $this->normalize($l->kode_projek) . '|' . $this->normalize($l->part_number));
 
-            $mipHeader = MonitoringMIPHeader::where('bulan', $bulan)
+            // 3. Bulk Load FG Headers & Details
+            $fgHeaders = MonitoringFGHeader::with('details')
+                ->where('bulan', $bulan)
                 ->where('tahun', $tahun)
-                ->where('customer', $rekap->customer)
-                ->where('project', $rekap->kode_project)
-                ->where('part_number', $rekap->part_number)
-                ->first();
+                ->get()
+                ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number));
 
-            $mipDetails = $mipHeader
-                ? MonitoringMIPDetail::where('header_id', $mipHeader->id)->get()->keyBy('tanggal')
-                : collect();
-
-            $row = [
-                'id' => $header->id,
-                'customer' => $rekap->customer,
-                'project' => $rekap->kode_project,
-                'part_number' => $rekap->part_number,
-                'part_name' => $rekap->models,
-                'total_po' => (int) ($rekap->total_qty_bulan_ini ?? 0),
-                'stock_awal' => (int) ($header->stock_awal ?? 0),
-                'total_in' => (int) ($header->total_in ?? 0),
-                'total_out' => (int) ($header->total_out ?? 0),
-                'level_min' => (int) ($header->level_min ?? 0),
-                'level_safety' => (int) ($header->level_safety ?? 0),
-                'level_max' => (int) ($header->level_max ?? 0),
-            ];
-
-            $balance = (int) ($header->stock_awal ?? 0);
+            // 4. Bulk Load MIP Headers & Details
+            $mipHeaders = MonitoringMIPHeader::with('details')
+                ->where('bulan', $bulan)
+                ->where('tahun', $tahun)
+                ->get()
+                ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number));
 
             $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
+            $data = [];
 
-            for ($i = 1; $i <= $jumlahHari; $i++) {
-                $inD = (int) ($mipDetails[$i]->out_qty ?? 0);
-                $inN = (int) ($details[$i]->in_qty_n ?? 0);
-                $outD = (int) ($details[$i]->out_qty_d ?? 0);
-                $outN = (int) ($details[$i]->out_qty_n ?? 0);
+            foreach ($aggregatedRekap as $rekap) {
+                $matchKey = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number);
+                
+                $level = $levelStokMap[$matchKey] ?? null;
+                $header = $fgHeaders[$matchKey] ?? null;
+                $details = $header ? $header->details->keyBy('tanggal') : collect();
+                
+                $mipHeader = $mipHeaders[$matchKey] ?? null;
+                $mipDetails = $mipHeader ? $mipHeader->details->keyBy('tanggal') : collect();
 
-                $balanceD = $balance + $inD - $outD;
-                $balanceN = $balanceD + $inN - $outN;
+                $stockAwal = (int) ($header->stock_awal ?? ($rekap->stock_awal_fg ?? 0));
+                
+                $row = [
+                    'id' => $header->id ?? null,
+                    'customer' => $rekap->customer,
+                    'project' => $rekap->kode_project,
+                    'part_number' => $rekap->part_number,
+                    'part_name' => $rekap->models,
+                    'total_po' => (int) ($rekap->total_qty_bulan_ini ?? 0),
+                    'stock_awal' => $stockAwal,
+                    'total_in' => (int) ($header->total_in ?? 0),
+                    'total_out' => (int) ($header->total_out ?? 0),
+                    'level_min' => (int) ($level->min ?? ($header->level_min ?? 0)),
+                    'level_safety' => (int) ($level->safety_fg ?? ($header->level_safety ?? 0)),
+                    'level_max' => (int) ($level->max ?? ($header->level_max ?? 0)),
+                ];
 
-                $row["in_hari_{$i}_d"] = $inD;
-                $row["in_hari_{$i}_n"] = $inN;
-                $row["out_hari_{$i}_d"] = $outD;
-                $row["out_hari_{$i}_n"] = $outN;
-                $row["balance_hari_{$i}_d"] = $balanceD;
-                $row["balance_hari_{$i}_n"] = $balanceN;
+                $balance = $stockAwal;
+                $totalInActual = 0;
+                $totalOutActual = 0;
 
-                $balance = $balanceN;
+                for ($i = 1; $i <= $jumlahHari; $i++) {
+                    $inD = (int) ($mipDetails[$i]->out_qty ?? 0);
+                    $inN = (int) ($details[$i]->in_qty_n ?? 0);
+                    $outD = (int) ($details[$i]->out_qty_d ?? 0);
+                    $outN = (int) ($details[$i]->out_qty_n ?? 0);
+
+                    $balanceD = $balance + $inD - $outD;
+                    $balanceN = $balanceD + $inN - $outN;
+
+                    $row["in_hari_{$i}_d"] = $inD;
+                    $row["in_hari_{$i}_n"] = $inN;
+                    $row["out_hari_{$i}_d"] = $outD;
+                    $row["out_hari_{$i}_n"] = $outN;
+                    $row["balance_hari_{$i}_d"] = $balanceD;
+                    $row["balance_hari_{$i}_n"] = $balanceN;
+
+                    $totalInActual += ($inD + $inN);
+                    $totalOutActual += ($outD + $outN);
+                    $balance = $balanceN;
+                }
+
+                $advance = (int) ($header->advance_delivery ?? 0);
+                $outstanding = max(0, $row['total_po'] - $advance - $totalOutActual);
+                $percentage = $row['total_po'] > 0 ? round(($totalOutActual / $row['total_po']) * 100, 2) : 0;
+
+                $row['advance_delivery'] = $advance;
+                $row['outstanding'] = $outstanding;
+                $row['percentage'] = $percentage;
+                $row['stock_on_hand'] = $balance;
+                $row['total_in'] = $totalInActual;
+                $row['total_out'] = $totalOutActual;
+
+                if ($row['stock_on_hand'] <= $row['level_min']) {
+                    $row['status_stock'] = 'Problem';
+                } elseif ($row['stock_on_hand'] > $row['level_max']) {
+                    $row['status_stock'] = 'Over';
+                } else {
+                    $row['status_stock'] = 'Aman';
+                }
+
+                $data[] = $row;
             }
 
-            $advance = (int) ($header->advance_delivery ?? 0);
-            $totalOut = (int) ($header->total_out ?? 0);
-            $outstanding = max(0, ($row['total_po'] ?? 0) - $advance - $totalOut);
-            $percentage = $row['total_po'] > 0 ? round(($totalOut / $row['total_po']) * 100, 2) : 0;
-
-            $row['advance_delivery'] = $advance;
-            $row['outstanding'] = $outstanding;
-            $row['percentage'] = $percentage;
-            $row['stock_on_hand'] = $balance;
-
-            if ($row['stock_on_hand'] <= $row['level_min']) {
-                $row['status_stock'] = 'Problem';
-            } elseif ($row['stock_on_hand'] > $row['level_max']) {
-                $row['status_stock'] = 'Over';
-            } else {
-                $row['status_stock'] = 'Aman';
-            }
-
-            $data[] = $row;
+            return response()->json([
+                'data' => $data
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('MonitoringFinishGoodsController::data Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan internal: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'data' => $data
-        ]);
     }
 
     public function save(Request $request)
@@ -183,15 +200,19 @@ class MonitoringFinishGoodsController extends Controller
         try {
             $bulan = (int) $request->bulan;
             $tahun = (int) $request->tahun;
+            $customer = trim($request->customer);
+            $project = trim($request->project);
+            $partNumber = trim($request->part_number);
+            $partName = trim($request->part_name);
 
             $header = MonitoringFGHeader::updateOrCreate([
-                'customer' => $request->customer,
-                'project' => $request->project,
-                'part_number' => $request->part_number,
                 'bulan' => $bulan,
                 'tahun' => $tahun,
+                'customer' => $customer,
+                'project' => $project,
+                'part_number' => $partNumber,
             ], [
-                'part_name' => $request->part_name,
+                'part_name' => $partName,
                 'stock_awal' => (int) $request->stock_awal,
                 'advance_delivery' => (int) $request->advance_delivery,
                 'level_min' => (int) $request->level_min,
@@ -249,12 +270,12 @@ class MonitoringFinishGoodsController extends Controller
                     [
                         'bulan' => $nextMonth,
                         'tahun' => $nextYear,
-                        'customer' => $request->customer,
-                        'kode_project' => $request->project,
-                        'part_number' => $request->part_number,
+                        'customer' => $customer,
+                        'kode_project' => $project,
+                        'part_number' => $partNumber,
                     ],
                     [
-                        'models' => $request->part_name,
+                        'models' => $partName,
                         'stock_awal_fg' => $balance
                     ]
                 );

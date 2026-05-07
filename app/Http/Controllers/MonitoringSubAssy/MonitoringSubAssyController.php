@@ -22,11 +22,18 @@ class MonitoringSubAssyController extends Controller
         return view('pages.monitoringsubassy.redesign');
     }
 
+    private function normalize($str)
+    {
+        $str = $str ?? '';
+        return strtoupper(str_replace([' ', '-', '_'], '', $str));
+    }
+
     public function data(Request $request)
     {
-        $bulan = (int) $request->input('bulan', now()->month);
-        $tahun = (int) $request->input('tahun', now()->year);
-        $customer = $request->input('customer');
+        try {
+            $bulan = (int) $request->input('bulan', now()->month);
+            $tahun = (int) $request->input('tahun', now()->year);
+            $customer = $request->input('customer');
 
         if ($request->boolean('only_customer')) {
             $rekapCustomer = RekapData::where('bulan', $bulan)
@@ -161,9 +168,18 @@ class MonitoringSubAssyController extends Controller
             $data[] = $row;
         }
 
-        return response()->json([
-            'data' => $data
-        ]);
+            return response()->json([
+                'data' => $data
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('MonitoringSubAssyController::data Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan internal: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function save(Request $request)

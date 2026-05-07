@@ -22,6 +22,12 @@ class MonitoringMIPController extends Controller
         return view('pages.monitoringmip.redesign');
     }
 
+    private function normalize($str)
+    {
+        $str = $str ?? '';
+        return strtoupper(str_replace([' ', '-', '_'], '', $str));
+    }
+
     public function data(Request $request)
     {
         try {
@@ -51,7 +57,8 @@ class MonitoringMIPController extends Controller
                 ]);
             }
 
-            $rekap = RekapData::where('bulan', $bulan)
+            // 1. Load RekapData & Aggregate duplicates
+            $rekapListRaw = RekapData::where('bulan', $bulan)
                 ->where('tahun', $tahun)
                 ->when($customer, function ($q) use ($customer) {
                     if (is_array($customer)) {
@@ -60,79 +67,54 @@ class MonitoringMIPController extends Controller
                         $q->where('customer', $customer);
                     }
                 })
-                ->orderBy('customer')
-                ->orderBy('kode_project')
-                ->orderBy('part_number')
                 ->get();
 
-            if ($rekap->isEmpty()) {
-                return response()->json([
-                    'data' => []
-                ]);
+            $aggregatedRekap = [];
+            foreach ($rekapListRaw as $item) {
+                $key = $this->normalize($item->customer) . '|' . $this->normalize($item->kode_project) . '|' . $this->normalize($item->part_number) . '|' . $this->normalize($item->models);
+                if (!isset($aggregatedRekap[$key])) {
+                    $aggregatedRekap[$key] = $item;
+                } else {
+                    $aggregatedRekap[$key]->total_qty_bulan_ini += $item->total_qty_bulan_ini;
+                    $aggregatedRekap[$key]->stock_awal_mip = max($aggregatedRekap[$key]->stock_awal_mip, $item->stock_awal_mip);
+                }
             }
 
-            $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
+            // 2. Bulk Load Level Stok
+            $levelStokMap = DB::table('level_stok_detail as d')
+                ->join('level_stok as l', 'l.id', '=', 'd.level_stok_id')
+                ->where('l.bulan', $bulan)
+                ->where('l.tahun', $tahun)
+                ->get()
+                ->keyBy(fn($l) => $this->normalize($l->customer) . '|' . $this->normalize($l->kode_projek) . '|' . $this->normalize($l->part_number));
 
-            $levelStok = LevelStok::with('details')
+            // 3. Bulk Load MIP Headers & Details
+            $mipHeaders = MonitoringMIPHeader::with('details')
                 ->where('bulan', $bulan)
                 ->where('tahun', $tahun)
-                ->first();
-
-            $headers = MonitoringMIPHeader::where('bulan', $bulan)
-                ->where('tahun', $tahun)
                 ->get()
-                ->keyBy(fn ($h) => $h->customer . '|' . $h->project . '|' . $h->part_number);
+                ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number));
 
-            $allHeaderIds = $headers->pluck('id')->filter()->values();
-
-            $detailsByHeader = MonitoringMIPDetail::whereIn('header_id', $allHeaderIds)
-                ->get()
-                ->groupBy('header_id')
-                ->map(fn ($rows) => $rows->keyBy('tanggal'));
-
+            // 4. Bulk Load SubAssy (Produksi)
             $subAssyList = SubAssy::with(['details' => function ($q) {
                     $q->where('tipe', 'Produksi');
                 }])
                 ->where('bulan', $bulan)
                 ->where('tahun', $tahun)
                 ->get()
-                ->keyBy(fn ($s) => $s->customer . '|' . $s->project . '|' . $s->part_number);
+                ->keyBy(fn($s) => $this->normalize($s->customer) . '|' . $this->normalize($s->project) . '|' . $this->normalize($s->part_number));
 
+            $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
             $data = [];
 
-            foreach ($rekap as $item) {
-                $row = [
-                    'customer' => $item->customer,
-                    'project' => $item->kode_project,
-                    'part_number' => $item->part_number,
-                    'part_name' => $item->models,
-                    'total_po' => (int) ($item->total_qty_bulan_ini ?? 0),
-                    'stock_awal' => (int) ($item->stock_awal_mip ?? 0),
-                    'total_in' => 0,
-                    'total_out' => 0,
-                    'level_min' => 0,
-                    'level_safety' => 0,
-                    'level_max' => 0,
-                ];
-
-                if ($levelStok) {
-                    $levelDetail = $levelStok->details
-                        ->firstWhere('part_number', $item->part_number);
-
-                    if ($levelDetail) {
-                        $row['level_min'] = (int) ($levelDetail->min ?? 0);
-                        $row['level_safety'] = (int) ($levelDetail->safety_mip ?? 0);
-                        $row['level_max'] = (int) ($levelDetail->max ?? 0);
-                    }
-                }
-
-                $headerKey = $item->customer . '|' . $item->kode_project . '|' . $item->part_number;
-                $header = $headers[$headerKey] ?? null;
-                $details = $header ? ($detailsByHeader[$header->id] ?? collect()) : collect();
-
-                $subAssyKey = $item->customer . '|' . $item->kode_project . '|' . $item->part_number;
-                $subAssy = $subAssyList[$subAssyKey] ?? null;
-
+            foreach ($aggregatedRekap as $item) {
+                $matchKey = $this->normalize($item->customer) . '|' . $this->normalize($item->kode_project) . '|' . $this->normalize($item->part_number);
+                
+                $level = $levelStokMap[$matchKey] ?? null;
+                $header = $mipHeaders[$matchKey] ?? null;
+                $details = $header ? $header->details->keyBy('tanggal') : collect();
+                
+                $subAssy = $subAssyList[$matchKey] ?? null;
                 $inList = [];
                 if ($subAssy && $subAssy->details) {
                     foreach ($subAssy->details as $detail) {
@@ -143,11 +125,27 @@ class MonitoringMIPController extends Controller
                     }
                 }
 
-                $balance = (int) $row['stock_awal'];
+                $stockAwal = (int) ($header->stock_awal ?? ($item->stock_awal_mip ?? 0));
+                
+                $row = [
+                    'id' => $header->id ?? null,
+                    'customer' => $item->customer,
+                    'project' => $item->kode_project,
+                    'part_number' => $item->part_number,
+                    'part_name' => $item->models,
+                    'total_po' => (int) ($item->total_qty_bulan_ini ?? 0),
+                    'stock_awal' => $stockAwal,
+                    'total_in' => 0,
+                    'total_out' => 0,
+                    'level_min' => (int) ($level->min ?? ($header->level_min ?? 0)),
+                    'level_safety' => (int) ($level->safety_mip ?? ($header->level_safety ?? 0)),
+                    'level_max' => (int) ($level->max ?? ($header->level_max ?? 0)),
+                ];
 
+                $balance = $stockAwal;
                 for ($i = 1; $i <= $jumlahHari; $i++) {
                     $in = (int) ($inList[$i] ?? 0);
-                    $out = (int) (optional($details->get($i))->out_qty ?? 0);
+                    $out = (int) ($details[$i]->out_qty ?? 0);
 
                     $balance = $balance + $in - $out;
 
@@ -167,12 +165,12 @@ class MonitoringMIPController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-            Log::error('MonitoringMIPController::data() ERROR', [
-                'error' => $e->getMessage()
+            Log::error('MonitoringMIPController::data Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
             ]);
-
             return response()->json([
-                'error' => 'Internal Server Error'
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan internal: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -181,6 +179,11 @@ class MonitoringMIPController extends Controller
     {
         $bulan = (int) $request->bulan;
         $tahun = (int) $request->tahun;
+        $customer = trim($request->customer);
+        $project = trim($request->project);
+        $partNumber = trim($request->part_number);
+        $partName = trim($request->part_name);
+
         $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
 
         $stockAwal = is_numeric($request->stock_awal)
@@ -188,9 +191,9 @@ class MonitoringMIPController extends Controller
             : (int) (
                 RekapData::where('bulan', $bulan)
                     ->where('tahun', $tahun)
-                    ->where('customer', $request->customer)
-                    ->where('kode_project', $request->project)
-                    ->where('part_number', $request->part_number)
+                    ->where('customer', $customer)
+                    ->where('kode_project', $project)
+                    ->where('part_number', $partNumber)
                     ->value('stock_awal_mip') ?? 0
             );
 
@@ -206,12 +209,12 @@ class MonitoringMIPController extends Controller
             [
                 'bulan' => $bulan,
                 'tahun' => $tahun,
-                'customer' => $request->customer,
-                'project' => $request->project,
-                'part_number' => $request->part_number,
+                'customer' => $customer,
+                'project' => $project,
+                'part_number' => $partNumber,
             ],
             [
-                'part_name' => $request->part_name,
+                'part_name' => $partName,
                 'stock_awal' => $stockAwal,
                 'level_min' => (int) $request->level_min,
                 'level_safety' => (int) $request->level_safety,
@@ -252,12 +255,12 @@ class MonitoringMIPController extends Controller
                 [
                     'bulan' => $nextMonth,
                     'tahun' => $nextYear,
-                    'customer' => $request->customer,
-                    'kode_project' => $request->project,
-                    'part_number' => $request->part_number,
+                    'customer' => $customer,
+                    'kode_project' => $project,
+                    'part_number' => $partNumber,
                 ],
                 [
-                    'models' => $request->part_name, // Pastikan Part Name ikut tersalin
+                    'models' => $partName, // Pastikan Part Name ikut tersalin
                     'stock_awal_mip' => $balance
                 ]
             );
