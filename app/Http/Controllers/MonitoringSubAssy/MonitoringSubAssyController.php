@@ -165,12 +165,17 @@ class MonitoringSubAssyController extends Controller
 
         $bulan = (int) $request->bulan;
         $tahun = (int) $request->tahun;
+        $customer = trim($request->customer);
+        $project = trim($request->project);
+        $partNumber = trim($request->part_number);
+        $partName = trim($request->part_name);
+
         $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
 
         // 1. Ambil data SPK terbaru dari Map (Backend/Cache source of truth)
         $spkMap = $this->getSpkMap($bulan, $tahun);
-        $apiKey = $request->customer . '|' . $request->part_number;
-        $localSpkData = $spkMap[$apiKey] ?? [];
+        $apiKeyNormalized = $this->normalize($customer) . '|' . $this->normalize($partNumber);
+        $localSpkData = $spkMap[$apiKeyNormalized] ?? [];
 
         // 2. Hitung ulang total SPK dan Produksi berdasarkan data harian
         $totalSPK = 0;
@@ -195,17 +200,17 @@ class MonitoringSubAssyController extends Controller
         $wipAkhir = $wipSebelumnya + $totalSPK - $totalProduksi;
         $produktivitas = $totalSPK > 0 ? (int) ceil(($totalProduksi / $totalSPK) * 100) : 0;
 
-        return DB::transaction(function() use ($request, $bulan, $tahun, $wipSebelumnya, $totalSPK, $totalProduksi, $wipAkhir, $produktivitas, $jumlahHari, $dailyData) {
+        return DB::transaction(function() use ($request, $bulan, $tahun, $customer, $project, $partNumber, $partName, $wipSebelumnya, $totalSPK, $totalProduksi, $wipAkhir, $produktivitas, $jumlahHari, $dailyData) {
             $subAssy = SubAssy::updateOrCreate(
                 [
                     'bulan' => $bulan,
                     'tahun' => $tahun,
-                    'customer' => $request->customer,
-                    'project' => $request->project,
-                    'part_number' => $request->part_number,
-                    'part_name' => $request->part_name,
+                    'customer' => $customer,
+                    'project' => $project,
+                    'part_number' => $partNumber,
                 ],
                 [
+                    'part_name' => $partName,
                     'wip_sebelumnya' => $wipSebelumnya,
                     'total_spk' => $totalSPK,
                     'total_produksi' => $totalProduksi,
