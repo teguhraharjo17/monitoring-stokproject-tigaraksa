@@ -71,13 +71,26 @@ class MonitoringSubAssyController extends Controller
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->get()
-            ->keyBy(fn ($s) => $s->customer . '|' . $s->project . '|' . $s->part_number . '|' . $s->part_name);
+            ->keyBy(fn ($s) => $this->normalize($s->customer) . '|' . $this->normalize($s->project) . '|' . $this->normalize($s->part_number) . '|' . $this->normalize($s->part_name));
+
+        $aggregatedRekap = [];
+        foreach ($rekapData as $rekap) {
+            $key = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number) . '|' . $this->normalize($rekap->models);
+            
+            if (!isset($aggregatedRekap[$key])) {
+                $aggregatedRekap[$key] = $rekap;
+            } else {
+                // Jika duplikat, jumlahkan total PO dan ambil WIP terbesar
+                $aggregatedRekap[$key]->total_qty_bulan_ini += $rekap->total_qty_bulan_ini;
+                $aggregatedRekap[$key]->wip_spk_sa = max($aggregatedRekap[$key]->wip_spk_sa, $rekap->wip_spk_sa);
+            }
+        }
 
         $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
         $data = [];
 
-        foreach ($rekapData as $rekap) {
-            $key = $rekap->customer . '|' . $rekap->kode_project . '|' . $rekap->part_number . '|' . $rekap->models;
+        foreach ($aggregatedRekap as $rekap) {
+            $key = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $rekap->part_number . '|' . $this->normalize($rekap->models);
             $subAssy = $subAssies[$key] ?? null;
 
             $row = [
@@ -114,9 +127,10 @@ class MonitoringSubAssyController extends Controller
                 }
             }
 
-            $apiKey = $rekap->customer . '|' . $rekap->part_number;
-            if (isset($spkMap[$apiKey])) {
-                foreach ($spkMap[$apiKey] as $day => $jumlah) {
+            $apiKeyNormalized = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->part_number);
+            
+            if (isset($spkMap[$apiKeyNormalized])) {
+                foreach ($spkMap[$apiKeyNormalized] as $day => $jumlah) {
                     if ($day >= 1 && $day <= $jumlahHari) {
                         $row["spk_hari_{$day}"] = (int) $jumlah;
                     }
