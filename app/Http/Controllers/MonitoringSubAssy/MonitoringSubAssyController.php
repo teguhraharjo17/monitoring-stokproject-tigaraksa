@@ -38,6 +38,13 @@ class MonitoringSubAssyController extends Controller
             . $this->normalize($partName);
     }
 
+    private function itemKey($customer, $project, $partNumber): string
+    {
+        return $this->normalize($customer) . '|'
+            . $this->normalize($project) . '|'
+            . $this->normalize($partNumber);
+    }
+
     private function spkKey($customer, $partNumber): string
     {
         return $this->normalize($customer) . '|' . $this->normalize($partNumber);
@@ -103,8 +110,10 @@ class MonitoringSubAssyController extends Controller
         $subAssies = SubAssy::with('details')
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
+            ->orderBy('updated_at')
+            ->orderBy('id')
             ->get()
-            ->keyBy(fn ($s) => $this->rekapKey($s->customer, $s->project, $s->part_number, $s->part_name));
+            ->keyBy(fn ($s) => $this->itemKey($s->customer, $s->project, $s->part_number));
 
         $aggregatedRekap = [];
         foreach ($rekapData as $rekap) {
@@ -123,7 +132,7 @@ class MonitoringSubAssyController extends Controller
         $data = [];
 
         foreach ($aggregatedRekap as $rekap) {
-            $key = $this->rekapKey($rekap->customer, $rekap->kode_project, $rekap->part_number, $rekap->models);
+            $key = $this->itemKey($rekap->customer, $rekap->kode_project, $rekap->part_number);
             $subAssy = $subAssies[$key] ?? null;
 
             $row = [
@@ -211,6 +220,7 @@ class MonitoringSubAssyController extends Controller
     public function save(Request $request)
     {
         $validated = $request->validate([
+            'id' => 'nullable|integer',
             'bulan' => 'required|integer|between:1,12',
             'tahun' => 'required|integer|min:2020',
             'customer' => 'required|string',
@@ -260,23 +270,54 @@ class MonitoringSubAssyController extends Controller
 
         try {
             return DB::transaction(function() use ($request, $bulan, $tahun, $customer, $project, $partNumber, $partName, $wipSebelumnya, $totalSPK, $totalProduksi, $wipAkhir, $produktivitas, $jumlahHari, $dailyData) {
-            $subAssy = SubAssy::updateOrCreate(
-                [
+            $subAssy = null;
+            $rowId = (int) $request->input('id', 0);
+
+            if ($rowId > 0) {
+                $subAssy = SubAssy::where('id', $rowId)
+                    ->where('bulan', $bulan)
+                    ->where('tahun', $tahun)
+                    ->lockForUpdate()
+                    ->first();
+            }
+
+            if (!$subAssy) {
+                $projectKey = $project ?? '';
+
+                $subAssy = SubAssy::where('bulan', $bulan)
+                    ->where('tahun', $tahun)
+                    ->whereRaw("TRIM(COALESCE(customer, '')) = ?", [$customer])
+                    ->whereRaw("TRIM(COALESCE(project, '')) = ?", [$projectKey])
+                    ->whereRaw("TRIM(COALESCE(part_number, '')) = ?", [$partNumber])
+                    ->orderByDesc('id')
+                    ->lockForUpdate()
+                    ->first();
+            }
+
+            if (!$subAssy) {
+                $subAssy = new SubAssy([
                     'bulan' => $bulan,
                     'tahun' => $tahun,
                     'customer' => $customer,
                     'project' => $project,
                     'part_number' => $partNumber,
-                ],
-                [
-                    'part_name' => $partName,
-                    'wip_sebelumnya' => $wipSebelumnya,
-                    'total_spk' => $totalSPK,
-                    'total_produksi' => $totalProduksi,
-                    'wip_akhir' => $wipAkhir,
-                    'produktivitas' => $produktivitas,
-                ]
-            );
+                ]);
+            }
+
+            $subAssy->fill([
+                'customer' => $customer,
+                'project' => $project,
+                'part_number' => $partNumber,
+                'part_name' => $partName,
+                'wip_sebelumnya' => $wipSebelumnya,
+                'total_spk' => $totalSPK,
+                'total_produksi' => $totalProduksi,
+                'wip_akhir' => $wipAkhir,
+                'produktivitas' => $produktivitas,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+            ]);
+            $subAssy->save();
 
             // Hapus detail lama dan ganti dengan yang baru (recalculated)
             SubAssyDetail::where('sub_assy_id', $subAssy->id)->delete();
