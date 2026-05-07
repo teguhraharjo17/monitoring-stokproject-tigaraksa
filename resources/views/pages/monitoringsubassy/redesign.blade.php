@@ -395,6 +395,10 @@
     <script>
         let currentData = [];
         let visibleData = [];
+        let tableRequest = null;
+        let customerRequest = null;
+        let searchTimer = null;
+        let loadSequence = 0;
         const maxStoredProductivity = 999.99;
 
         $.ajaxSetup({
@@ -502,12 +506,16 @@
             $('#empty_state').toggleClass('d-none', data.length > 0);
             $('#table_wrap').toggleClass('d-none', data.length === 0);
             updateSummary(data);
-            $('#subassy_table tbody tr').each(function () { calculateTotals($(this)); });
             setTimeout(applyFreezeColumns, 50);
         }
 
         function refreshVisibleTable() {
             renderTable(filterVisibleData());
+        }
+
+        function debounceRefreshVisibleTable() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(refreshVisibleTable, 180);
         }
 
         function showSkeleton() {
@@ -588,32 +596,52 @@
 
         function loadTable(forceRefresh = false) {
             const params = getParams();
+            const sequence = ++loadSequence;
             $('#table_loading').removeClass('d-none');
-            showSkeleton();
-            $.ajax({
+            $('#table_progress_bar').removeClass('d-none');
+
+            if (!currentData.length) {
+                showSkeleton();
+            }
+
+            if (tableRequest) {
+                tableRequest.abort();
+            }
+
+            tableRequest = $.ajax({
                 url: '{{ route("monitoring.subassy.data") }}',
                 type: 'POST',
                 dataType: 'json',
+                timeout: 45000,
                 data: { _token: '{{ csrf_token() }}', bulan: params.bulan, tahun: params.tahun, customer: params.customer, force_refresh: forceRefresh },
                 success: function (res) {
+                    if (sequence !== loadSequence) return;
                     currentData = res.data || [];
                     refreshVisibleTable();
                 },
-                error: function () {
-                    Swal.fire({ icon: 'error', title: 'Gagal memuat data', text: 'Data monitoring tidak bisa dimuat.' });
+                error: function (xhr, status) {
+                    if (status === 'abort' || sequence !== loadSequence) return;
+                    console.warn('Gagal memuat data Monitoring Sub Assy', xhr.responseJSON?.message || xhr.statusText || status);
                 },
                 complete: function () {
+                    if (sequence !== loadSequence) return;
                     $('#table_loading').addClass('d-none');
                     hideSkeleton();
+                    tableRequest = null;
                 }
             });
         }
 
         function loadCustomerFilter() {
-            $.ajax({
+            if (customerRequest) {
+                customerRequest.abort();
+            }
+
+            customerRequest = $.ajax({
                 url: '{{ route("monitoring.subassy.data") }}',
                 type: 'POST',
                 dataType: 'json',
+                timeout: 30000,
                 data: { _token: '{{ csrf_token() }}', bulan: $('#filter_bulan').val(), tahun: $('#filter_tahun').val(), only_customer: true },
                 success: function (res) {
                     const select = $('#filter_customer');
@@ -624,6 +652,9 @@
                         select.append('<option value="' + escapeHtml(row.customer) + '" ' + isSelected + '>' + escapeHtml(row.customer) + '</option>');
                     });
                     select.trigger('change.select2');
+                },
+                complete: function () {
+                    customerRequest = null;
                 }
             });
         }
@@ -655,7 +686,7 @@
             $('#filter_customer').on('change', function() {
                 loadTable();
             });
-            $('#table_search').on('input', refreshVisibleTable);
+            $('#table_search').on('input', debounceRefreshVisibleTable);
             $('#export_form').on('submit', function () {
                 $('#export_bulan').val($('#filter_bulan').val());
                 $('#export_tahun').val($('#filter_tahun').val());
