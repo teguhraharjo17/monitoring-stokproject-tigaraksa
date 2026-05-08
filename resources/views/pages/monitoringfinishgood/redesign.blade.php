@@ -378,6 +378,64 @@
             }
         });
 
+        function getAjaxErrorMessage(xhr, fallback) {
+            const response = xhr?.responseJSON || {};
+            const parts = [];
+            if (response.errors) {
+                parts.push(Object.values(response.errors).flat().join(' '));
+            }
+            if (response.message) parts.push(response.message);
+            if (response.error && response.error !== response.message) parts.push(response.error);
+            if (response.exception) parts.push(response.exception);
+            const detail = parts.filter(Boolean).join(' | ');
+            if (detail) return fallback + ': ' + getReadableErrorDetail(detail);
+            if (xhr?.status === 0) return fallback + ': koneksi ke server terputus atau request dibatalkan.';
+            if (xhr?.status === 401) return fallback + ': session login habis, silakan login ulang.';
+            if (xhr?.status === 419) return fallback + ': session halaman kadaluarsa, silakan refresh lalu login ulang.';
+            if (xhr?.status === 422) return fallback + ': validasi gagal, periksa kembali input yang diubah.';
+            if (xhr?.status) return fallback + ' (HTTP ' + xhr.status + ': ' + (xhr.statusText || 'tanpa detail') + ')';
+            return fallback + ': server tidak mengirim detail error.';
+        }
+
+        function getResponseErrorMessage(response, fallback) {
+            const parts = [];
+            if (response?.message) parts.push(response.message);
+            if (response?.error && response.error !== response.message) parts.push(response.error);
+            if (response?.errors) parts.push(Object.values(response.errors).flat().join(' '));
+            return fallback + ': ' + getReadableErrorDetail(parts.filter(Boolean).join(' | ') || 'response server tidak valid.');
+        }
+
+        function getReadableErrorDetail(detail) {
+            if (!detail) return 'tidak ada detail dari server.';
+            if (detail.includes('SQLSTATE[23000]') || detail.includes('Duplicate entry')) {
+                return 'Data sudah ada untuk kombinasi bulan, tahun, customer, project, dan part number yang sama. Detail: ' + detail;
+            }
+            if (detail.includes('SQLSTATE[42S22]') || detail.includes('Unknown column')) {
+                return 'Kolom database tidak ditemukan. Detail: ' + detail;
+            }
+            if (detail.includes('SQLSTATE[22003]') || detail.includes('Out of range')) {
+                return 'Nilai angka melebihi batas tipe kolom database. Detail: ' + detail;
+            }
+            return detail;
+        }
+
+        function showErrorToast(message, timer = 5000) {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: message, showConfirmButton: false, timer: timer });
+        }
+
+        function payloadSignature(data) {
+            const normalized = {};
+            Object.keys(data).sort().forEach((key) => {
+                if (key !== '_token') normalized[key] = String(data[key] ?? '');
+            });
+            return JSON.stringify(normalized);
+        }
+
+        function rememberRowState($row, data = null) {
+            $row.data('savedPayload', payloadSignature(data || collectRowData($row)));
+            $row.removeData('saving');
+        }
+
         function getParams() {
             return { bulan: $('#filter_bulan').val(), tahun: $('#filter_tahun').val(), customer: $('#filter_customer').val() };
         }
@@ -447,6 +505,9 @@
             $('#empty_state').toggleClass('d-none', data.length > 0);
             $('#table_wrap').toggleClass('d-none', data.length === 0);
             updateSummary(data);
+            $('#fg_table tbody tr').each(function () {
+                rememberRowState($(this));
+            });
             setTimeout(applyFreezeColumns, 50);
         }
 
@@ -560,29 +621,34 @@
         }
 
         function saveRow($row, successTitle = 'Data berhasil disimpan') {
+            if ($row.data('saving')) return;
+            const payload = collectRowData($row);
+            const signature = payloadSignature(payload);
+            if ($row.data('savedPayload') === signature) return;
+
+            $row.data('saving', true);
             $row.addClass('saving-row');
             $.ajax({
                 url: '{{ route("monitoring.finishgood.save") }}',
                 type: 'POST',
-                data: collectRowData($row),
+                data: payload,
                 dataType: 'json'
             })
                 .done((res) => {
                     if (!res || res.status !== 'success') {
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: res?.message ?? 'Data belum tersimpan di server', showConfirmButton: false, timer: 3000 });
+                        showErrorToast(getResponseErrorMessage(res, 'Data belum tersimpan di server'));
                         return;
                     }
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: successTitle, showConfirmButton: false, timer: 1500 });
+                    $row.data('savedPayload', signature);
+                    const title = res.warning ? successTitle + ' - Stock minus (' + res.balance + ')' : successTitle;
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: title, showConfirmButton: false, timer: 1800 });
                 })
                 .fail((xhr) => {
-                    const message = xhr.responseJSON?.message
-                        ?? (xhr.status === 401 ? 'Session login habis, silakan login ulang.'
-                        : xhr.status === 419 ? 'Session halaman kadaluarsa, silakan refresh lalu login ulang.'
-                        : 'Gagal menyimpan data');
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: message, showConfirmButton: false, timer: 3500 });
+                    showErrorToast(getAjaxErrorMessage(xhr, 'Gagal menyimpan data'));
                 })
                 .always(() => {
                     $row.removeClass('saving-row');
+                    $row.removeData('saving');
                 });
         }
 
@@ -613,7 +679,7 @@
                 },
                 error: function (xhr, status) {
                     if (status === 'abort' || sequence !== loadSequence) return;
-                    console.warn('Gagal memuat data Monitoring Finish Good', xhr.responseJSON?.message || xhr.statusText || status);
+                    showErrorToast(getAjaxErrorMessage(xhr, 'Gagal memuat data Monitoring Finish Good'));
                 },
                 complete: function () {
                     if (sequence !== loadSequence) return;
@@ -685,21 +751,8 @@
             });
             $('#fg_table tbody').on('blur', 'input[name="stock_awal"]', function () {
                 const $row = $(this).closest('tr');
-                const stockAwal = parseInt($(this).val(), 10) || 0;
                 calculateRow($row);
-                $.post('{{ route("monitoring.finishgood.updateStockAwal") }}', {
-                    _token: '{{ csrf_token() }}',
-                    bulan: $('#filter_bulan').val(),
-                    tahun: $('#filter_tahun').val(),
-                    customer: $.trim($row.attr('data-customer')),
-                    kode_project: $.trim($row.attr('data-project')),
-                    part_number: $.trim($row.attr('data-part-number')),
-                    stock_awal: stockAwal
-                }).done(() => {
-                    saveRow($row, 'Stock Awal diperbarui');
-                }).fail(() => {
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Gagal update Stock Awal', showConfirmButton: false, timer: 2000 });
-                });
+                saveRow($row, 'Stock Awal diperbarui');
             });
             $('#export_excel').on('click', function () {
                 const url = new URL('{{ route("monitoring.finishgood.export") }}', window.location.origin);

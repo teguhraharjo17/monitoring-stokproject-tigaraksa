@@ -233,7 +233,6 @@ class MonitoringSubAssyController extends Controller
         $tahun = (int) $request->tahun;
         $customer = trim($request->customer);
         $project = trim((string) $request->project);
-        $project = $project === '' ? null : $project;
         $partNumber = trim($request->part_number);
         $partName = trim($request->part_name);
 

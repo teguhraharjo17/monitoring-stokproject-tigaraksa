@@ -201,7 +201,7 @@ class MonitoringFinishGoodsController extends Controller
             $bulan = (int) $request->bulan;
             $tahun = (int) $request->tahun;
             $customer = trim($request->customer);
-            $project = trim($request->project);
+            $project = trim((string) $request->project);
             $partNumber = trim($request->part_number);
             $partName = trim($request->part_name);
 
@@ -258,7 +258,16 @@ class MonitoringFinishGoodsController extends Controller
             $header->update([
                 'total_in' => $totalIn,
                 'total_out' => $totalOut,
-                'stock_on_hand' => $balance,
+            ]);
+
+            RekapData::where([
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'customer' => $customer,
+                'kode_project' => $project,
+                'part_number' => $partNumber,
+            ])->update([
+                'stock_awal_fg' => (int) $request->stock_awal
             ]);
 
             // --- OTOMATISASI STOK AWAL FG REKAP DATA BULAN DEPAN (100% OTOMATIS) ---
@@ -286,7 +295,9 @@ class MonitoringFinishGoodsController extends Controller
             DB::commit();
 
             return response()->json([
-                'status' => 'success'
+                'status' => 'success',
+                'balance' => $balance,
+                'warning' => $balance < 0
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -317,11 +328,13 @@ class MonitoringFinishGoodsController extends Controller
         DB::beginTransaction();
 
         try {
+            $project = trim((string) $request->kode_project);
+
             $header = MonitoringFGHeader::where([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'customer' => $request->customer,
-                'project' => $request->kode_project,
+                'project' => $project,
                 'part_number' => $request->part_number,
             ])->firstOrFail();
 
@@ -333,7 +346,7 @@ class MonitoringFinishGoodsController extends Controller
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'customer' => $request->customer,
-                'kode_project' => $request->kode_project,
+                'kode_project' => $project,
                 'part_number' => $request->part_number,
             ])->update([
                 'stock_awal_fg' => $request->stock_awal
@@ -357,10 +370,6 @@ class MonitoringFinishGoodsController extends Controller
                 $balance = $balanceN;
             }
 
-            $header->update([
-                'stock_on_hand' => $balance
-            ]);
-
             // --- OTOMATISASI STOK AWAL FG REKAP DATA BULAN DEPAN (100% OTOMATIS) ---
             $nextMonth = (int)$request->bulan == 12 ? 1 : (int)$request->bulan + 1;
             $nextYear = (int)$request->bulan == 12 ? (int)$request->tahun + 1 : (int)$request->tahun;
@@ -370,7 +379,7 @@ class MonitoringFinishGoodsController extends Controller
                     'bulan' => $nextMonth,
                     'tahun' => $nextYear,
                     'customer' => $request->customer,
-                    'kode_project' => $request->kode_project,
+                    'kode_project' => $project,
                     'part_number' => $request->part_number,
                 ],
                 [
@@ -382,7 +391,9 @@ class MonitoringFinishGoodsController extends Controller
             DB::commit();
 
             return response()->json([
-                'status' => 'success'
+                'status' => 'success',
+                'balance' => $balance,
+                'warning' => $balance < 0
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -393,7 +404,8 @@ class MonitoringFinishGoodsController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal update stock awal'
+                'message' => 'Gagal update stock awal: ' . $e->getMessage(),
+                'error' => $e->getMessage()
             ], 500);
         }
     }

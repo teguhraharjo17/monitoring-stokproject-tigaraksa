@@ -180,7 +180,7 @@ class MonitoringMIPController extends Controller
         $bulan = (int) $request->bulan;
         $tahun = (int) $request->tahun;
         $customer = trim($request->customer);
-        $project = trim($request->project);
+        $project = trim((string) $request->project);
         $partNumber = trim($request->part_number);
         $partName = trim($request->part_name);
 
@@ -245,6 +245,16 @@ class MonitoringMIPController extends Controller
             );
         }
 
+        RekapData::where([
+            'bulan' => $bulan,
+            'tahun' => $tahun,
+            'customer' => $customer,
+            'kode_project' => $project,
+            'part_number' => $partNumber,
+        ])->update([
+            'stock_awal_mip' => $stockAwal
+        ]);
+
         // --- OTOMATISASI STOK AWAL REKAP DATA BULAN DEPAN (100% OTOMATIS) ---
         try {
             $nextMonth = $bulan == 12 ? 1 : $bulan + 1;
@@ -269,7 +279,9 @@ class MonitoringMIPController extends Controller
         }
 
         return response()->json([
-            'status' => 'success'
+            'status' => 'success',
+            'balance' => $balance,
+            'warning' => $balance < 0
         ]);
     }
 
@@ -287,11 +299,13 @@ class MonitoringMIPController extends Controller
         DB::beginTransaction();
 
         try {
+            $project = trim((string) $request->project);
+
             $header = MonitoringMIPHeader::where([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'customer' => $request->customer,
-                'project' => $request->project,
+                'project' => $project,
                 'part_number' => $request->part_number,
             ])->firstOrFail();
 
@@ -303,7 +317,7 @@ class MonitoringMIPController extends Controller
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'customer' => $request->customer,
-                'kode_project' => $request->project,
+                'kode_project' => $project,
                 'part_number' => $request->part_number,
             ])->update([
                 'stock_awal_mip' => $request->stock_awal
@@ -332,7 +346,7 @@ class MonitoringMIPController extends Controller
                     'bulan' => $nextMonth,
                     'tahun' => $nextYear,
                     'customer' => $request->customer,
-                    'kode_project' => $request->project,
+                    'kode_project' => $project,
                     'part_number' => $request->part_number,
                 ],
                 [
@@ -358,7 +372,8 @@ class MonitoringMIPController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal update stock awal'
+                'message' => 'Gagal update stock awal: ' . $e->getMessage(),
+                'error' => $e->getMessage()
             ], 500);
         }
     }
