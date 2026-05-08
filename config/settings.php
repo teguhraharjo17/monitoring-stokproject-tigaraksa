@@ -45,6 +45,7 @@ return [
             'css' => [
                 'assets/plugins/global/plugins.bundle.css',
                 'assets/css/style.bundle.css',
+                'assets/css/custom/sidebar-theme.css',
             ],
             'js'  => [
                 'assets/plugins/global/plugins.bundle.js',
