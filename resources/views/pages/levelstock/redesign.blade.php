@@ -23,14 +23,46 @@
         .table-chip, .help-pill, .action-chip { display: inline-flex; align-items: center; gap: .45rem; padding: .55rem .9rem; border-radius: 999px; font-size: .8rem; font-weight: 700; }
         .table-chip { background: #eef6ff; color: #1d4ed8; }
         .help-pill { background: #f8fafc; border: 1px solid #dbe4f0; color: #475569; }
-        .table-responsive { border-radius: 20px; overflow: hidden; border: 1px solid #dce6f3; background: #fff; }
-        #levelstock_table { width: 100% !important; margin: 0 !important; }
-        #levelstock_table thead th { background: #eff6ff; color: #0f172a; font-size: .78rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 800; white-space: nowrap; }
-        #levelstock_table tbody td { vertical-align: middle; border-color: #e7eef7; }
-        #levelstock_table tbody tr:hover td { background: #f8fbff; }
-        #levelstock_table .form-control, #levelstock_table .form-select { min-width: 120px; border-radius: 12px; border-color: #d6e0ec; box-shadow: none; }
-        #levelstock_table .form-control[readonly] { background: #f8fbff; color: #0f172a; font-weight: 700; }
-        .calc-input { background: #e0f2fe !important; color: #0c4a6e !important; font-weight: 800 !important; }
+        .table-responsive { border-radius: 16px; overflow: hidden; border: 1px solid #cbd5e1; background: #fff; }
+        #levelstock_table { 
+            width: 100% !important; 
+            margin: 0 !important; 
+            border-collapse: collapse !important; 
+            border: 1px solid #cbd5e1 !important;
+        }
+        #levelstock_table th, #levelstock_table td { 
+            border: 1px solid #cbd5e1 !important;
+            padding: 8px 10px !important;
+            vertical-align: middle !important;
+            text-align: center !important;
+        }
+        #levelstock_table thead th { 
+            background-color: #f8fafc !important; 
+            color: #0f172a !important; 
+            font-size: 13px !important; 
+            text-transform: uppercase !important; 
+            letter-spacing: .02em !important; 
+            font-weight: 800 !important; 
+            white-space: nowrap !important; 
+            border-bottom: 2px solid #cbd5e1 !important;
+        }
+        #levelstock_table tbody tr:hover td { background-color: #f8fbff !important; }
+        #levelstock_table .form-control, #levelstock_table .form-select { 
+            width: 100% !important;
+            border-radius: 6px !important; 
+            border: 1px solid #cbd5e1 !important; 
+            box-shadow: none !important; 
+            height: 32px !important;
+            font-size: 13px !important;
+            padding: 4px 8px !important;
+            font-weight: 800 !important;
+            text-align: center !important;
+        }
+        #levelstock_table input[name="models"] {
+            text-align: left !important;
+        }
+        #levelstock_table .form-control[readonly] { background-color: #f1f5f9 !important; color: #334155 !important; font-weight: 700 !important; }
+        .calc-input { background-color: #eff6ff !important; color: #1e40af !important; border: 1px solid #bfdbfe !important; font-weight: 800 !important; }
         .action-cell { min-width: 180px; }
         .action-stack { display: flex; flex-direction: column; gap: .45rem; }
         .action-chip.info { color: #1d4ed8; background: #eff6ff; }
@@ -40,9 +72,9 @@
         .action-btn.delete { color: #fff; background: linear-gradient(135deg, #b91c1c, #ef4444); }
         .dataTables_wrapper .dataTables_filter input, .dataTables_wrapper .dataTables_length select { border-radius: 12px; border: 1px solid #d6e0ec; padding: .45rem .7rem; background: #fff; }
         .dataTables_wrapper .dataTables_info { color: #64748b; padding-top: .85rem; }
-        .select2-container--default .select2-selection--single { min-height: 38px; border-radius: 12px; border: 1px solid #d6e0ec; display: flex; align-items: center; }
-        .select2-container .select2-selection__rendered { padding-left: .85rem !important; line-height: 36px !important; }
-        .select2-container .select2-selection__arrow { height: 36px !important; }
+        .select2-container--default .select2-selection--single { min-height: 32px; height: 32px; border-radius: 6px; border: 1px solid #cbd5e1; display: flex; align-items: center; font-size: 13px; }
+        .select2-container .select2-selection__rendered { padding-left: .5rem !important; line-height: 30px !important; font-weight: 800; }
+        .select2-container .select2-selection__arrow { height: 30px !important; }
 
         /* Premium Skeleton Loading */
         .skeleton-row td { padding: 18px 10px !important; }
@@ -182,7 +214,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="levelstock_table" class="table align-middle">
+                <table id="levelstock_table" class="table table-bordered align-middle">
                     <thead>
                         <tr>
                             <th>No</th>

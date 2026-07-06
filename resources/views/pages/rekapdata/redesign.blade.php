@@ -94,7 +94,7 @@
                     <div class="progress-bar-fill"></div>
                 </div>
                 <div class="table-wrap">
-                    <table id="rekap_table" class="table align-middle mb-0">
+                    <table id="rekap_table" class="table table-bordered align-middle mb-0">
                         <thead>
                             <tr>
                                 <th>No</th>
@@ -143,19 +143,55 @@
         .legend-item { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem .8rem; border-radius: 999px; background: #fff; border: 1px solid #e2e8f0; color: #334155; font-size: .88rem; font-weight: 600; }
         .legend-box { width: 12px; height: 12px; border-radius: 4px; }
         .legend-box.stok { background: #dcfce7; border: 1px solid #86efac; } .legend-box.kebutuhan { background: #fee2e2; border: 1px solid #fca5a5; } .legend-box.hasil { background: #dbeafe; border: 1px solid #93c5fd; }
-        .table-wrap { overflow: auto; border: 1px solid #cbd5e1; border-radius: 20px; background: #fff; }
-        #rekap_table { width: 100%; }
-        #rekap_table thead th { background: #f8fafc; color: #475569; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; border-bottom: 2px solid #e2e8f0; }
-        #rekap_table tbody tr:hover { background-color: #f8fbff; }
-        #rekap_table tbody td { vertical-align: middle; }
-        .form-control.form-control-sm, .form-select.form-select-sm { min-width: 110px; }
+        .table-wrap { border-radius: 16px; overflow: hidden; border: 1px solid #cbd5e1; background: #fff; }
+        #rekap_table { 
+            width: 100% !important; 
+            margin: 0 !important; 
+            border-collapse: collapse !important; 
+            border: 1px solid #cbd5e1 !important;
+        }
+        #rekap_table th, #rekap_table td { 
+            border: 1px solid #cbd5e1 !important;
+            padding: 8px 10px !important;
+            vertical-align: middle !important;
+            text-align: center !important;
+        }
+        #rekap_table thead th { 
+            background-color: #f8fafc !important; 
+            color: #0f172a !important; 
+            font-size: 13px !important; 
+            text-transform: uppercase !important; 
+            letter-spacing: .02em !important; 
+            font-weight: 800 !important; 
+            white-space: nowrap !important; 
+            border-bottom: 2px solid #cbd5e1 !important;
+        }
+        #rekap_table tbody tr:hover td { background-color: #f8fbff !important; }
+        #rekap_table .form-control, #rekap_table .form-select { 
+            width: 100% !important;
+            border-radius: 6px !important; 
+            border: 1px solid #cbd5e1 !important; 
+            box-shadow: none !important; 
+            height: 32px !important;
+            font-size: 13px !important;
+            padding: 4px 8px !important;
+            font-weight: 800 !important;
+            text-align: center !important;
+        }
+        #rekap_table input[name="models"] {
+            text-align: left !important;
+        }
+        #rekap_table .form-control[readonly] { background-color: #f1f5f9 !important; color: #334155 !important; font-weight: 700 !important; }
         .btn-xs { font-size: .75rem; padding: 4px 10px; line-height: 1.3; min-width: 90px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #dee2e6; transition: all 0.2s ease; background: #f8f9fa; color: #333; }
         .btn-xs:hover { background-color: #0d6efd; color: #fff; border-color: #0d6efd; }
-        .input-hijau { background-color: #dcfce7 !important; }
-        .input-hijau-gelap { background-color: #bbf7d0 !important; }
-        .input-merah { background-color: #fee2e2 !important; }
-        .input-merah-gelap { background-color: #fecaca !important; }
-        .input-biru { background-color: #dbeafe !important; font-weight: bold; color: #1d4ed8; }
+        .input-hijau { background-color: #ecfdf5 !important; color: #065f46 !important; border: 1px solid #a7f3d0 !important; }
+        .input-hijau-gelap { background-color: #d1fae5 !important; color: #047857 !important; border: 1px solid #6ee7b7 !important; }
+        .input-merah { background-color: #fff1f2 !important; color: #9f1239 !important; border: 1px solid #fecdd3 !important; }
+        .input-merah-gelap { background-color: #ffe4e6 !important; color: #be123c !important; border: 1px solid #fda4af !important; }
+        .input-biru { background-color: #eff6ff !important; color: #1e40af !important; border: 1px solid #bfdbfe !important; }
+        .select2-container--default .select2-selection--single { min-height: 32px; height: 32px; border-radius: 6px; border: 1px solid #cbd5e1; display: flex; align-items: center; font-size: 13px; }
+        .select2-container .select2-selection__rendered { padding-left: .5rem !important; line-height: 30px !important; font-weight: 800; }
+        .select2-container .select2-selection__arrow { height: 30px !important; }
         .action-cell { min-width: 190px; }
         .action-stack { display: flex; align-items: center; justify-content: center; gap: .5rem; flex-wrap: wrap; }
         .action-chip { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem .7rem; border-radius: 999px; font-size: .78rem; font-weight: 600; line-height: 1; }
