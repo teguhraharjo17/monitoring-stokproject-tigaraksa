@@ -196,15 +196,7 @@
         .col-status { min-width: 75px; width: 75px; font-size: 11px !important; } 
         .col-harian { min-width: 65px; width: 65px; }
 
-        .cell-input-group { 
-            display: grid; 
-            grid-template-rows: repeat(3, auto); 
-            gap: 4px; 
-            width: 60px; 
-            margin: 0 auto; 
-            padding: 3px 0;
-        }
-        .cell-input-group input { 
+        .col-harian input { 
             width: 60px; 
             min-width: 60px; 
             max-width: 60px; 
@@ -220,12 +212,12 @@
             appearance: none;
             -moz-appearance: textfield;
         }
-        .cell-input-group input::-webkit-outer-spin-button,
-        .cell-input-group input::-webkit-inner-spin-button {
+        .col-harian input::-webkit-outer-spin-button,
+        .col-harian input::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-        .cell-input-group input:focus {
+        .col-harian input:focus {
             border-color: #2563eb;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
             outline: none;
@@ -234,8 +226,12 @@
         .input-merah { background-color: #fff1f2 !important; color: #9f1239 !important; border-color: #fecdd3 !important; } 
         .input-biru { background-color: #eff6ff !important; color: #1e40af !important; border-color: #bfdbfe !important; }
         
-        .legend-badge-group { display: flex; flex-direction: column; gap: 3px; align-items: center; }
         .badge { font-size: 9px; padding: 3px 6px; line-height: 1; border-radius: 5px; font-weight: 800; text-transform: uppercase; color: #fff !important; }
+
+        /* Garis pemisah antar grup produk */
+        .row-group-first td {
+            border-top: 2px solid #94a3b8 !important;
+        }
         
         input[name="advance_delivery"], input[name="stock_awal"] { 
             width: 55px; 
@@ -432,7 +428,8 @@
         }
 
         function rememberRowState($row, data = null) {
-            $row.data('savedPayload', payloadSignature(data || collectRowData($row)));
+            const $group = getRowGroup($row);
+            $row.data('savedPayload', payloadSignature(data || collectRowData($group)));
             $row.removeData('saving');
         }
 
@@ -465,11 +462,48 @@
         }
 
         function buildRow(row, index, jumlahHari) {
-            let html = '<tr data-customer="' + escapeHtml(row.customer) + '" data-project="' + escapeHtml(row.project) + '" data-part-number="' + escapeHtml(row.part_number) + '" data-part-name="' + escapeHtml(row.part_name) + '"><td class="freeze-col freeze-b-0">' + (index + 1) + '</td><td class="freeze-col freeze-b-1">' + escapeHtml(row.customer) + '</td><td class="freeze-col freeze-b-2">' + escapeHtml(row.project) + '</td><td class="freeze-col freeze-b-3">' + escapeHtml(row.part_number) + '</td><td class="freeze-col freeze-b-4" style="text-align:left;">' + escapeHtml(row.part_name) + '</td><td class="freeze-col freeze-b-5"><span>' + (row.total_po ?? 0) + '</span></td><td class="freeze-col freeze-b-6"><input name="advance_delivery" class="form-control form-control-sm text-center" type="number" value="' + (row.advance_delivery ?? 0) + '"></td><td class="freeze-col freeze-b-7"><span>' + (row.outstanding ?? 0) + '</span></td><td class="freeze-col freeze-b-8"><span>' + (row.percentage ?? 0) + '%</span></td><td class="freeze-col freeze-b-9"><input name="stock_awal" class="form-control form-control-sm text-center input-biru" type="number" value="' + (row.stock_awal ?? 0) + '"></td><td class="freeze-col freeze-b-10"><span>' + (row.total_in ?? 0) + '</span></td><td class="freeze-col freeze-b-11"><span>' + (row.total_out ?? 0) + '</span></td><td class="freeze-col freeze-b-12"><span>' + (row.level_min ?? 0) + '</span></td><td class="freeze-col freeze-b-13"><span>' + (row.level_safety ?? 0) + '</span></td><td class="freeze-col freeze-b-14"><span>' + (row.level_max ?? 0) + '</span></td><td class="freeze-col freeze-b-15"><span>' + (row.stock_on_hand ?? 0) + '</span></td><td class="freeze-col freeze-b-16">' + getStatusBadge(row.status_stock ?? 'Aman') + '</td><td class="freeze-col freeze-b-17"><div class="legend-badge-group"><span class="badge bg-success">IN</span><span class="badge bg-danger">OUT</span><span class="badge bg-primary">BAL</span></div></td>';
+            // === Baris 1: IN ===
+            let html = '<tr class="row-group-first" data-group="' + index + '" data-customer="' + escapeHtml(row.customer) + '" data-project="' + escapeHtml(row.project) + '" data-part-number="' + escapeHtml(row.part_number) + '" data-part-name="' + escapeHtml(row.part_name) + '">' +
+                '<td class="freeze-col freeze-b-0" rowspan="3">' + (index + 1) + '</td>' +
+                '<td class="freeze-col freeze-b-1" rowspan="3">' + escapeHtml(row.customer) + '</td>' +
+                '<td class="freeze-col freeze-b-2" rowspan="3">' + escapeHtml(row.project) + '</td>' +
+                '<td class="freeze-col freeze-b-3" rowspan="3">' + escapeHtml(row.part_number) + '</td>' +
+                '<td class="freeze-col freeze-b-4" rowspan="3" style="text-align:left;">' + escapeHtml(row.part_name) + '</td>' +
+                '<td class="freeze-col freeze-b-5" rowspan="3"><span>' + (row.total_po ?? 0) + '</span></td>' +
+                '<td class="freeze-col freeze-b-6" rowspan="3"><input name="advance_delivery" class="form-control form-control-sm text-center" type="number" value="' + (row.advance_delivery ?? 0) + '"></td>' +
+                '<td class="freeze-col freeze-b-7" rowspan="3"><span>' + (row.outstanding ?? 0) + '</span></td>' +
+                '<td class="freeze-col freeze-b-8" rowspan="3"><span>' + (row.percentage ?? 0) + '%</span></td>' +
+                '<td class="freeze-col freeze-b-9" rowspan="3"><input name="stock_awal" class="form-control form-control-sm text-center input-biru" type="number" value="' + (row.stock_awal ?? 0) + '"></td>' +
+                '<td class="freeze-col freeze-b-10" rowspan="3"><span>' + (row.total_in ?? 0) + '</span></td>' +
+                '<td class="freeze-col freeze-b-11" rowspan="3"><span>' + (row.total_out ?? 0) + '</span></td>' +
+                '<td class="freeze-col freeze-b-12" rowspan="3"><span>' + (row.level_min ?? 0) + '</span></td>' +
+                '<td class="freeze-col freeze-b-13" rowspan="3"><span>' + (row.level_safety ?? 0) + '</span></td>' +
+                '<td class="freeze-col freeze-b-14" rowspan="3"><span>' + (row.level_max ?? 0) + '</span></td>' +
+                '<td class="freeze-col freeze-b-15" rowspan="3"><span>' + (row.stock_on_hand ?? 0) + '</span></td>' +
+                '<td class="freeze-col freeze-b-16" rowspan="3">' + getStatusBadge(row.status_stock ?? 'Aman') + '</td>' +
+                '<td class="freeze-col freeze-b-17"><span class="badge bg-success">IN</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian ' + (i === 1 ? 'ps-3' : '') + '"><div class="cell-input-group"><input name="in_hari_' + i + '_d" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i + '_d'] ?? 0) + '" readonly><input name="out_hari_' + i + '_d" class="form-control form-control-sm text-center input-merah" type="number" value="' + (row['out_hari_' + i + '_d'] ?? 0) + '"><input name="balance_hari_' + i + '_d" class="form-control form-control-sm text-center input-biru" value="' + (row['balance_hari_' + i + '_d'] ?? 0) + '" readonly></div></td><td class="col-harian"><div class="cell-input-group"><input name="in_hari_' + i + '_n" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i + '_n'] ?? 0) + '" readonly><input name="out_hari_' + i + '_n" class="form-control form-control-sm text-center input-merah" type="number" value="' + (row['out_hari_' + i + '_n'] ?? 0) + '"><input name="balance_hari_' + i + '_n" class="form-control form-control-sm text-center input-biru" value="' + (row['balance_hari_' + i + '_n'] ?? 0) + '" readonly></div></td>';
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="in_hari_' + i + '_d" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i + '_d'] ?? 0) + '" readonly></td><td class="col-harian"><input name="in_hari_' + i + '_n" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i + '_n'] ?? 0) + '" readonly></td>';
             }
-            return html + '</tr>';
+            html += '</tr>';
+
+            // === Baris 2: OUT ===
+            html += '<tr data-group="' + index + '">' +
+                '<td class="freeze-col freeze-b-17"><span class="badge bg-danger">OUT</span></td>';
+            for (let i = 1; i <= jumlahHari; i++) {
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="out_hari_' + i + '_d" class="form-control form-control-sm text-center input-merah" type="number" value="' + (row['out_hari_' + i + '_d'] ?? 0) + '"></td><td class="col-harian"><input name="out_hari_' + i + '_n" class="form-control form-control-sm text-center input-merah" type="number" value="' + (row['out_hari_' + i + '_n'] ?? 0) + '"></td>';
+            }
+            html += '</tr>';
+
+            // === Baris 3: BAL ===
+            html += '<tr data-group="' + index + '">' +
+                '<td class="freeze-col freeze-b-17"><span class="badge bg-primary">BAL</span></td>';
+            for (let i = 1; i <= jumlahHari; i++) {
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="balance_hari_' + i + '_d" class="form-control form-control-sm text-center input-biru" value="' + (row['balance_hari_' + i + '_d'] ?? 0) + '" readonly></td><td class="col-harian"><input name="balance_hari_' + i + '_n" class="form-control form-control-sm text-center input-biru" value="' + (row['balance_hari_' + i + '_n'] ?? 0) + '" readonly></td>';
+            }
+            html += '</tr>';
+
+            return html;
         }
 
         function updateSummary(data) {
@@ -505,7 +539,8 @@
             $('#empty_state').toggleClass('d-none', data.length > 0);
             $('#table_wrap').toggleClass('d-none', data.length === 0);
             updateSummary(data);
-            $('#fg_table tbody tr').each(function () {
+            // rememberRowState per group (baris pertama tiap grup)
+            $('#fg_table tbody tr.row-group-first').each(function () {
                 rememberRowState($(this));
             });
             setTimeout(applyFreezeColumns, 50);
@@ -556,53 +591,61 @@
             $('.freeze-b-17, .freeze-h-17, .freeze-group-level').addClass('freeze-separator');
         }
 
-        function calculateRow($row) {
+        // Helper: dari sebuah <tr>, ambil seluruh row group-nya (3 baris)
+        function getRowGroup($el) {
+            const groupIdx = $el.closest('tr').data('group');
+            return $('#fg_table tbody tr[data-group="' + groupIdx + '"]');
+        }
+
+        function calculateRow($rowGroup) {
             const jumlahHari = new Date(parseInt($('#filter_tahun').val(), 10), parseInt($('#filter_bulan').val(), 10), 0).getDate();
-            let stockAwal = parseInt($row.find('input[name="stock_awal"]').val(), 10) || 0;
-            let advanceDelivery = parseInt($row.find('input[name="advance_delivery"]').val(), 10) || 0;
-            let totalPO = parseInt($row.find('td:eq(5) span').text(), 10) || 0;
-            let levelMin = parseInt($row.find('td:eq(12) span').text(), 10) || 0;
-            let levelMax = parseInt($row.find('td:eq(14) span').text(), 10) || 0;
+            let stockAwal = parseInt($rowGroup.find('input[name="stock_awal"]').val(), 10) || 0;
+            let advanceDelivery = parseInt($rowGroup.find('input[name="advance_delivery"]').val(), 10) || 0;
+            let totalPO = parseInt($rowGroup.first().find('td:eq(5) span').text(), 10) || 0;
+            let levelMin = parseInt($rowGroup.first().find('td:eq(12) span').text(), 10) || 0;
+            let levelMax = parseInt($rowGroup.first().find('td:eq(14) span').text(), 10) || 0;
             let balance = stockAwal;
             let totalIn = 0, totalOut = 0;
             for (let i = 1; i <= jumlahHari; i++) {
-                const inD = parseInt($row.find('input[name="in_hari_' + i + '_d"]').val(), 10) || 0;
-                const outD = parseInt($row.find('input[name="out_hari_' + i + '_d"]').val(), 10) || 0;
-                const inN = parseInt($row.find('input[name="in_hari_' + i + '_n"]').val(), 10) || 0;
-                const outN = parseInt($row.find('input[name="out_hari_' + i + '_n"]').val(), 10) || 0;
+                const inD = parseInt($rowGroup.find('input[name="in_hari_' + i + '_d"]').val(), 10) || 0;
+                const outD = parseInt($rowGroup.find('input[name="out_hari_' + i + '_d"]').val(), 10) || 0;
+                const inN = parseInt($rowGroup.find('input[name="in_hari_' + i + '_n"]').val(), 10) || 0;
+                const outN = parseInt($rowGroup.find('input[name="out_hari_' + i + '_n"]').val(), 10) || 0;
                 const balanceD = balance + inD - outD;
                 const balanceN = balanceD + inN - outN;
-                $row.find('input[name="balance_hari_' + i + '_d"]').val(balanceD);
-                $row.find('input[name="balance_hari_' + i + '_n"]').val(balanceN);
+                $rowGroup.find('input[name="balance_hari_' + i + '_d"]').val(balanceD);
+                $rowGroup.find('input[name="balance_hari_' + i + '_n"]').val(balanceN);
                 balance = balanceN;
                 totalIn += inD + inN;
                 totalOut += outD + outN;
             }
-            $row.find('td:eq(10) span').text(totalIn);
-            $row.find('td:eq(11) span').text(totalOut);
-            $row.find('td:eq(15) span').text(balance);
+            const $firstRow = $rowGroup.first();
+            $firstRow.find('td:eq(10) span').text(totalIn);
+            $firstRow.find('td:eq(11) span').text(totalOut);
+            $firstRow.find('td:eq(15) span').text(balance);
             let statusText = 'Aman';
             if (balance <= levelMin) statusText = 'Problem';
             else if (balance > levelMax) statusText = 'Over';
-            $row.find('td:eq(16)').html(getStatusBadge(statusText));
+            $firstRow.find('td:eq(16)').html(getStatusBadge(statusText));
             const outstanding = Math.max(0, totalPO - advanceDelivery - totalOut);
             const percentage = totalPO > 0 ? ((totalOut / totalPO) * 100).toFixed(2) : '0.00';
-            $row.find('td:eq(7) span').text(outstanding);
-            $row.find('td:eq(8) span').text(percentage + '%');
-            return { stockAwal, totalIn, totalOut, stockOnHand: balance, statusText, outstanding, percentage, levelMin, levelMax, levelSafety: parseInt($row.find('td:eq(13) span').text(), 10) || 0, advanceDelivery };
+            $firstRow.find('td:eq(7) span').text(outstanding);
+            $firstRow.find('td:eq(8) span').text(percentage + '%');
+            return { stockAwal, totalIn, totalOut, stockOnHand: balance, statusText, outstanding, percentage, levelMin, levelMax, levelSafety: parseInt($firstRow.find('td:eq(13) span').text(), 10) || 0, advanceDelivery };
         }
 
-        function collectRowData($row) {
+        function collectRowData($rowGroup) {
             const jumlahHari = new Date(parseInt($('#filter_tahun').val(), 10), parseInt($('#filter_bulan').val(), 10), 0).getDate();
-            const calc = calculateRow($row);
+            const calc = calculateRow($rowGroup);
+            const $firstRow = $rowGroup.first();
             const data = {
                 _token: '{{ csrf_token() }}',
                 bulan: $('#filter_bulan').val(),
                 tahun: $('#filter_tahun').val(),
-                customer: $.trim($row.attr('data-customer')),
-                project: $.trim($row.attr('data-project')),
-                part_number: $.trim($row.attr('data-part-number')),
-                part_name: $.trim($row.attr('data-part-name')),
+                customer: $.trim($firstRow.attr('data-customer')),
+                project: $.trim($firstRow.attr('data-project')),
+                part_number: $.trim($firstRow.attr('data-part-number')),
+                part_name: $.trim($firstRow.attr('data-part-name')),
                 stock_awal: calc.stockAwal,
                 level_min: calc.levelMin,
                 level_safety: calc.levelSafety,
@@ -610,24 +653,25 @@
                 advance_delivery: calc.advanceDelivery
             };
             for (let i = 1; i <= jumlahHari; i++) {
-                data['in_hari_' + i + '_d'] = $row.find('input[name="in_hari_' + i + '_d"]').val() || 0;
-                data['out_hari_' + i + '_d'] = $row.find('input[name="out_hari_' + i + '_d"]').val() || 0;
-                data['balance_hari_' + i + '_d'] = $row.find('input[name="balance_hari_' + i + '_d"]').val() || 0;
-                data['in_hari_' + i + '_n'] = $row.find('input[name="in_hari_' + i + '_n"]').val() || 0;
-                data['out_hari_' + i + '_n'] = $row.find('input[name="out_hari_' + i + '_n"]').val() || 0;
-                data['balance_hari_' + i + '_n'] = $row.find('input[name="balance_hari_' + i + '_n"]').val() || 0;
+                data['in_hari_' + i + '_d'] = $rowGroup.find('input[name="in_hari_' + i + '_d"]').val() || 0;
+                data['out_hari_' + i + '_d'] = $rowGroup.find('input[name="out_hari_' + i + '_d"]').val() || 0;
+                data['balance_hari_' + i + '_d'] = $rowGroup.find('input[name="balance_hari_' + i + '_d"]').val() || 0;
+                data['in_hari_' + i + '_n'] = $rowGroup.find('input[name="in_hari_' + i + '_n"]').val() || 0;
+                data['out_hari_' + i + '_n'] = $rowGroup.find('input[name="out_hari_' + i + '_n"]').val() || 0;
+                data['balance_hari_' + i + '_n'] = $rowGroup.find('input[name="balance_hari_' + i + '_n"]').val() || 0;
             }
             return data;
         }
 
-        function saveRow($row, successTitle = 'Data berhasil disimpan') {
-            if ($row.data('saving')) return;
-            const payload = collectRowData($row);
+        function saveRow($rowGroup, successTitle = 'Data berhasil disimpan') {
+            const $firstRow = $rowGroup.first();
+            if ($firstRow.data('saving')) return;
+            const payload = collectRowData($rowGroup);
             const signature = payloadSignature(payload);
-            if ($row.data('savedPayload') === signature) return;
+            if ($firstRow.data('savedPayload') === signature) return;
 
-            $row.data('saving', true);
-            $row.addClass('saving-row');
+            $firstRow.data('saving', true);
+            $rowGroup.addClass('saving-row');
             $.ajax({
                 url: '{{ route("monitoring.finishgood.save") }}',
                 type: 'POST',
@@ -639,7 +683,7 @@
                         showErrorToast(getResponseErrorMessage(res, 'Data belum tersimpan di server'));
                         return;
                     }
-                    $row.data('savedPayload', signature);
+                    $firstRow.data('savedPayload', signature);
                     const title = res.warning ? successTitle + ' - Stock minus (' + res.balance + ')' : successTitle;
                     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: title, showConfirmButton: false, timer: 1800 });
                 })
@@ -647,8 +691,8 @@
                     showErrorToast(getAjaxErrorMessage(xhr, 'Gagal menyimpan data'));
                 })
                 .always(() => {
-                    $row.removeClass('saving-row');
-                    $row.removeData('saving');
+                    $rowGroup.removeClass('saving-row');
+                    $firstRow.removeData('saving');
                 });
         }
 
@@ -744,15 +788,15 @@
             });
             $('#table_search').on('input', debounceRefreshVisibleTable);
             $('#fg_table tbody').on('blur', 'input[name^="out_hari_"]', function () {
-                saveRow($(this).closest('tr'));
+                saveRow(getRowGroup($(this)));
             });
             $('#fg_table tbody').on('blur', 'input[name="advance_delivery"]', function () {
-                saveRow($(this).closest('tr'), 'Advance Delivery disimpan');
+                saveRow(getRowGroup($(this)), 'Advance Delivery disimpan');
             });
             $('#fg_table tbody').on('blur', 'input[name="stock_awal"]', function () {
-                const $row = $(this).closest('tr');
-                calculateRow($row);
-                saveRow($row, 'Stock Awal diperbarui');
+                const $group = getRowGroup($(this));
+                calculateRow($group);
+                saveRow($group, 'Stock Awal diperbarui');
             });
             $('#export_excel').on('click', function () {
                 const url = new URL('{{ route("monitoring.finishgood.export") }}', window.location.origin);

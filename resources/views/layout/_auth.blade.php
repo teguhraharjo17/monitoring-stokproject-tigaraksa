@@ -33,9 +33,9 @@
             <!--end::Body-->
 
             <!--begin::Aside-->
-            <div class="d-flex flex-lg-row-fluid w-lg-50 bgi-size-cover bgi-position-center order-1 order-lg-2" style="background-image: url({{ image('misc/milenia_bg_login.png') }})">
+            <div id="vanta-bg" class="d-flex flex-lg-row-fluid w-lg-50 bgi-size-cover bgi-position-center order-1 order-lg-2 position-relative" style="background-color: #373737;">
                 <!--begin::Content-->
-                <div class="d-flex flex-column flex-center py-7 py-lg-15 px-5 px-md-15 w-100">
+                <div class="d-flex flex-column flex-center py-7 py-lg-15 px-5 px-md-15 w-100 position-relative" style="z-index: 1;">
                     <!--begin::Logo-->
                     <a href="https://ccas.co.id/" class="mb-12">
                         <img alt="Logo" src="{{ image('logos/logo_milenia_login.png') }}" class="h-60px h-lg-200px"/>
@@ -53,5 +53,24 @@
         <!--end::Wrapper-->
     </div>
     <!--end::App-->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.topology.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            VANTA.TOPOLOGY({
+                el: "#vanta-bg",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0xffffff,
+                backgroundColor: 0x373737
+            });
+        });
+    </script>
 
 @endsection

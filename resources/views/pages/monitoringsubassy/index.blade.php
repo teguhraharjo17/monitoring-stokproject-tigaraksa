@@ -146,15 +146,7 @@
         .col-status { min-width: 95px; }
         .col-harian { min-width: 78px; }
 
-        .cell-input-group {
-            display: grid;
-            grid-template-rows: repeat(3, auto);
-            gap: 4px;
-            width: 64px;
-            margin: 0 auto;
-        }
-
-        .cell-input-group input {
+        .col-harian input {
             width: 64px;
             min-width: 64px;
             max-width: 64px;
@@ -179,13 +171,6 @@
             color: #004085;
         }
 
-        .legend-badge-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            align-items: center;
-        }
-
         .badge {
             font-size: 10px;
             padding: 4px 6px;
@@ -197,6 +182,11 @@
         .badge.bg-warning { background-color: #ffc107 !important; color: #212529 !important; }
         .badge.bg-success { background-color: #28a745 !important; }
         .badge.bg-primary { background-color: #0d6efd !important; }
+
+        /* Garis pemisah antar grup produk */
+        .row-group-first td {
+            border-top: 2px solid #343a40 !important;
+        }
 
         input[name="wip_sebelumnya"] {
             width: 72px;
@@ -319,20 +309,21 @@
         }
 
         function buildRow(row, index, jumlahHari) {
+            // === Baris 1: SPK ===
             let html = `
-                <tr
+                <tr class="row-group-first" data-group="${index}"
                     data-customer="${escapeHtml(row.customer)}"
                     data-project="${escapeHtml(row.project)}"
                     data-part-number="${escapeHtml(row.part_number)}"
                     data-part-name="${escapeHtml(row.part_name)}"
                 >
-                    <td class="freeze-col freeze-b-0">${index + 1}</td>
-                    <td class="freeze-col freeze-b-1">${escapeHtml(row.customer)}</td>
-                    <td class="freeze-col freeze-b-2">${escapeHtml(row.project)}</td>
-                    <td class="freeze-col freeze-b-3">${escapeHtml(row.part_number)}</td>
-                    <td class="freeze-col freeze-b-4" style="text-align:left;">${escapeHtml(row.part_name)}</td>
-                    <td class="freeze-col freeze-b-5"><span>${row.total_po ?? 0}</span></td>
-                    <td class="freeze-col freeze-b-6">
+                    <td class="freeze-col freeze-b-0" rowspan="3">${index + 1}</td>
+                    <td class="freeze-col freeze-b-1" rowspan="3">${escapeHtml(row.customer)}</td>
+                    <td class="freeze-col freeze-b-2" rowspan="3">${escapeHtml(row.project)}</td>
+                    <td class="freeze-col freeze-b-3" rowspan="3">${escapeHtml(row.part_number)}</td>
+                    <td class="freeze-col freeze-b-4" rowspan="3" style="text-align:left;">${escapeHtml(row.part_name)}</td>
+                    <td class="freeze-col freeze-b-5" rowspan="3"><span>${row.total_po ?? 0}</span></td>
+                    <td class="freeze-col freeze-b-6" rowspan="3">
                         <input
                             type="number"
                             name="wip_sebelumnya"
@@ -340,51 +331,33 @@
                             value="${row.wip_sebelumnya ?? 0}"
                         >
                     </td>
-                    <td class="freeze-col freeze-b-7"><span>${row.total_spk ?? 0}</span></td>
-                    <td class="freeze-col freeze-b-8"><span>${row.total_produksi ?? 0}</span></td>
-                    <td class="freeze-col freeze-b-9"><span>${row.wip_akhir ?? 0}</span></td>
-                    <td class="freeze-col freeze-b-10">${buildProduktivitas(row.produktivitas ?? 0)}</td>
-                    <td class="freeze-col freeze-b-11">
-                        <div class="legend-badge-group">
-                            <span class="badge bg-danger">SPK</span>
-                            <span class="badge bg-success">Produksi</span>
-                            <span class="badge bg-primary">WIP</span>
-                        </div>
-                    </td>
+                    <td class="freeze-col freeze-b-7" rowspan="3"><span>${row.total_spk ?? 0}</span></td>
+                    <td class="freeze-col freeze-b-8" rowspan="3"><span>${row.total_produksi ?? 0}</span></td>
+                    <td class="freeze-col freeze-b-9" rowspan="3"><span>${row.wip_akhir ?? 0}</span></td>
+                    <td class="freeze-col freeze-b-10" rowspan="3">${buildProduktivitas(row.produktivitas ?? 0)}</td>
+                    <td class="freeze-col freeze-b-11"><span class="badge bg-danger">SPK</span></td>
             `;
-
             for (let i = 1; i <= jumlahHari; i++) {
-                html += `
-                    <td class="col-harian">
-                        <div class="cell-input-group">
-                            <input
-                                type="number"
-                                name="spk_hari_${i}"
-                                class="form-control form-control-sm text-center input-merah"
-                                value="${row[`spk_hari_${i}`] ?? 0}"
-                                readonly
-                                tabindex="-1"
-                            >
-                            <input
-                                type="number"
-                                name="produksi_hari_${i}"
-                                class="form-control form-control-sm text-center input-hijau"
-                                value="${row[`produksi_hari_${i}`] ?? 0}"
-                            >
-                            <input
-                                type="number"
-                                name="wip_hari_${i}"
-                                class="form-control form-control-sm text-center input-biru"
-                                value="${row[`wip_hari_${i}`] ?? 0}"
-                                readonly
-                                tabindex="-1"
-                            >
-                        </div>
-                    </td>
-                `;
+                html += `<td class="col-harian"><input type="number" name="spk_hari_${i}" class="form-control form-control-sm text-center input-merah" value="${row[`spk_hari_${i}`] ?? 0}" readonly tabindex="-1"></td>`;
             }
-
             html += `</tr>`;
+
+            // === Baris 2: Produksi ===
+            html += `<tr data-group="${index}">
+                    <td class="freeze-col freeze-b-11"><span class="badge bg-success">Produksi</span></td>`;
+            for (let i = 1; i <= jumlahHari; i++) {
+                html += `<td class="col-harian"><input type="number" name="produksi_hari_${i}" class="form-control form-control-sm text-center input-hijau" value="${row[`produksi_hari_${i}`] ?? 0}"></td>`;
+            }
+            html += `</tr>`;
+
+            // === Baris 3: WIP ===
+            html += `<tr data-group="${index}">
+                    <td class="freeze-col freeze-b-11"><span class="badge bg-primary">WIP</span></td>`;
+            for (let i = 1; i <= jumlahHari; i++) {
+                html += `<td class="col-harian"><input type="number" name="wip_hari_${i}" class="form-control form-control-sm text-center input-biru" value="${row[`wip_hari_${i}`] ?? 0}" readonly tabindex="-1"></td>`;
+            }
+            html += `</tr>`;
+
             return html;
         }
 
@@ -402,8 +375,11 @@
 
             $('#subassy_table tbody').html(tbody);
 
-            $('#subassy_table tbody tr').each(function () {
-                calculateTotals($(this));
+            // Hitung totals per group (setiap 3 baris = 1 produk)
+            $('#subassy_table tbody tr.row-group-first').each(function () {
+                const groupIdx = $(this).data('group');
+                const $group = $(`#subassy_table tbody tr[data-group="${groupIdx}"]`);
+                calculateTotals($group);
             });
 
             setTimeout(() => {
@@ -445,7 +421,8 @@
             $('.freeze-b-11, .freeze-h-11').addClass('freeze-separator');
         }
 
-        function calculateTotals($row) {
+        // $rowGroup = jQuery object berisi 3 <tr> dari satu produk
+        function calculateTotals($rowGroup) {
             const jumlahHari = new Date(
                 parseInt($('#filter_tahun').val(), 10),
                 parseInt($('#filter_bulan').val(), 10),
@@ -460,8 +437,8 @@
             const wipValues = {};
 
             for (let i = 1; i <= jumlahHari; i++) {
-                const spk = parseInt($row.find(`input[name="spk_hari_${i}"]`).val()) || 0;
-                const produksi = parseInt($row.find(`input[name="produksi_hari_${i}"]`).val()) || 0;
+                const spk = parseInt($rowGroup.find(`input[name="spk_hari_${i}"]`).val()) || 0;
+                const produksi = parseInt($rowGroup.find(`input[name="produksi_hari_${i}"]`).val()) || 0;
 
                 spkValues[i] = spk;
                 produksiValues[i] = produksi;
@@ -469,12 +446,12 @@
                 totalProduksi += produksi;
             }
 
-            const wipSebelumnya = parseInt($row.find('input[name="wip_sebelumnya"]').val()) || 0;
+            const wipSebelumnya = parseInt($rowGroup.find('input[name="wip_sebelumnya"]').val()) || 0;
             let wipSebelum = wipSebelumnya;
 
             for (let i = 1; i <= jumlahHari; i++) {
                 const wip = wipSebelum + spkValues[i] - produksiValues[i];
-                $row.find(`input[name="wip_hari_${i}"]`).val(wip);
+                $rowGroup.find(`input[name="wip_hari_${i}"]`).val(wip);
                 wipValues[i] = wip;
                 wipSebelum = wip;
             }
@@ -482,10 +459,12 @@
             const wipAkhir = wipValues[jumlahHari] || 0;
             const produktivitas = totalSPK > 0 ? Math.ceil((totalProduksi / totalSPK) * 100) : 0;
 
-            $row.find('td:eq(7) span').text(totalSPK);
-            $row.find('td:eq(8) span').text(totalProduksi);
-            $row.find('td:eq(9) span').text(wipAkhir);
-            $row.find('td:eq(10)').html(buildProduktivitas(produktivitas));
+            // Kolom rowspan ada di baris pertama grup
+            const $firstRow = $rowGroup.first();
+            $firstRow.find('td:eq(7) span').text(totalSPK);
+            $firstRow.find('td:eq(8) span').text(totalProduksi);
+            $firstRow.find('td:eq(9) span').text(wipAkhir);
+            $firstRow.find('td:eq(10)').html(buildProduktivitas(produktivitas));
 
             return {
                 totalSPK,
@@ -495,39 +474,46 @@
             };
         }
 
-        function collectRowData($row) {
+        // Helper: dari sebuah <tr>, ambil seluruh row group-nya
+        function getRowGroup($row) {
+            const groupIdx = $row.closest('tr').data('group');
+            return $(`#subassy_table tbody tr[data-group="${groupIdx}"]`);
+        }
+
+        function collectRowData($rowGroup) {
             const jumlahHari = new Date(
                 parseInt($('#filter_tahun').val(), 10),
                 parseInt($('#filter_bulan').val(), 10),
                 0
             ).getDate();
 
-            calculateTotals($row);
+            calculateTotals($rowGroup);
 
+            const $firstRow = $rowGroup.first();
             const data = {
                 _token: '{{ csrf_token() }}',
                 bulan: $('#filter_bulan').val(),
                 tahun: $('#filter_tahun').val(),
-                customer: $.trim($row.attr('data-customer')),
-                project: $.trim($row.attr('data-project')),
-                part_number: $.trim($row.attr('data-part-number')),
-                part_name: $.trim($row.attr('data-part-name')),
-                wip_sebelumnya: parseInt($row.find('input[name="wip_sebelumnya"]').val()) || 0
+                customer: $.trim($firstRow.attr('data-customer')),
+                project: $.trim($firstRow.attr('data-project')),
+                part_number: $.trim($firstRow.attr('data-part-number')),
+                part_name: $.trim($firstRow.attr('data-part-name')),
+                wip_sebelumnya: parseInt($rowGroup.find('input[name="wip_sebelumnya"]').val()) || 0
             };
 
             for (let i = 1; i <= jumlahHari; i++) {
-                data[`spk_hari_${i}`] = parseInt($row.find(`input[name="spk_hari_${i}"]`).val()) || 0;
-                data[`produksi_hari_${i}`] = parseInt($row.find(`input[name="produksi_hari_${i}"]`).val()) || 0;
-                data[`wip_hari_${i}`] = parseInt($row.find(`input[name="wip_hari_${i}"]`).val()) || 0;
+                data[`spk_hari_${i}`] = parseInt($rowGroup.find(`input[name="spk_hari_${i}"]`).val()) || 0;
+                data[`produksi_hari_${i}`] = parseInt($rowGroup.find(`input[name="produksi_hari_${i}"]`).val()) || 0;
+                data[`wip_hari_${i}`] = parseInt($rowGroup.find(`input[name="wip_hari_${i}"]`).val()) || 0;
             }
 
             return data;
         }
 
-        function saveRow($row, successTitle = 'Tersimpan!') {
-            const data = collectRowData($row);
+        function saveRow($rowGroup, successTitle = 'Tersimpan!') {
+            const data = collectRowData($rowGroup);
 
-            $row.addClass('saving-row');
+            $rowGroup.addClass('saving-row');
 
             $.post('{{ route("monitoring.subassy.save") }}', data)
                 .done(() => {
@@ -551,7 +537,7 @@
                     });
                 })
                 .always(() => {
-                    $row.removeClass('saving-row');
+                    $rowGroup.removeClass('saving-row');
                 });
         }
 
@@ -638,18 +624,18 @@
             });
 
             $('#subassy_table tbody').on('input', 'input[name="wip_sebelumnya"]', function () {
-                const $row = $(this).closest('tr');
-                calculateTotals($row);
+                const $group = getRowGroup($(this));
+                calculateTotals($group);
             });
 
             $('#subassy_table tbody').on('input', 'input[name^="produksi_hari_"]', function () {
-                const $row = $(this).closest('tr');
-                calculateTotals($row);
+                const $group = getRowGroup($(this));
+                calculateTotals($group);
             });
 
             $('#subassy_table tbody').on('blur', 'input[name="wip_sebelumnya"], input[name^="produksi_hari_"]', function () {
-                const $row = $(this).closest('tr');
-                saveRow($row);
+                const $group = getRowGroup($(this));
+                saveRow($group);
             });
 
             $(window).on('resize', function () {
