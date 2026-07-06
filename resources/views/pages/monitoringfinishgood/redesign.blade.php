@@ -57,6 +57,10 @@
                                         <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
                                         <input id="table_search" type="text" class="form-control form-control-solid border-0" placeholder="Customer, project, part">
                                     </div>
+                                    <div class="form-check form-switch form-check-custom form-check-solid mt-2">
+                                        <input class="form-check-input h-15px w-30px" type="checkbox" id="hide_zero_po">
+                                        <label class="form-check-label fw-semibold text-gray-700 fs-7 ms-2" for="hide_zero_po">Sembunyikan PO = 0</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -523,7 +527,15 @@
 
         function filterVisibleData() {
             const keyword = ($('#table_search').val() || '').trim().toLowerCase();
-            visibleData = !keyword ? [...currentData] : currentData.filter((row) => [row.customer, row.project, row.part_number, row.part_name].join(' ').toLowerCase().includes(keyword));
+            const hideZeroPo = $('#hide_zero_po').is(':checked');
+            let filtered = currentData;
+            if (hideZeroPo) {
+                filtered = filtered.filter((row) => (parseInt(row.total_po, 10) || 0) > 0);
+            }
+            if (keyword) {
+                filtered = filtered.filter((row) => [row.customer, row.project, row.part_number, row.part_name].join(' ').toLowerCase().includes(keyword));
+            }
+            visibleData = filtered;
             return visibleData;
         }
 
@@ -787,6 +799,7 @@
                 loadTable();
             });
             $('#table_search').on('input', debounceRefreshVisibleTable);
+            $('#hide_zero_po').on('change', refreshVisibleTable);
             $('#fg_table tbody').on('blur', 'input[name^="out_hari_"]', function () {
                 saveRow(getRowGroup($(this)));
             });
