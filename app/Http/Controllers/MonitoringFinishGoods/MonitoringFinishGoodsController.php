@@ -202,6 +202,9 @@ class MonitoringFinishGoodsController extends Controller
             $tahun = (int) $request->tahun;
             $customer = trim($request->customer);
             $project = trim((string) $request->project);
+            if ($project === '') {
+                $project = null;
+            }
             $partNumber = trim($request->part_number);
             $partName = trim($request->part_name);
 
@@ -260,34 +263,54 @@ class MonitoringFinishGoodsController extends Controller
                 'total_out' => $totalOut,
             ]);
 
-            RekapData::where([
-                'bulan' => $bulan,
-                'tahun' => $tahun,
-                'customer' => $customer,
-                'kode_project' => $project,
-                'part_number' => $partNumber,
-            ])->update([
-                'stock_awal_fg' => (int) $request->stock_awal
-            ]);
+            RekapData::where('bulan', $bulan)
+                ->where('tahun', $tahun)
+                ->where('customer', $customer)
+                ->where('part_number', $partNumber)
+                ->where(function($q) use ($project) {
+                    if ($project === null) {
+                        $q->whereNull('kode_project')->orWhere('kode_project', '');
+                    } else {
+                        $q->where('kode_project', $project);
+                    }
+                })->update([
+                    'stock_awal_fg' => (int) $request->stock_awal
+                ]);
 
             // --- OTOMATISASI STOK AWAL FG REKAP DATA BULAN DEPAN (100% OTOMATIS) ---
             try {
                 $nextMonth = $bulan == 12 ? 1 : $bulan + 1;
                 $nextYear = $bulan == 12 ? $tahun + 1 : $tahun;
 
-                RekapData::updateOrCreate(
-                    [
+                $rekapNext = RekapData::where('bulan', $nextMonth)
+                    ->where('tahun', $nextYear)
+                    ->where('customer', $customer)
+                    ->where('part_number', $partNumber)
+                    ->where(function($q) use ($project) {
+                        if ($project === null) {
+                            $q->whereNull('kode_project')->orWhere('kode_project', '');
+                        } else {
+                            $q->where('kode_project', $project);
+                        }
+                    })
+                    ->first();
+
+                if ($rekapNext) {
+                    $rekapNext->update([
+                        'models' => $partName,
+                        'stock_awal_fg' => $balance
+                    ]);
+                } else {
+                    RekapData::create([
                         'bulan' => $nextMonth,
                         'tahun' => $nextYear,
                         'customer' => $customer,
                         'kode_project' => $project,
                         'part_number' => $partNumber,
-                    ],
-                    [
                         'models' => $partName,
                         'stock_awal_fg' => $balance
-                    ]
-                );
+                    ]);
+                }
             } catch (\Throwable $e) {
                 Log::warning('Gagal sinkronisasi Stok Awal FG Rekap Data bulan depan', ['error' => $e->getMessage()]);
             }
@@ -329,28 +352,42 @@ class MonitoringFinishGoodsController extends Controller
 
         try {
             $project = trim((string) $request->kode_project);
+            if ($project === '') {
+                $project = null;
+            }
 
             $header = MonitoringFGHeader::where([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'customer' => $request->customer,
-                'project' => $project,
                 'part_number' => $request->part_number,
-            ])->firstOrFail();
+            ])
+            ->where(function($q) use ($project) {
+                if ($project === null) {
+                    $q->whereNull('project')->orWhere('project', '');
+                } else {
+                    $q->where('project', $project);
+                }
+            })
+            ->firstOrFail();
 
             $header->update([
                 'stock_awal' => $request->stock_awal
             ]);
 
-            RekapData::where([
-                'bulan' => $request->bulan,
-                'tahun' => $request->tahun,
-                'customer' => $request->customer,
-                'kode_project' => $project,
-                'part_number' => $request->part_number,
-            ])->update([
-                'stock_awal_fg' => $request->stock_awal
-            ]);
+            RekapData::where('bulan', $request->bulan)
+                ->where('tahun', $request->tahun)
+                ->where('customer', $request->customer)
+                ->where('part_number', $request->part_number)
+                ->where(function($q) use ($project) {
+                    if ($project === null) {
+                        $q->whereNull('kode_project')->orWhere('kode_project', '');
+                    } else {
+                        $q->where('kode_project', $project);
+                    }
+                })->update([
+                    'stock_awal_fg' => $request->stock_awal
+                ]);
 
             $details = MonitoringFGDetail::where('fg_header_id', $header->id)
                 ->orderBy('tanggal')
@@ -374,19 +411,35 @@ class MonitoringFinishGoodsController extends Controller
             $nextMonth = (int)$request->bulan == 12 ? 1 : (int)$request->bulan + 1;
             $nextYear = (int)$request->bulan == 12 ? (int)$request->tahun + 1 : (int)$request->tahun;
 
-            RekapData::updateOrCreate(
-                [
+            $rekapNext = RekapData::where('bulan', $nextMonth)
+                ->where('tahun', $nextYear)
+                ->where('customer', $request->customer)
+                ->where('part_number', $request->part_number)
+                ->where(function($q) use ($project) {
+                    if ($project === null) {
+                        $q->whereNull('kode_project')->orWhere('kode_project', '');
+                    } else {
+                        $q->where('kode_project', $project);
+                    }
+                })
+                ->first();
+
+            if ($rekapNext) {
+                $rekapNext->update([
+                    'models' => $header->part_name,
+                    'stock_awal_fg' => $balance
+                ]);
+            } else {
+                RekapData::create([
                     'bulan' => $nextMonth,
                     'tahun' => $nextYear,
                     'customer' => $request->customer,
                     'kode_project' => $project,
                     'part_number' => $request->part_number,
-                ],
-                [
                     'models' => $header->part_name,
                     'stock_awal_fg' => $balance
-                ]
-            );
+                ]);
+            }
 
             DB::commit();
 

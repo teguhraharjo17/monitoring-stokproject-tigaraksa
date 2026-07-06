@@ -318,6 +318,42 @@ class MonitoringSubAssyController extends Controller
             ]);
             $subAssy->save();
 
+            // Sync ke RekapData bulan berjalan
+            try {
+                $rekapCur = RekapData::where('bulan', $bulan)
+                    ->where('tahun', $tahun)
+                    ->where('customer', $customer)
+                    ->where('part_number', $partNumber)
+                    ->where(function($q) use ($project) {
+                        $proj = trim((string)$project);
+                        if ($proj === '') {
+                            $q->whereNull('kode_project')->orWhere('kode_project', '');
+                        } else {
+                            $q->where('kode_project', $proj);
+                        }
+                    })
+                    ->first();
+
+                if ($rekapCur) {
+                    $rekapCur->update([
+                        'models' => $partName,
+                        'wip_spk_sa' => $wipSebelumnya
+                    ]);
+                } else {
+                    RekapData::create([
+                        'bulan' => $bulan,
+                        'tahun' => $tahun,
+                        'customer' => $customer,
+                        'kode_project' => $project === '' ? null : $project,
+                        'part_number' => $partNumber,
+                        'models' => $partName,
+                        'wip_spk_sa' => $wipSebelumnya
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Gagal sinkronisasi WIP Rekap Data bulan berjalan', ['error' => $e->getMessage()]);
+            }
+
             // Hapus detail lama dan ganti dengan yang baru (recalculated)
             SubAssyDetail::where('sub_assy_id', $subAssy->id)->delete();
 
@@ -369,19 +405,36 @@ class MonitoringSubAssyController extends Controller
                 $nextMonth = $bulan == 12 ? 1 : $bulan + 1;
                 $nextYear = $bulan == 12 ? $tahun + 1 : $tahun;
 
-                RekapData::updateOrCreate(
-                    [
+                $rekapNext = RekapData::where('bulan', $nextMonth)
+                    ->where('tahun', $nextYear)
+                    ->where('customer', $customer)
+                    ->where('part_number', $partNumber)
+                    ->where(function($q) use ($project) {
+                        $proj = trim((string)$project);
+                        if ($proj === '') {
+                            $q->whereNull('kode_project')->orWhere('kode_project', '');
+                        } else {
+                            $q->where('kode_project', $proj);
+                        }
+                    })
+                    ->first();
+
+                if ($rekapNext) {
+                    $rekapNext->update([
+                        'models' => $partName,
+                        'wip_spk_sa' => $wipAkhir
+                    ]);
+                } else {
+                    RekapData::create([
                         'bulan' => $nextMonth,
                         'tahun' => $nextYear,
                         'customer' => $customer,
-                        'kode_project' => $project,
+                        'kode_project' => $project === '' ? null : $project,
                         'part_number' => $partNumber,
-                    ],
-                    [
                         'models' => $partName,
-                        'wip_spk_sa' => $wipAkhir // WIP Akhir bulan ini jadi WIP bulan depan
-                    ]
-                );
+                        'wip_spk_sa' => $wipAkhir
+                    ]);
+                }
             } catch (\Throwable $e) {
                 Log::warning('Gagal sinkronisasi WIP Rekap Data bulan depan', ['error' => $e->getMessage()]);
             }
