@@ -372,6 +372,34 @@
         let searchTimer = null;
         let loadSequence = 0;
 
+        const customerOrder = [
+            "TAM - SCY",
+            "TAM - CCY",
+            "TAM - NVDC",
+            "TAM - BTM",
+            "TAM - THAI",
+            "TMAP",
+            "TMMIN",
+            "TMA",
+            "HINO",
+            "MAZDA",
+            "HYUNDAI"
+        ];
+
+        function getCustomerGroup(customer) {
+            const cust = $.trim(customer).toUpperCase();
+            if (["TAM - SCY", "TAM - CCY", "TAM - NVDC"].includes(cust)) {
+                return "GROUP 1";
+            }
+            if (["TAM - BTM", "TAM - THAI", "TMAP", "TMMIN", "TMA", "HINO"].includes(cust)) {
+                return "GROUP 2";
+            }
+            if (["MAZDA", "HYUNDAI"].includes(cust)) {
+                return "GROUP 3";
+            }
+            return "OTHERS";
+        }
+
         $.ajaxSetup({
             headers: {
                 'Accept': 'application/json'
@@ -544,13 +572,27 @@
             const tahun = parseInt($('#filter_tahun').val(), 10);
             const jumlahHari = new Date(tahun, bulan, 0).getDate();
             buildTableHeader(jumlahHari);
+            
             let tbody = '';
-            data.forEach((row, index) => { tbody += buildRow(row, index, jumlahHari); });
+            let currentGroup = null;
+            let displayIndex = 1;
+            
+            data.forEach((row) => {
+                const group = $.trim(row.customer).toUpperCase();
+                if (group !== currentGroup) {
+                    currentGroup = group;
+                    tbody += `<tr class="group-header-row"><td colspan="100" class="text-start ps-4 py-3 fw-bold text-dark border-dark" style="background: #f1f5f9; border-top: 3px solid #cbd5e1 !important; border-bottom: 1px solid #cbd5e1 !important;"><i class="fas fa-building me-2 text-primary"></i> CUSTOMER: ${group}</td></tr>`;
+                }
+                tbody += buildRow(row, displayIndex - 1, jumlahHari);
+                displayIndex++;
+            });
+            
             $('#fg_table tbody').html(tbody).addClass('fade-in');
             setTimeout(() => $('#fg_table tbody').removeClass('fade-in'), 500);
             $('#empty_state').toggleClass('d-none', data.length > 0);
             $('#table_wrap').toggleClass('d-none', data.length === 0);
             updateSummary(data);
+            
             // rememberRowState per group (baris pertama tiap grup)
             $('#fg_table tbody tr.row-group-first').each(function () {
                 rememberRowState($(this));
@@ -730,7 +772,29 @@
                 data: { _token: '{{ csrf_token() }}', bulan: params.bulan, tahun: params.tahun, customer: params.customer },
                 success: function (res) {
                     if (sequence !== loadSequence) return;
-                    currentData = res.data || [];
+                    
+                    const sortedData = (res.data || []).sort((a, b) => {
+                        const custA = $.trim(a.customer).toUpperCase();
+                        const custB = $.trim(b.customer).toUpperCase();
+                        
+                        let idxA = customerOrder.indexOf(custA);
+                        let idxB = customerOrder.indexOf(custB);
+                        
+                        if (idxA === -1) idxA = 999;
+                        if (idxB === -1) idxB = 999;
+                        
+                        if (idxA !== idxB) {
+                            return idxA - idxB;
+                        }
+                        
+                        const projA = $.trim(a.project).toUpperCase();
+                        const projB = $.trim(b.project).toUpperCase();
+                        if (projA !== projB) return projA.localeCompare(projB);
+                        
+                        return $.trim(a.part_number).localeCompare($.trim(b.part_number));
+                    });
+                    
+                    currentData = sortedData;
                     refreshVisibleTable();
                 },
                 error: function (xhr, status) {
