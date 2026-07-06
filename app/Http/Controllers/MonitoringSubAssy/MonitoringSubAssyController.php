@@ -465,10 +465,16 @@ class MonitoringSubAssyController extends Controller
 
         // 2. Proses data mentah menjadi map yang siap pakai
         $spkMap = [];
+        $today = Carbon::today();
         foreach ($spkData as $spk) {
             try {
                 $tanggal = Carbon::parse($spk['tanggal_produksi']);
                 if ($tanggal->month !== $bulan || $tanggal->year !== $tahun) {
+                    continue;
+                }
+
+                // Jangan ambil data SPK yang tanggal_produksi-nya di masa depan (melebihi hari ini)
+                if ($tanggal->greaterThan($today)) {
                     continue;
                 }
 
