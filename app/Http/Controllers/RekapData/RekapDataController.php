@@ -228,17 +228,27 @@ class RekapDataController extends Controller
                     'stock_awal' => (int) $rekap->stock_awal_fg
                 ]);
 
-                $details = \App\Models\MonitoringFGDetail::where('header_id', $fgHeader->id)
+                $details = \App\Models\MonitoringFGDetail::where('fg_header_id', $fgHeader->id)
                     ->orderBy('tanggal')
                     ->get();
 
                 $balance = (int) $rekap->stock_awal_fg;
 
                 foreach ($details as $detail) {
-                    $balance = $balance + (int) $detail->in_qty - (int) $detail->out_qty;
+                    $inD = (int) $detail->in_qty_d;
+                    $inN = (int) $detail->in_qty_n;
+                    $outD = (int) $detail->out_qty_d;
+                    $outN = (int) $detail->out_qty_n;
+
+                    $balanceD = $balance + $inD - $outD;
+                    $balanceN = $balanceD + $inN - $outN;
+
                     $detail->update([
-                        'balance' => $balance
+                        'balance_d' => $balanceD,
+                        'balance_n' => $balanceN,
                     ]);
+
+                    $balance = $balanceN;
                 }
 
                 // Sync ke RekapData bulan depan
