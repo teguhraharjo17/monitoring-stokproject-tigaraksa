@@ -581,7 +581,7 @@
                 const group = $.trim(row.customer).toUpperCase();
                 if (group !== currentGroup) {
                     currentGroup = group;
-                    tbody += `<tr class="group-header-row"><td colspan="100" class="text-start ps-4 py-3 fw-bold text-dark border-dark" style="background: #f1f5f9; border-top: 3px solid #cbd5e1 !important; border-bottom: 1px solid #cbd5e1 !important;"><i class="fas fa-building me-2 text-primary"></i> CUSTOMER: ${group}</td></tr>`;
+                    tbody += `<tr class="group-header-row"><td colspan="100" class="text-start fw-bold text-dark border-dark" style="background: #f1f5f9; border-top: 3px solid #cbd5e1 !important; border-bottom: 1px solid #cbd5e1 !important; padding: 0 !important;"><div style="position: sticky; left: 0; padding: 12px 24px; width: max-content; display: flex; align-items: center; z-index: 4;"><i class="fas fa-building me-2 text-primary"></i> CUSTOMER: ${group}</div></td></tr>`;
                 }
                 tbody += buildRow(row, displayIndex - 1, jumlahHari);
                 displayIndex++;
@@ -629,7 +629,7 @@
         }
 
         function applyFreezeColumns() {
-            const $firstBodyRow = $('#fg_table tbody tr:first');
+            const $firstBodyRow = $('#fg_table tbody tr.row-group-first:first');
             if (!$firstBodyRow.length) return;
             const widths = [];
             let left = 0;
