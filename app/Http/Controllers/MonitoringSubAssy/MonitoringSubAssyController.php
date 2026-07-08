@@ -50,13 +50,14 @@ class MonitoringSubAssyController extends Controller
         return $this->normalize($customer) . '|' . $this->normalize($partNumber);
     }
 
-    private function calculateProductivity(int $totalProduksi, int $totalSpk): float
+    private function calculateProductivity(int $totalProduksi, int $totalSpk, int $wipSebelumnya = 0): float
     {
-        if ($totalSpk <= 0) {
+        $divider = $wipSebelumnya + $totalSpk;
+        if ($divider <= 0) {
             return 0;
         }
 
-        $value = ceil(($totalProduksi / $totalSpk) * 100);
+        $value = ceil(($totalProduksi / $divider) * 100);
 
         return min((float) $value, self::MAX_STORED_PRODUCTIVITY);
     }
@@ -198,7 +199,7 @@ class MonitoringSubAssyController extends Controller
             $row['total_spk'] = $totalSPK;
             $row['total_produksi'] = $totalProduksi;
             $row['wip_akhir'] = $wipSebelum; 
-            $row['produktivitas'] = $this->calculateProductivity($totalProduksi, $totalSPK);
+            $row['produktivitas'] = $this->calculateProductivity($totalProduksi, $totalSPK, $row['wip_sebelumnya']);
 
             $data[] = $row;
         }
@@ -265,7 +266,7 @@ class MonitoringSubAssyController extends Controller
 
         $wipSebelumnya = (int) ($request->input('wip_sebelumnya', 0));
         $wipAkhir = $wipSebelumnya + $totalSPK - $totalProduksi;
-        $produktivitas = $this->calculateProductivity($totalProduksi, $totalSPK);
+        $produktivitas = $this->calculateProductivity($totalProduksi, $totalSPK, $wipSebelumnya);
 
         try {
             return DB::transaction(function() use ($request, $bulan, $tahun, $customer, $project, $partNumber, $partName, $wipSebelumnya, $totalSPK, $totalProduksi, $wipAkhir, $produktivitas, $jumlahHari, $dailyData) {

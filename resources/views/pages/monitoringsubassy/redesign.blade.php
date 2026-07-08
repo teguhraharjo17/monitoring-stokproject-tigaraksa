@@ -588,14 +588,16 @@
                 totalSPK += spkValues[i];
                 totalProduksi += produksiValues[i];
             }
-            let wipSebelum = parseInt($rowGroup.find('input[name="wip_sebelumnya"]').val(), 10) || 0;
+            const wipSebelumnya = parseInt($rowGroup.find('input[name="wip_sebelumnya"]').val(), 10) || 0;
+            let wipSebelum = wipSebelumnya;
             for (let i = 1; i <= jumlahHari; i++) {
                 const wip = wipSebelum + spkValues[i] - produksiValues[i];
                 $rowGroup.find('input[name="wip_hari_' + i + '"]').val(wip);
                 wipValues[i] = wip;
                 wipSebelum = wip;
             }
-            const produktivitas = totalSPK > 0 ? Math.min(Math.ceil((totalProduksi / totalSPK) * 100), maxStoredProductivity) : 0;
+            const divider = wipSebelumnya + totalSPK;
+            const produktivitas = divider > 0 ? Math.min(Math.ceil((totalProduksi / divider) * 100), maxStoredProductivity) : 0;
             const $firstRow = $rowGroup.first();
             $firstRow.find('td:eq(7) span').text(totalSPK);
             $firstRow.find('td:eq(8) span').text(totalProduksi);
