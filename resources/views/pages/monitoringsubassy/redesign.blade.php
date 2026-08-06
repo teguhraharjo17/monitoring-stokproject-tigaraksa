@@ -145,9 +145,9 @@
         .table-legend { display: flex; flex-wrap: wrap; gap: .75rem; }
         .legend-item { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem .8rem; border-radius: 999px; background: #fff; border: 1px solid #e2e8f0; color: #334155; font-size: .88rem; font-weight: 600; }
         .legend-box { width: 12px; height: 12px; border-radius: 4px; }
-        .legend-box.spk { background: #fee2e2; border: 1px solid #fca5a5; }
+        .legend-box.spk { background: #dbeafe; border: 1px solid #93c5fd; }
         .legend-box.produksi { background: #dcfce7; border: 1px solid #86efac; }
-        .legend-box.wip { background: #dbeafe; border: 1px solid #93c5fd; }
+        .legend-box.wip { background: #fee2e2; border: 1px solid #fca5a5; }
         .empty-state { padding: 3rem 1rem; text-align: center; }
         .empty-icon { width: 70px; height: 70px; border-radius: 22px; margin: 0 auto 1rem; display: grid; place-items: center; background: #e2e8f0; color: #334155; font-size: 1.5rem; }
         .table-wrap { width: 100%; overflow: auto; max-height: 70vh; border: 1px solid #cbd5e1; border-radius: 20px; position: relative; background: #fff; }
@@ -505,9 +505,9 @@
                 '<td class="freeze-col freeze-b-8" rowspan="3"><span>' + (row.total_produksi ?? 0) + '</span></td>' +
                 '<td class="freeze-col freeze-b-9" rowspan="3"><span>' + (row.wip_akhir ?? 0) + '</span></td>' +
                 '<td class="freeze-col freeze-b-10" rowspan="3">' + buildProduktivitas(row.produktivitas ?? 0) + '</td>' +
-                '<td class="freeze-col freeze-b-11"><span class="badge bg-danger">SPK</span></td>';
+                '<td class="freeze-col freeze-b-11"><span class="badge bg-primary">SPK</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input type="number" name="spk_hari_' + i + '" class="form-control form-control-sm text-center input-merah" value="' + (row['spk_hari_' + i] ?? 0) + '" readonly tabindex="-1"></td>';
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input type="number" name="spk_hari_' + i + '" class="form-control form-control-sm text-center input-biru" value="' + (row['spk_hari_' + i] ?? 0) + '" readonly tabindex="-1"></td>';
             }
             html += '</tr>';
 
@@ -521,9 +521,9 @@
 
             // === Baris 3: WIP ===
             html += '<tr data-group="' + index + '">' +
-                '<td class="freeze-col freeze-b-11"><span class="badge bg-primary">WIP</span></td>';
+                '<td class="freeze-col freeze-b-11"><span class="badge bg-danger">WIP</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input type="number" name="wip_hari_' + i + '" class="form-control form-control-sm text-center input-biru" value="' + (row['wip_hari_' + i] ?? 0) + '" readonly tabindex="-1"></td>';
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input type="number" name="wip_hari_' + i + '" class="form-control form-control-sm text-center input-merah" value="' + (row['wip_hari_' + i] ?? 0) + '" readonly tabindex="-1"></td>';
             }
             html += '</tr>';
 

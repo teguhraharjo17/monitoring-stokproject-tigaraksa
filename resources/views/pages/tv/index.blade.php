@@ -955,9 +955,9 @@
 
         <td class="w-status sticky-6">
           <div class="legend">
-            <div class="tag tag-spk">SPK</div>
+            <div class="tag tag-wip">SPK</div>
             <div class="tag tag-prod">Produksi</div>
-            <div class="tag tag-wip">WIP</div>
+            <div class="tag tag-spk">WIP</div>
           </div>
         </td>
 
@@ -977,9 +977,9 @@
         html += `
           <td class="day-cell w-date" data-day="${d}">
             <div class="cell-stack">
-              <div class="pill pill-spk">${escapeHtml(spk)}</div>
+              <div class="pill pill-wip">${escapeHtml(spk)}</div>
               <div class="pill pill-prod">${escapeHtml(prod)}</div>
-              <div class="pill pill-wip">${escapeHtml(wip)}</div>
+              <div class="pill pill-spk">${escapeHtml(wip)}</div>
             </div>
           </td>
         `;

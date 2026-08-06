@@ -347,7 +347,7 @@ class TVController extends Controller
             }
         }
 
-        $wipPrev = (int) ($rekap['wip_spk_sa'] ?? $item->wip_sebelumnya ?? 0);
+        $wipPrev = (int) ($item->wip_sebelumnya ?? $rekap['wip_spk_sa'] ?? 0);
         $wipDays = $this->blankDayMap($daysInMonth);
 
         for ($i = 1; $i <= $daysInMonth; $i++) {
@@ -373,7 +373,7 @@ class TVController extends Controller
             'part_name' => (string) ($item->part_name ?? ''),
 
             'total_po' => (int) ($rekap['total_po'] ?? 0),
-            'wip_sebelumnya' => (int) ($rekap['wip_spk_sa'] ?? $item->wip_sebelumnya ?? 0),
+            'wip_sebelumnya' => (int) ($item->wip_sebelumnya ?? $rekap['wip_spk_sa'] ?? 0),
             'total_spk' => $totalSpk,
             'total_produksi' => $totalProduksi,
             'wip_akhir' => $wipAkhir,

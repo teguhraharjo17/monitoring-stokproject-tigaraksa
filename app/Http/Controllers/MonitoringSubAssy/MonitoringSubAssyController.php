@@ -50,6 +50,11 @@ class MonitoringSubAssyController extends Controller
         return $this->normalize($customer) . '|' . $this->normalize($partNumber);
     }
 
+    private function partKey($partNumber, $partName): string
+    {
+        return $this->normalize($partNumber) . '|' . $this->normalize($partName);
+    }
+
     private function calculateProductivity(int $totalProduksi, int $totalSpk, int $wipSebelumnya = 0): float
     {
         $divider = $wipSebelumnya + $totalSpk;
@@ -116,6 +121,13 @@ class MonitoringSubAssyController extends Controller
             ->get()
             ->keyBy(fn ($s) => $this->itemKey($s->customer, $s->project, $s->part_number));
 
+        $prevBulan = $bulan == 1 ? 12 : $bulan - 1;
+        $prevTahun = $bulan == 1 ? $tahun - 1 : $tahun;
+        $prevSubAssies = SubAssy::where('bulan', $prevBulan)
+            ->where('tahun', $prevTahun)
+            ->get()
+            ->keyBy(fn ($s) => $this->partKey($s->part_number, $s->part_name));
+
         $aggregatedRekap = [];
         foreach ($rekapData as $rekap) {
             $key = $this->rekapKey($rekap->customer, $rekap->kode_project, $rekap->part_number, $rekap->models);
@@ -131,10 +143,17 @@ class MonitoringSubAssyController extends Controller
 
         $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
         $data = [];
-
         foreach ($aggregatedRekap as $rekap) {
             $key = $this->itemKey($rekap->customer, $rekap->kode_project, $rekap->part_number);
             $subAssy = $subAssies[$key] ?? null;
+            $wipSebelumnya = 0;
+            if ($subAssy && $subAssy->wip_sebelumnya != 0) {
+                $wipSebelumnya = (int) $subAssy->wip_sebelumnya;
+            } else {
+                $prevKey = $this->partKey($rekap->part_number, $rekap->models);
+                $prevSubAssy = $prevSubAssies[$prevKey] ?? null;
+                $wipSebelumnya = (int) ($prevSubAssy ? $prevSubAssy->wip_akhir : ($rekap->wip_spk_sa ?? 0));
+            }
 
             $row = [
                 'id' => $subAssy->id ?? null,
@@ -143,7 +162,7 @@ class MonitoringSubAssyController extends Controller
                 'part_number' => $rekap->part_number,
                 'part_name' => $rekap->models,
                 'total_po' => (int) ($rekap->total_qty_bulan_ini ?? 0),
-                'wip_sebelumnya' => (int) ($subAssy && $subAssy->wip_sebelumnya != 0 ? $subAssy->wip_sebelumnya : ($rekap->wip_spk_sa ?? 0)),
+                'wip_sebelumnya' => $wipSebelumnya,
                 'total_spk' => (int) ($subAssy->total_spk ?? 0),
                 'total_produksi' => (int) ($subAssy->total_produksi ?? 0),
                 'wip_akhir' => (int) ($subAssy->wip_akhir ?? 0),
@@ -294,6 +313,8 @@ class MonitoringSubAssyController extends Controller
                     ->first();
             }
 
+            $oldWipAkhir = $subAssy ? (int) $subAssy->wip_akhir : 0;
+
             if (!$subAssy) {
                 $subAssy = new SubAssy([
                     'bulan' => $bulan,
@@ -440,6 +461,9 @@ class MonitoringSubAssyController extends Controller
                 Log::warning('Gagal sinkronisasi WIP Rekap Data bulan depan', ['error' => $e->getMessage()]);
             }
 
+            // Cascade WIP updates to subsequent months
+            $this->cascadeWipUpdate($customer, $project, $partNumber, $bulan, $tahun, $oldWipAkhir, $wipAkhir);
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data berhasil disimpan.',
@@ -561,5 +585,97 @@ class MonitoringSubAssyController extends Controller
         }
 
         return $payload;
+    }
+
+    private function cascadeWipUpdate($customer, $project, $partNumber, $bulan, $tahun, $oldWipAkhir, $newWipAkhir)
+    {
+        if ((int)$oldWipAkhir === (int)$newWipAkhir) {
+            return;
+        }
+
+        $nextBulan = $bulan == 12 ? 1 : $bulan + 1;
+        $nextTahun = $bulan == 12 ? $tahun + 1 : $tahun;
+
+        // Find next month's SubAssy record
+        $nextSubAssy = SubAssy::where([
+            'bulan' => $nextBulan,
+            'tahun' => $nextTahun,
+            'customer' => $customer,
+            'project' => $project,
+            'part_number' => $partNumber,
+        ])->first();
+
+        if ($nextSubAssy) {
+            // If the next month's starting WIP matches the previous month's old ending WIP,
+            // or if the next month's starting WIP is 0 (meaning it was probably never properly updated or is just default),
+            // we should update it.
+            if ((int)$nextSubAssy->wip_sebelumnya === (int)$oldWipAkhir || (int)$nextSubAssy->wip_sebelumnya === 0) {
+                $oldNextWipAkhir = $nextSubAssy->wip_akhir;
+                $newNextWipSebelumnya = $newWipAkhir;
+                
+                // Recalculate next month's ending WIP
+                $newNextWipAkhir = $newNextWipSebelumnya + $nextSubAssy->total_spk - $nextSubAssy->total_produksi;
+                $newNextProductivity = $this->calculateProductivity($nextSubAssy->total_produksi, $nextSubAssy->total_spk, $newNextWipSebelumnya);
+
+                $nextSubAssy->update([
+                    'wip_sebelumnya' => $newNextWipSebelumnya,
+                    'wip_akhir' => $newNextWipAkhir,
+                    'produktivitas' => $newNextProductivity,
+                ]);
+
+                // Recalculate daily WIP details
+                $this->recalculateDailyWip($nextSubAssy);
+
+                // Cascade recursively to the month after next
+                $this->cascadeWipUpdate($customer, $project, $partNumber, $nextBulan, $nextTahun, $oldNextWipAkhir, $newNextWipAkhir);
+            }
+        }
+    }
+
+    private function recalculateDailyWip(SubAssy $subAssy)
+    {
+        $daysInMonth = Carbon::createFromDate($subAssy->tahun, $subAssy->bulan, 1)->daysInMonth;
+        
+        $details = $subAssy->details()->get();
+        
+        $spkDays = [];
+        $prodDays = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $spkDays[$d] = 0;
+            $prodDays[$d] = 0;
+        }
+
+        foreach ($details as $detail) {
+            $day = (int) $detail->tanggal;
+            $tipe = strtoupper($detail->tipe);
+            if ($tipe === 'SPK') {
+                $spkDays[$day] = (int) $detail->jumlah;
+            } elseif ($tipe === 'PRODUKSI') {
+                $prodDays[$day] = (int) $detail->jumlah;
+            }
+        }
+
+        // Delete existing WIP details to prevent duplicates or clean them up
+        $subAssy->details()->where('tipe', 'WIP')->delete();
+
+        $detailsToInsert = [];
+        $wipAccumulator = (int) $subAssy->wip_sebelumnya;
+        $now = now();
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $wipAccumulator = $wipAccumulator + $spkDays[$d] - $prodDays[$d];
+            
+            $detailsToInsert[] = [
+                'sub_assy_id' => $subAssy->id,
+                'tanggal' => $d,
+                'tipe' => 'WIP',
+                'jumlah' => $wipAccumulator,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if (!empty($detailsToInsert)) {
+            SubAssyDetail::insert($detailsToInsert);
+        }
     }
 }

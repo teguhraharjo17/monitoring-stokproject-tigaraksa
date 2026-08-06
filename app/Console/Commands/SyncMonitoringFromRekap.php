@@ -56,6 +56,13 @@ class SyncMonitoringFromRekap extends Command
 
         $daysInMonth = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
 
+        $prevBulan = $bulan == 1 ? 12 : $bulan - 1;
+        $prevTahun = $bulan == 1 ? $tahun - 1 : $tahun;
+        $prevSubAssies = SubAssy::where('bulan', $prevBulan)
+            ->where('tahun', $prevTahun)
+            ->get()
+            ->keyBy(fn($item) => $this->normalizePartKey($item->part_number, $item->part_name));
+
         // 2. Load Level Stok Detail
         $levelStokHeader = DB::table('level_stok')
             ->where('bulan', $bulan)
@@ -82,19 +89,43 @@ class SyncMonitoringFromRekap extends Command
             // ==========================================
             // A. SINKRONISASI SUB ASSY
             // ==========================================
-            $subAssy = SubAssy::updateOrCreate(
-                [
+            $subAssy = SubAssy::where([
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'customer' => $rekap->customer,
+                'project' => $project,
+                'part_number' => $rekap->part_number,
+            ])->first();
+
+            if (!$subAssy) {
+                $prevKey = $this->normalizePartKey($rekap->part_number, $rekap->models);
+                $prevSubAssy = $prevSubAssies[$prevKey] ?? null;
+                $initialWip = $prevSubAssy ? (int) $prevSubAssy->wip_akhir : (int) ($rekap->wip_spk_sa ?? 0);
+
+                $subAssy = SubAssy::create([
                     'bulan' => $bulan,
                     'tahun' => $tahun,
                     'customer' => $rekap->customer,
                     'project' => $project,
                     'part_number' => $rekap->part_number,
-                ],
-                [
                     'part_name' => $rekap->models,
-                    'wip_sebelumnya' => (int) ($rekap->wip_spk_sa ?? 0),
-                ]
-            );
+                    'wip_sebelumnya' => $initialWip,
+                ]);
+            } else {
+                $updateData = [
+                    'part_name' => $rekap->models,
+                ];
+
+                if ((int)$subAssy->wip_sebelumnya === 0) {
+                    $prevKey = $this->normalizePartKey($rekap->part_number, $rekap->models);
+                    $prevSubAssy = $prevSubAssies[$prevKey] ?? null;
+                    if ($prevSubAssy && (int)$prevSubAssy->wip_akhir !== 0) {
+                        $updateData['wip_sebelumnya'] = (int) $prevSubAssy->wip_akhir;
+                    }
+                }
+
+                $subAssy->update($updateData);
+            }
 
             // Inisialisasi Detail Sub Assy
             $wipAccumulator = (int) $subAssy->wip_sebelumnya;
@@ -287,5 +318,12 @@ class SyncMonitoringFromRekap extends Command
         $pn = strtoupper(str_replace([' ', '-', '_'], '', $partNumber ?? ''));
 
         return "{$cust}|{$proj}|{$pn}";
+    }
+
+    private function normalizePartKey(?string $partNumber, ?string $partName): string
+    {
+        $pn = strtoupper(str_replace([' ', '-', '_'], '', $partNumber ?? ''));
+        $name = strtoupper(str_replace([' ', '-', '_'], '', $partName ?? ''));
+        return "{$pn}|{$name}";
     }
 }

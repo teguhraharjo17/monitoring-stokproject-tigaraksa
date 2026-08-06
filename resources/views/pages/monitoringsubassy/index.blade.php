@@ -335,10 +335,10 @@
                     <td class="freeze-col freeze-b-8" rowspan="3"><span>${row.total_produksi ?? 0}</span></td>
                     <td class="freeze-col freeze-b-9" rowspan="3"><span>${row.wip_akhir ?? 0}</span></td>
                     <td class="freeze-col freeze-b-10" rowspan="3">${buildProduktivitas(row.produktivitas ?? 0)}</td>
-                    <td class="freeze-col freeze-b-11"><span class="badge bg-danger">SPK</span></td>
+                    <td class="freeze-col freeze-b-11"><span class="badge bg-primary">SPK</span></td>
             `;
             for (let i = 1; i <= jumlahHari; i++) {
-                html += `<td class="col-harian"><input type="number" name="spk_hari_${i}" class="form-control form-control-sm text-center input-merah" value="${row[`spk_hari_${i}`] ?? 0}" readonly tabindex="-1"></td>`;
+                html += `<td class="col-harian"><input type="number" name="spk_hari_${i}" class="form-control form-control-sm text-center input-biru" value="${row[`spk_hari_${i}`] ?? 0}" readonly tabindex="-1"></td>`;
             }
             html += `</tr>`;
 
@@ -352,9 +352,9 @@
 
             // === Baris 3: WIP ===
             html += `<tr data-group="${index}">
-                    <td class="freeze-col freeze-b-11"><span class="badge bg-primary">WIP</span></td>`;
+                    <td class="freeze-col freeze-b-11"><span class="badge bg-danger">WIP</span></td>`;
             for (let i = 1; i <= jumlahHari; i++) {
-                html += `<td class="col-harian"><input type="number" name="wip_hari_${i}" class="form-control form-control-sm text-center input-biru" value="${row[`wip_hari_${i}`] ?? 0}" readonly tabindex="-1"></td>`;
+                html += `<td class="col-harian"><input type="number" name="wip_hari_${i}" class="form-control form-control-sm text-center input-merah" value="${row[`wip_hari_${i}`] ?? 0}" readonly tabindex="-1"></td>`;
             }
             html += `</tr>`;
 

@@ -147,11 +147,11 @@ class SubAssyExport implements FromArray, WithHeadings, WithStyles, WithTitle, W
                     $color = null;
 
                     if (strtoupper($status) === 'SPK') {
-                        $color = 'FFFF00'; // Kuning
+                        $color = 'CCE5FF'; // Biru muda
                     } elseif (strtoupper($status) === 'PRODUKSI') {
                         $color = 'CCFFCC'; // Hijau muda
                     } elseif (strtoupper($status) === 'WIP') {
-                        $color = 'CCE5FF'; // Biru muda
+                        $color = 'FFCCCC'; // Merah muda
                     }
 
                     if ($color) {
