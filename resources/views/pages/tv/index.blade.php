@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <style>
     :root{
@@ -372,15 +373,28 @@
         <div class="brand">
           <img src="{{ asset('assets/media/logos/logo_milenia_login.png') }}" alt="Logo Perusahaan" class="brand-logo">
           <div style="min-width:0">
-            <div class="title">TV Display - Monitoring Stok</div>
+            <div class="title d-flex align-items-center gap-2">
+              <i class="bi bi-tv text-primary"></i>
+              <span>TV Display - Monitoring Stok</span>
+            </div>
             <div class="meta" id="metaText">Memuat data...</div>
           </div>
         </div>
 
         <div class="d-flex gap-2 align-items-center">
-          <button class="btn btn-sm btn-outline-info active" id="btnAutoRotate" type="button" style="font-weight: 700; border-radius: 5px; font-size: 11px; padding: 4px 8px;">🔄 Rotate: ON</button>
+          <button class="btn btn-sm btn-outline-info active d-inline-flex align-items-center gap-1" id="btnAutoRotate" type="button" style="font-weight: 700; border-radius: 5px; font-size: 11px; padding: 4px 8px;" title="Ganti tab Sub Assy ➡️ MIP ➡️ Finish Goods otomatis setiap 25 detik">
+            <i class="bi bi-arrow-repeat"></i>
+            <span id="btnAutoRotateText">Auto Tab: ON</span>
+          </button>
+          <button class="btn btn-sm btn-outline-secondary text-light d-inline-flex align-items-center gap-1" type="button" data-bs-toggle="modal" data-bs-target="#tvInfoModal" style="font-weight: 700; border-radius: 5px; font-size: 11px; padding: 4px 8px;" title="Petunjuk & Informasi Penggunaan">
+            <i class="bi bi-info-circle text-info"></i>
+            <span>Notes / Info</span>
+          </button>
           <span id="clock">--:--:--</span>
-          <button class="btn btn-sm btn-outline-light" id="btnReload" type="button" style="font-weight: 700; border-radius: 5px; font-size: 11px; padding: 4px 10px;">Refresh</button>
+          <button class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" id="btnReload" type="button" style="font-weight: 700; border-radius: 5px; font-size: 11px; padding: 4px 10px;">
+            <i class="bi bi-arrow-clockwise"></i>
+            <span>Refresh</span>
+          </button>
         </div>
       </div>
 
@@ -389,13 +403,22 @@
 
           <ul class="nav nav-tabs tv-tabs px-3" role="tablist" id="tvTabs">
             <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="tab-subassy" data-bs-toggle="tab" data-bs-target="#pane-subassy" type="button" role="tab">Sub Assy</button>
+              <button class="nav-link active d-inline-flex align-items-center gap-2" id="tab-subassy" data-bs-toggle="tab" data-bs-target="#pane-subassy" type="button" role="tab">
+                <i class="bi bi-gear-wide-connected text-primary fs-6"></i>
+                <span>Sub Assy</span>
+              </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab-mip" data-bs-toggle="tab" data-bs-target="#pane-mip" type="button" role="tab">MIP</button>
+              <button class="nav-link d-inline-flex align-items-center gap-2" id="tab-mip" data-bs-toggle="tab" data-bs-target="#pane-mip" type="button" role="tab">
+                <i class="bi bi-boxes text-success fs-6"></i>
+                <span>MIP</span>
+              </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab-fg" data-bs-toggle="tab" data-bs-target="#pane-fg" type="button" role="tab">Finish Goods</button>
+              <button class="nav-link d-inline-flex align-items-center gap-2" id="tab-fg" data-bs-toggle="tab" data-bs-target="#pane-fg" type="button" role="tab">
+                <i class="bi bi-check2-circle text-info fs-6"></i>
+                <span>Finish Goods</span>
+              </button>
             </li>
           </ul>
 
@@ -441,6 +464,55 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- Info / Notes Modal -->
+<div class="modal fade" id="tvInfoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background: #0d1527; border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 14px; color: #ffffff; box-shadow: 0 20px 50px rgba(0,0,0,0.9);">
+      <div class="modal-header border-secondary border-opacity-50 pb-3">
+        <h5 class="modal-title d-flex align-items-center gap-2 fw-bold text-white fs-6">
+          <i class="bi bi-info-circle-fill text-primary"></i>
+          Petunjuk & Catatan Penggunaan TV Display
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body fs-7" style="color: #ffffff; line-height: 1.6;">
+        <div class="mb-3">
+          <h6 class="text-info fw-bold mb-1"><i class="bi bi-arrow-repeat me-1"></i> Auto Tab (Rotate: ON / OFF)</h6>
+          <p class="mb-0 text-white" style="color: #ffffff !important;">
+            Bila status <b>ON</b>, layar TV akan secara otomatis berpindah tab setiap <b>25 detik</b> (Sub Assy ➡️ MIP ➡️ Finish Goods) secara berulang agar seluruh bagian dapat terpantau tanpa operator. Bila status <b>OFF</b>, tampilan akan tetap diam di tab yang dipilih.
+          </p>
+        </div>
+        <hr class="border-secondary border-opacity-50 my-2">
+        <div class="mb-3">
+          <h6 class="text-info fw-bold mb-1"><i class="bi bi-arrow-clockwise me-1"></i> Tombol Refresh Manual</h6>
+          <p class="mb-0 text-white" style="color: #ffffff !important;">
+            Untuk memuat ulang data stok terkini secara instan dari database kapan saja, klik tombol <b>Refresh</b>.
+          </p>
+        </div>
+        <hr class="border-secondary border-opacity-50 my-2">
+        <div class="mb-3">
+          <h6 class="text-info fw-bold mb-1"><i class="bi bi-aspect-ratio me-1"></i> Auto-Fit Layar TV</h6>
+          <p class="mb-0 text-white" style="color: #ffffff !important;">
+            Lebar tabel secara otomatis diskalakan agar <b>seluruh tanggal 1 s.d. 31</b> tampil penuh dalam satu layar TV tanpa perlu digeser mendatar (*no horizontal scroll*).
+          </p>
+        </div>
+        <hr class="border-secondary border-opacity-50 my-2">
+        <div>
+          <h6 class="text-info fw-bold mb-2"><i class="bi bi-palette me-1"></i> Arti Warna Status</h6>
+          <div class="d-flex flex-column gap-2 text-white" style="color: #ffffff !important;">
+            <div><span class="badge bg-primary me-2 fw-bold">BIRU</span> : SPK (Sub Assy) / Balance Akhir (MIP & FG)</div>
+            <div><span class="badge bg-success me-2 fw-bold">HIJAU</span> : Produksi (Sub Assy) / Total IN (MIP & FG)</div>
+            <div><span class="badge bg-danger me-2 fw-bold">MERAH</span> : WIP (Sub Assy) / Total OUT (MIP & FG)</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-secondary border-opacity-50 pt-2 pb-2">
+        <button type="button" class="btn btn-sm btn-primary px-4 fw-bold" data-bs-dismiss="modal">Mengerti</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1164,12 +1236,12 @@
   btnAutoRotate.addEventListener('click', () => {
     autoRotateEnabled = !autoRotateEnabled;
     if (autoRotateEnabled) {
-      btnAutoRotate.textContent = '🔄 Rotate: ON';
+      btnAutoRotate.innerHTML = '<i class="bi bi-arrow-repeat"></i><span>Auto Tab: ON</span>';
       btnAutoRotate.classList.remove('btn-outline-secondary');
       btnAutoRotate.classList.add('btn-outline-info', 'active');
       startAutoRotate();
     } else {
-      btnAutoRotate.textContent = '🔄 Rotate: OFF';
+      btnAutoRotate.innerHTML = '<i class="bi bi-arrow-repeat"></i><span>Auto Tab: OFF</span>';
       btnAutoRotate.classList.remove('btn-outline-info', 'active');
       btnAutoRotate.classList.add('btn-outline-secondary');
       stopAutoRotate();
