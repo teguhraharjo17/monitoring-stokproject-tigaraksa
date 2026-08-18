@@ -21,22 +21,22 @@
       --head-sub: #1a253c;
       --today: #ef4444;
 
-      --topbar-h: 56px;
-      --wrap-pad: 6px;
+      --topbar-h: 60px;
+      --wrap-pad: 8px;
 
-      --tbl-font: 11px;
-      --tbl-pad-y: 4px;
-      --tbl-pad-x: 4px;
+      --tbl-font: 12.5px;
+      --tbl-pad-y: 6px;
+      --tbl-pad-x: 6px;
 
-      --tbl-pill-font: 9.5px;
-      --tbl-pill-pad-y: 1.5px;
-      --tbl-pill-pad-x: 2px;
-      --tbl-pill-gap: 1.5px;
+      --tbl-pill-font: 11px;
+      --tbl-pill-pad-y: 2px;
+      --tbl-pill-pad-x: 4px;
+      --tbl-pill-gap: 2px;
 
-      --tbl-legend-font: 9px;
-      --tbl-legend-pad-y: 2px;
-      --tbl-legend-pad-x: 4px;
-      --tbl-legend-gap: 1.5px;
+      --tbl-legend-font: 10px;
+      --tbl-legend-pad-y: 2.5px;
+      --tbl-legend-pad-x: 5px;
+      --tbl-legend-gap: 2px;
 
       --cell-bg: #0d1527;
       --cell-bg-odd: #090e1b;
@@ -73,7 +73,7 @@
 
     .topbar{
       height: var(--topbar-h);
-      padding: 4px 14px;
+      padding: 6px 16px;
       border-bottom: 2px solid var(--line);
       background: #0d1527;
       display: flex;
@@ -87,12 +87,12 @@
     .brand{
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       min-width: 0;
     }
 
     .brand-logo{
-      height: 36px;
+      height: 38px;
       width: auto;
       object-fit: contain;
       display: block;
@@ -102,34 +102,34 @@
     .title{
       font-weight: 800;
       letter-spacing: 0.5px;
-      font-size: 15px;
+      font-size: 16px;
       color: #f8fafc;
       line-height: 1.2;
     }
 
     .meta{
       color: var(--muted);
-      font-size: 11px;
-      font-weight: 500;
+      font-size: 11.5px;
+      font-weight: 600;
     }
 
     #clock {
       font-family: 'Outfit', monospace;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 800;
       color: #60a5fa;
       text-shadow: 0 0 8px rgba(96, 165, 250, 0.4);
       background-color: rgba(13, 21, 39, 0.8);
       border: 1px solid #1e293b;
-      padding: 3px 8px;
-      border-radius: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
       letter-spacing: 1px;
     }
 
     .wrap{
       flex: 1;
       min-height: 0;
-      padding: var(--wrap-pad) 8px;
+      padding: var(--wrap-pad) 10px;
       display: flex;
       flex-direction: column;
     }
@@ -138,7 +138,7 @@
       height: 100%;
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -150,16 +150,16 @@
       flex: 0 0 auto;
       background-color: #070a13;
       border-bottom: 2px solid #1e293b;
-      padding-top: 4px;
+      padding-top: 6px;
     }
 
     .tv-tabs .nav-link{
       color: #94a3b8;
       font-weight: 700;
-      font-size: 12px;
+      font-size: 13px;
       letter-spacing: 0.5px;
       border: none;
-      padding: 5px 14px;
+      padding: 7px 18px;
       background: transparent;
       border-radius: 0;
       transition: all 0.2s ease;
@@ -194,22 +194,18 @@
       position: relative;
     }
 
-    .table-wrap::-webkit-scrollbar{ height: 6px; width: 6px; }
+    .table-wrap::-webkit-scrollbar{ height: 8px; width: 8px; }
     .table-wrap::-webkit-scrollbar-track{ background: #070a13; }
     .table-wrap::-webkit-scrollbar-thumb{
       background: #1e293b;
-      border-radius: 3px;
+      border-radius: 4px;
+      border: 1px solid #070a13;
     }
     .table-wrap::-webkit-scrollbar-thumb:hover{ background: #334155; }
 
-    .table-container{
-      display: inline-block;
-      min-width: 100%;
-      transform-origin: top left;
-    }
-
     table.tv-table{
-      width: 100%;
+      width: max-content;
+      min-width: 100%;
       border-collapse: separate;
       border-spacing: 0;
       table-layout: auto;
@@ -232,20 +228,23 @@
     .tv-table thead th{
       background-color: var(--head) !important;
       color: #94a3b8;
-      font-weight: 700;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
-      font-size: 10.5px;
+      letter-spacing: 0.4px;
+      font-size: 11.5px;
       border-bottom: 2px solid #334155;
       position: sticky;
       top: 0;
       z-index: 10;
+      padding: 8px 6px;
     }
 
     .tv-table thead tr.thead-sub th{
       background-color: var(--head-sub) !important;
-      font-size: 9.5px;
+      font-size: 11px;
       color: #cbd5e1;
+      font-weight: 700;
+      padding: 6px 4px;
     }
 
     .tv-table tbody tr:nth-child(odd) td{
@@ -256,16 +255,32 @@
       background-color: #1a2744 !important;
     }
 
-    /* Column Sizing & Alignment */
-    .col-no { width: 24px; min-width: 24px; text-align: center !important; font-size: 10px; }
-    .col-cust { width: 65px; min-width: 60px; text-align: left !important; font-weight: 700; color: #e2e8f0 !important; }
-    .col-proj { width: 50px; min-width: 45px; text-align: left !important; font-weight: 700; color: #e2e8f0 !important; }
-    .col-pn { width: 95px; min-width: 90px; text-align: left !important; font-weight: 700; color: #38bdf8 !important; font-family: monospace; font-size: 10.5px; }
-    .col-name { min-width: 130px; max-width: 220px; text-align: left !important; font-weight: 600; color: #f8fafc !important; overflow: hidden; text-overflow: ellipsis; }
-    .col-num { width: 44px; min-width: 38px; text-align: center !important; font-weight: 800; font-size: 10.5px; }
-    .col-status { width: 42px; min-width: 38px; text-align: center !important; }
-    .col-date { width: 24px; min-width: 20px; text-align: center !important; padding-left: 1px !important; padding-right: 1px !important; font-size: 10px !important; }
-    .col-shift { width: 14px; min-width: 13px; text-align: center !important; font-size: 8.5px !important; padding-left: 1px !important; padding-right: 1px !important; }
+    /* ========================================================
+       FROZEN / STICKY LEFT STYLES (No s/d Status)
+       ======================================================== */
+    td.col-freeze {
+      background-color: #0d1527 !important;
+    }
+    .tv-table tbody tr:nth-child(odd) td.col-freeze {
+      background-color: #090e1b !important;
+    }
+    .tv-table tbody tr:hover td.col-freeze {
+      background-color: #1a2744 !important;
+    }
+    thead th.col-freeze {
+      background-color: #162032 !important;
+    }
+
+    /* Column Sizing */
+    .col-no { width: 34px; min-width: 34px; text-align: center !important; font-size: 12px; }
+    .col-cust { min-width: 75px; text-align: left !important; font-weight: 700; color: #e2e8f0 !important; }
+    .col-proj { min-width: 60px; text-align: left !important; font-weight: 700; color: #e2e8f0 !important; }
+    .col-pn { min-width: 110px; text-align: left !important; font-weight: 700; color: #38bdf8 !important; font-family: monospace; font-size: 12px; }
+    .col-name { min-width: 180px; max-width: 250px; text-align: left !important; font-weight: 600; color: #ffffff !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .col-num { min-width: 52px; text-align: center !important; font-weight: 800; font-size: 12px; }
+    .col-status { min-width: 54px; text-align: center !important; }
+    .col-date { min-width: 36px; text-align: center !important; padding-left: 2px !important; padding-right: 2px !important; font-size: 11.5px !important; font-weight: 700; }
+    .col-shift { min-width: 26px; text-align: center !important; font-size: 10.5px !important; padding-left: 2px !important; padding-right: 2px !important; font-weight: 700; }
 
     /* Legend & Stacked Badges */
     .legend{
@@ -276,10 +291,10 @@
     }
 
     .legend .tag{
-      border-radius: 2px;
+      border-radius: 3px;
       padding: var(--tbl-legend-pad-y) var(--tbl-legend-pad-x);
       font-weight: 800;
-      line-height: 1;
+      line-height: 1.1;
       border: 1px solid transparent;
       font-size: var(--tbl-legend-font);
       text-align: center;
@@ -294,10 +309,10 @@
     }
 
     .pill{
-      border-radius: 2px;
+      border-radius: 3px;
       padding: var(--tbl-pill-pad-y) var(--tbl-pill-pad-x);
       font-weight: 800;
-      line-height: 1;
+      line-height: 1.1;
       border: 1px solid transparent;
       font-size: var(--tbl-pill-font);
       text-align: center;
@@ -327,7 +342,7 @@
     }
 
     .today-col{
-      background-color: rgba(239, 68, 68, 0.12) !important;
+      background-color: rgba(239, 68, 68, 0.15) !important;
       border-left: 2px solid #ef4444 !important;
       border-right: 2px solid #ef4444 !important;
     }
@@ -340,10 +355,10 @@
     .prod-ok{ color: #34d399; font-weight: 800; }
 
     .loading{
-      padding: 30px;
+      padding: 36px;
       color: #94a3b8;
-      font-size: 14px;
-      font-weight: 500;
+      font-size: 15px;
+      font-weight: 600;
       text-align: center;
     }
 
@@ -382,16 +397,16 @@
         </div>
 
         <div class="d-flex gap-2 align-items-center">
-          <button class="btn btn-sm btn-outline-info active d-inline-flex align-items-center gap-1" id="btnAutoRotate" type="button" style="font-weight: 700; border-radius: 5px; font-size: 11px; padding: 4px 8px;" title="Ganti tab Sub Assy ➡️ MIP ➡️ Finish Goods otomatis setiap 25 detik">
+          <button class="btn btn-sm btn-outline-info active d-inline-flex align-items-center gap-1" id="btnAutoRotate" type="button" style="font-weight: 700; border-radius: 6px; font-size: 12px; padding: 5px 10px;" title="Ganti tab Sub Assy ➡️ MIP ➡️ Finish Goods otomatis setiap 25 detik">
             <i class="bi bi-arrow-repeat"></i>
             <span id="btnAutoRotateText">Auto Tab: ON</span>
           </button>
-          <button class="btn btn-sm btn-outline-secondary text-light d-inline-flex align-items-center gap-1" type="button" data-bs-toggle="modal" data-bs-target="#tvInfoModal" style="font-weight: 700; border-radius: 5px; font-size: 11px; padding: 4px 8px;" title="Petunjuk & Informasi Penggunaan">
+          <button class="btn btn-sm btn-outline-secondary text-light d-inline-flex align-items-center gap-1" type="button" data-bs-toggle="modal" data-bs-target="#tvInfoModal" style="font-weight: 700; border-radius: 6px; font-size: 12px; padding: 5px 10px;" title="Petunjuk & Informasi Penggunaan">
             <i class="bi bi-info-circle text-info"></i>
             <span>Notes / Info</span>
           </button>
           <span id="clock">--:--:--</span>
-          <button class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" id="btnReload" type="button" style="font-weight: 700; border-radius: 5px; font-size: 11px; padding: 4px 10px;">
+          <button class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" id="btnReload" type="button" style="font-weight: 700; border-radius: 6px; font-size: 12px; padding: 5px 12px;">
             <i class="bi bi-arrow-clockwise"></i>
             <span>Refresh</span>
           </button>
@@ -427,36 +442,30 @@
             <div class="tab-pane fade show active" id="pane-subassy" role="tabpanel">
               <div class="table-wrap" id="subassyWrap">
                 <div class="loading" id="subassyLoading">Memuat Sub Assy...</div>
-                <div class="table-container" id="subassyContainer">
-                  <table class="tv-table" id="subassyTable" style="display:none;">
-                    <thead id="subassyThead"></thead>
-                    <tbody id="subassyTbody"></tbody>
-                  </table>
-                </div>
+                <table class="tv-table" id="subassyTable" style="display:none;">
+                  <thead id="subassyThead"></thead>
+                  <tbody id="subassyTbody"></tbody>
+                </table>
               </div>
             </div>
 
             <div class="tab-pane fade" id="pane-mip" role="tabpanel">
               <div class="table-wrap" id="mipWrap">
                 <div class="loading" id="mipLoading">Memuat MIP...</div>
-                <div class="table-container" id="mipContainer">
-                  <table class="tv-table" id="mipTable" style="display:none;">
-                    <thead id="mipThead"></thead>
-                    <tbody id="mipTbody"></tbody>
-                  </table>
-                </div>
+                <table class="tv-table" id="mipTable" style="display:none;">
+                  <thead id="mipThead"></thead>
+                  <tbody id="mipTbody"></tbody>
+                </table>
               </div>
             </div>
 
             <div class="tab-pane fade" id="pane-fg" role="tabpanel">
               <div class="table-wrap" id="fgWrap">
                 <div class="loading" id="fgLoading">Memuat Finish Goods...</div>
-                <div class="table-container" id="fgContainer">
-                  <table class="tv-table" id="fgTable" style="display:none;">
-                    <thead id="fgThead"></thead>
-                    <tbody id="fgTbody"></tbody>
-                  </table>
-                </div>
+                <table class="tv-table" id="fgTable" style="display:none;">
+                  <thead id="fgThead"></thead>
+                  <tbody id="fgTbody"></tbody>
+                </table>
               </div>
             </div>
 
@@ -495,9 +504,9 @@
         </div>
         <hr class="border-secondary border-opacity-50 my-2">
         <div class="mb-3">
-          <h6 class="text-info fw-bold mb-1"><i class="bi bi-aspect-ratio me-1"></i> Auto-Fit Layar TV</h6>
+          <h6 class="text-info fw-bold mb-1"><i class="bi bi-pin-angle me-1"></i> Kolom Tetap (Fixed) & Scroll</h6>
           <p class="mb-0 text-white" style="color: #ffffff !important;">
-            Lebar tabel secara otomatis diskalakan agar <b>seluruh tanggal 1 s.d. 31</b> tampil penuh dalam satu layar TV tanpa perlu digeser mendatar (*no horizontal scroll*).
+            Semua kolom identitas dan ringkasan dari <b>No s/d Status</b> dikunci tetap di sebelah kiri. Kolom rincian harian <b>Tanggal 1 s.d. 31</b> dapat digeser/scroll ke samping (*horizontal scroll*) secara leluasa.
           </p>
         </div>
         <hr class="border-secondary border-opacity-50 my-2">
@@ -590,35 +599,64 @@
       const ths = Array.from(row.querySelectorAll('th'));
       ths.forEach(th => {
         th.style.top = `${acc}px`;
-        th.style.zIndex = String(20 - rIndex);
       });
       acc += rowHeight;
     });
   }
 
-  function autoScaleTabTable(tabKey){
-    const wrap = document.getElementById(`${tabKey}Wrap`);
-    const container = document.getElementById(`${tabKey}Container`);
-    const table = document.getElementById(`${tabKey}Table`);
-    if (!wrap || !container || !table || table.style.display === 'none') return;
+  function applyStickyLeftOffsets(tableId){
+    const table = document.getElementById(tableId);
+    if (!table || table.style.display === 'none') return;
 
-    // Reset zoom/transform first to measure natural width
-    container.style.zoom = '';
-    container.style.transform = '';
-    container.style.width = 'max-content';
+    const thead = table.querySelector('thead');
+    if (!thead) return;
 
-    const wrapWidth = wrap.clientWidth - 4;
-    const naturalWidth = table.scrollWidth;
+    const headerRow = thead.querySelector('tr');
+    if (!headerRow) return;
 
-    if (naturalWidth > wrapWidth && wrapWidth > 100){
-      const scale = wrapWidth / naturalWidth;
-      // Use CSS zoom (standard for Chromium on Smart TVs)
-      if ('zoom' in container.style){
-        container.style.zoom = scale;
-      } else {
-        container.style.transform = `scale(${scale})`;
-      }
+    const frozenHeaders = Array.from(headerRow.querySelectorAll('th.col-freeze'));
+    if (frozenHeaders.length === 0) return;
+
+    let leftOffsets = [];
+    let currentLeft = 0;
+
+    // Measure rendered natural widths and set sticky left for each frozen header
+    frozenHeaders.forEach(th => {
+      leftOffsets.push(currentLeft);
+      th.style.position = 'sticky';
+      th.style.left = `${currentLeft}px`;
+      th.style.zIndex = '40';
+      currentLeft += th.offsetWidth;
+    });
+
+    // Apply separator styling on the last frozen column (Status)
+    const lastHeader = frozenHeaders[frozenHeaders.length - 1];
+    if (lastHeader) {
+      lastHeader.style.borderRight = '2px solid #3b82f6';
+      lastHeader.style.boxShadow = '4px 0 10px rgba(0, 0, 0, 0.5)';
     }
+
+    // Apply matching left offsets to all body rows
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+
+    const bodyRows = tbody.querySelectorAll('tr');
+    bodyRows.forEach(tr => {
+      const frozenCells = Array.from(tr.querySelectorAll('td.col-freeze'));
+      frozenCells.forEach((td, idx) => {
+        if (leftOffsets[idx] !== undefined) {
+          td.style.position = 'sticky';
+          td.style.left = `${leftOffsets[idx]}px`;
+          td.style.zIndex = '20';
+        }
+      });
+
+      const lastCell = frozenCells[frozenCells.length - 1];
+      if (lastCell) {
+        lastCell.style.borderRight = '2px solid #3b82f6';
+        lastCell.style.boxShadow = '4px 0 10px rgba(0, 0, 0, 0.5)';
+      }
+    });
   }
 
   function highlightTodayGeneric(tableId, todayDay){
@@ -735,11 +773,11 @@
     updateMetaTextByTab(getActiveTabKey());
   }
 
-  function postRenderTable({ tabKey, tableId, todayDay }){
+  function postRenderTable({ tableId, todayDay }){
     requestAnimationFrame(() => {
       fixHeaderStickyTops(tableId);
+      applyStickyLeftOffsets(tableId);
       highlightTodayGeneric(tableId, todayDay);
-      autoScaleTabTable(tabKey);
     });
   }
 </script>
@@ -751,18 +789,18 @@
 
     let row1 = `
       <tr>
-        <th rowspan="2" class="col-no">No</th>
-        <th rowspan="2" class="col-cust">Customer</th>
-        <th rowspan="2" class="col-proj">Project</th>
-        <th rowspan="2" class="col-pn">Part Number</th>
-        <th rowspan="2" class="col-name">Part Name</th>
-        <th rowspan="2" class="col-num">Total PO</th>
-        <th rowspan="2" class="col-num">WIP Sblm</th>
-        <th rowspan="2" class="col-num">Total SPK</th>
-        <th rowspan="2" class="col-num">Total Prod</th>
-        <th rowspan="2" class="col-num">WIP Akhir</th>
-        <th rowspan="2" class="col-num">Prod %</th>
-        <th rowspan="2" class="col-status">Status</th>
+        <th rowspan="2" class="col-freeze col-no">No</th>
+        <th rowspan="2" class="col-freeze col-cust">Customer</th>
+        <th rowspan="2" class="col-freeze col-proj">Project</th>
+        <th rowspan="2" class="col-freeze col-pn">Part Number</th>
+        <th rowspan="2" class="col-freeze col-name">Part Name</th>
+        <th rowspan="2" class="col-freeze col-num">Total PO</th>
+        <th rowspan="2" class="col-freeze col-num">WIP Sblm</th>
+        <th rowspan="2" class="col-freeze col-num">Total SPK</th>
+        <th rowspan="2" class="col-freeze col-num">Total Prod</th>
+        <th rowspan="2" class="col-freeze col-num">WIP Akhir</th>
+        <th rowspan="2" class="col-freeze col-num">Prod %</th>
+        <th rowspan="2" class="col-freeze col-status">Status</th>
         <th colspan="${daysInMonth}">Tanggal</th>
       </tr>
     `;
@@ -784,19 +822,19 @@
       const tr = document.createElement('tr');
 
       let html = `
-        <td class="col-no">${idx + 1}</td>
-        <td class="col-cust">${escapeHtml(r.customer ?? '')}</td>
-        <td class="col-proj">${escapeHtml(r.project ?? '')}</td>
-        <td class="col-pn">${escapeHtml(r.part_number ?? '')}</td>
-        <td class="col-name" title="${escapeHtml(r.part_name ?? '')}">${escapeHtml(r.part_name ?? '')}</td>
-        <td class="col-num">${escapeHtml(n(r.total_po))}</td>
-        <td class="col-num">${escapeHtml(n(r.wip_sebelumnya))}</td>
-        <td class="col-num">${escapeHtml(n(r.total_spk))}</td>
-        <td class="col-num">${escapeHtml(n(r.total_produksi))}</td>
-        <td class="col-num">${escapeHtml(n(r.wip_akhir))}</td>
-        <td class="col-num">${prodBadge(r.produktivitas)}</td>
+        <td class="col-freeze col-no">${idx + 1}</td>
+        <td class="col-freeze col-cust">${escapeHtml(r.customer ?? '')}</td>
+        <td class="col-freeze col-proj">${escapeHtml(r.project ?? '')}</td>
+        <td class="col-freeze col-pn">${escapeHtml(r.part_number ?? '')}</td>
+        <td class="col-freeze col-name" title="${escapeHtml(r.part_name ?? '')}">${escapeHtml(r.part_name ?? '')}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.total_po))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.wip_sebelumnya))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.total_spk))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.total_produksi))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.wip_akhir))}</td>
+        <td class="col-freeze col-num">${prodBadge(r.produktivitas)}</td>
 
-        <td class="col-status">
+        <td class="col-freeze col-status">
           <div class="legend">
             <div class="tag tag-blue">SPK</div>
             <div class="tag tag-green">PROD</div>
@@ -868,7 +906,6 @@
 
     updateActiveMeta();
     postRenderTable({
-      tabKey: 'subassy',
       tableId: 'subassyTable',
       todayDay: state.subassy.todayDay
     });
@@ -882,20 +919,20 @@
 
     let row1 = `
       <tr>
-        <th rowspan="2" class="col-no">No</th>
-        <th rowspan="2" class="col-cust">Customer</th>
-        <th rowspan="2" class="col-proj">Project</th>
-        <th rowspan="2" class="col-pn">Part Number</th>
-        <th rowspan="2" class="col-name">Part Name</th>
-        <th rowspan="2" class="col-num">Total PO</th>
-        <th rowspan="2" class="col-num">Stk Awal</th>
-        <th rowspan="2" class="col-num">Tot IN</th>
-        <th rowspan="2" class="col-num">Tot OUT</th>
-        <th rowspan="2" class="col-num">Bal Akhir</th>
-        <th rowspan="2" class="col-num">Min</th>
-        <th rowspan="2" class="col-num">Safety</th>
-        <th rowspan="2" class="col-num">Max</th>
-        <th rowspan="2" class="col-status">Status</th>
+        <th rowspan="2" class="col-freeze col-no">No</th>
+        <th rowspan="2" class="col-freeze col-cust">Customer</th>
+        <th rowspan="2" class="col-freeze col-proj">Project</th>
+        <th rowspan="2" class="col-freeze col-pn">Part Number</th>
+        <th rowspan="2" class="col-freeze col-name">Part Name</th>
+        <th rowspan="2" class="col-freeze col-num">Total PO</th>
+        <th rowspan="2" class="col-freeze col-num">Stk Awal</th>
+        <th rowspan="2" class="col-freeze col-num">Tot IN</th>
+        <th rowspan="2" class="col-freeze col-num">Tot OUT</th>
+        <th rowspan="2" class="col-freeze col-num">Bal Akhir</th>
+        <th rowspan="2" class="col-freeze col-num">Min</th>
+        <th rowspan="2" class="col-freeze col-num">Safety</th>
+        <th rowspan="2" class="col-freeze col-num">Max</th>
+        <th rowspan="2" class="col-freeze col-status">Status</th>
         <th colspan="${daysInMonth}">Tanggal</th>
       </tr>
     `;
@@ -917,21 +954,21 @@
       const tr = document.createElement('tr');
 
       let html = `
-        <td class="col-no">${idx + 1}</td>
-        <td class="col-cust">${escapeHtml(r.customer ?? '')}</td>
-        <td class="col-proj">${escapeHtml(r.project ?? '')}</td>
-        <td class="col-pn">${escapeHtml(r.part_number ?? '')}</td>
-        <td class="col-name" title="${escapeHtml(r.part_name ?? '')}">${escapeHtml(r.part_name ?? '')}</td>
-        <td class="col-num">${escapeHtml(n(r.total_po))}</td>
-        <td class="col-num">${escapeHtml(n(r.stock_awal))}</td>
-        <td class="col-num">${escapeHtml(n(r.total_in))}</td>
-        <td class="col-num">${escapeHtml(n(r.total_out))}</td>
-        <td class="col-num">${escapeHtml(n(r.balance_akhir))}</td>
-        <td class="col-num">${escapeHtml(n(r.level_min))}</td>
-        <td class="col-num">${escapeHtml(n(r.level_safety))}</td>
-        <td class="col-num">${escapeHtml(n(r.level_max))}</td>
+        <td class="col-freeze col-no">${idx + 1}</td>
+        <td class="col-freeze col-cust">${escapeHtml(r.customer ?? '')}</td>
+        <td class="col-freeze col-proj">${escapeHtml(r.project ?? '')}</td>
+        <td class="col-freeze col-pn">${escapeHtml(r.part_number ?? '')}</td>
+        <td class="col-freeze col-name" title="${escapeHtml(r.part_name ?? '')}">${escapeHtml(r.part_name ?? '')}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.total_po))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.stock_awal))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.total_in))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.total_out))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.balance_akhir))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.level_min))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.level_safety))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.level_max))}</td>
 
-        <td class="col-status">
+        <td class="col-freeze col-status">
           <div class="legend">
             <div class="tag tag-green">IN</div>
             <div class="tag tag-red">OUT</div>
@@ -1003,7 +1040,6 @@
 
     updateActiveMeta();
     postRenderTable({
-      tabKey: 'mip',
       tableId: 'mipTable',
       todayDay: state.mip.todayDay
     });
@@ -1016,14 +1052,14 @@
     const val = String(v || '').toLowerCase();
 
     if (val === 'problem'){
-      return `<span class="tag tag-red" style="padding: 2px 4px; font-size: 9px; border-radius: 2px;">Problem</span>`;
+      return `<span class="tag tag-red" style="padding: 2.5px 5px; font-size: 10px; border-radius: 3px;">Problem</span>`;
     }
 
     if (val === 'over'){
-      return `<span class="tag tag-amber" style="padding: 2px 4px; font-size: 9px; border-radius: 2px;">Over</span>`;
+      return `<span class="tag tag-amber" style="padding: 2.5px 5px; font-size: 10px; border-radius: 3px;">Over</span>`;
     }
 
-    return `<span class="tag tag-green" style="padding: 2px 4px; font-size: 9px; border-radius: 2px;">Aman</span>`;
+    return `<span class="tag tag-green" style="padding: 2.5px 5px; font-size: 10px; border-radius: 3px;">Aman</span>`;
   }
 
   function buildFGHeader(daysInMonth){
@@ -1031,24 +1067,24 @@
 
     let row1 = `
       <tr>
-        <th rowspan="3" class="col-no">No</th>
-        <th rowspan="3" class="col-cust">Customer</th>
-        <th rowspan="3" class="col-proj">Project</th>
-        <th rowspan="3" class="col-pn">Part Number</th>
-        <th rowspan="3" class="col-name">Part Name</th>
-        <th rowspan="3" class="col-num">Total PO</th>
-        <th rowspan="3" class="col-num">Adv Del</th>
-        <th rowspan="3" class="col-num">Outst</th>
-        <th rowspan="3" class="col-num">% Del</th>
-        <th rowspan="3" class="col-num">Stk Awal</th>
-        <th rowspan="3" class="col-num">Tot IN</th>
-        <th rowspan="3" class="col-num">Tot OUT</th>
-        <th rowspan="3" class="col-num">Min</th>
-        <th rowspan="3" class="col-num">Safety</th>
-        <th rowspan="3" class="col-num">Max</th>
-        <th rowspan="3" class="col-num">Stk Hand</th>
-        <th rowspan="3" class="col-num">Status Stk</th>
-        <th rowspan="3" class="col-status">Status</th>
+        <th rowspan="3" class="col-freeze col-no">No</th>
+        <th rowspan="3" class="col-freeze col-cust">Customer</th>
+        <th rowspan="3" class="col-freeze col-proj">Project</th>
+        <th rowspan="3" class="col-freeze col-pn">Part Number</th>
+        <th rowspan="3" class="col-freeze col-name">Part Name</th>
+        <th rowspan="3" class="col-freeze col-num">Total PO</th>
+        <th rowspan="3" class="col-freeze col-num">Adv Del</th>
+        <th rowspan="3" class="col-freeze col-num">Outst</th>
+        <th rowspan="3" class="col-freeze col-num">% Del</th>
+        <th rowspan="3" class="col-freeze col-num">Stk Awal</th>
+        <th rowspan="3" class="col-freeze col-num">Tot IN</th>
+        <th rowspan="3" class="col-freeze col-num">Tot OUT</th>
+        <th rowspan="3" class="col-freeze col-num">Min</th>
+        <th rowspan="3" class="col-freeze col-num">Safety</th>
+        <th rowspan="3" class="col-freeze col-num">Max</th>
+        <th rowspan="3" class="col-freeze col-num">Stk Hand</th>
+        <th rowspan="3" class="col-freeze col-num">Status Stk</th>
+        <th rowspan="3" class="col-freeze col-status">Status</th>
         <th colspan="${daysInMonth * 2}">Tanggal</th>
       </tr>
     `;
@@ -1076,25 +1112,25 @@
       const tr = document.createElement('tr');
 
       let html = `
-        <td class="col-no">${idx + 1}</td>
-        <td class="col-cust">${escapeHtml(r.customer ?? '')}</td>
-        <td class="col-proj">${escapeHtml(r.project ?? '')}</td>
-        <td class="col-pn">${escapeHtml(r.part_number ?? '')}</td>
-        <td class="col-name" title="${escapeHtml(r.part_name ?? '')}">${escapeHtml(r.part_name ?? '')}</td>
-        <td class="col-num">${escapeHtml(n(r.total_po))}</td>
-        <td class="col-num">${escapeHtml(n(r.advance_delivery))}</td>
-        <td class="col-num">${escapeHtml(n(r.outstanding))}</td>
-        <td class="col-num">${escapeHtml(n(r.percentage))}%</td>
-        <td class="col-num">${escapeHtml(n(r.stock_awal))}</td>
-        <td class="col-num">${escapeHtml(n(r.total_in))}</td>
-        <td class="col-num">${escapeHtml(n(r.total_out))}</td>
-        <td class="col-num">${escapeHtml(n(r.level_min))}</td>
-        <td class="col-num">${escapeHtml(n(r.level_safety))}</td>
-        <td class="col-num">${escapeHtml(n(r.level_max))}</td>
-        <td class="col-num">${escapeHtml(n(r.stock_on_hand))}</td>
-        <td class="col-num">${statusStockBadge(r.status_stock)}</td>
+        <td class="col-freeze col-no">${idx + 1}</td>
+        <td class="col-freeze col-cust">${escapeHtml(r.customer ?? '')}</td>
+        <td class="col-freeze col-proj">${escapeHtml(r.project ?? '')}</td>
+        <td class="col-freeze col-pn">${escapeHtml(r.part_number ?? '')}</td>
+        <td class="col-freeze col-name" title="${escapeHtml(r.part_name ?? '')}">${escapeHtml(r.part_name ?? '')}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.total_po))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.advance_delivery))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.outstanding))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.percentage))}%</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.stock_awal))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.total_in))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.total_out))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.level_min))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.level_safety))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.level_max))}</td>
+        <td class="col-freeze col-num">${escapeHtml(n(r.stock_on_hand))}</td>
+        <td class="col-freeze col-num">${statusStockBadge(r.status_stock)}</td>
 
-        <td class="col-status">
+        <td class="col-freeze col-status">
           <div class="legend">
             <div class="tag tag-green">IN</div>
             <div class="tag tag-red">OUT</div>
@@ -1177,7 +1213,6 @@
 
     updateActiveMeta();
     postRenderTable({
-      tabKey: 'fg',
       tableId: 'fgTable',
       todayDay: state.fg.todayDay
     });
@@ -1215,18 +1250,12 @@
 
   function reflowVisibleTables(){
     const activeTab = getActiveTabKey();
-    if (activeTab === 'subassy'){
-      fixHeaderStickyTops('subassyTable');
-      highlightTodayGeneric('subassyTable', state.subassy.todayDay);
-      autoScaleTabTable('subassy');
-    } else if (activeTab === 'mip'){
-      fixHeaderStickyTops('mipTable');
-      highlightTodayGeneric('mipTable', state.mip.todayDay);
-      autoScaleTabTable('mip');
-    } else if (activeTab === 'fg'){
-      fixHeaderStickyTops('fgTable');
-      highlightTodayGeneric('fgTable', state.fg.todayDay);
-      autoScaleTabTable('fg');
+    const tableIdMap = { subassy: 'subassyTable', mip: 'mipTable', fg: 'fgTable' };
+    const tableId = tableIdMap[activeTab];
+    if (tableId){
+      fixHeaderStickyTops(tableId);
+      applyStickyLeftOffsets(tableId);
+      highlightTodayGeneric(tableId, state[activeTab]?.todayDay);
     }
   }
 
