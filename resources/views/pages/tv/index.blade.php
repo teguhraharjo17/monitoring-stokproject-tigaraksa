@@ -467,15 +467,21 @@
             </ul>
 
             <div class="d-flex align-items-center gap-2 py-1">
-              <span class="text-secondary fs-7 fw-bold me-1 d-none d-md-inline">Geser Tanggal:</span>
-              <button class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 fw-bold py-1 px-3" id="btnScrollLeft" type="button" title="Geser Tabel Ke Kiri (Tanggal Awal)">
-                <span>&lt; Kiri</span>
+              <button class="btn btn-sm btn-outline-light rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold" id="btnScrollUp" type="button" style="width: 32px; height: 32px;" title="Geser Atas">
+                ▲
               </button>
-              <button class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1 fw-bold py-1 px-3" id="btnScrollToday" type="button" title="Fokus Langsung Ke Kolom Hari Ini">
-                <span>Hari Ini</span>
+              <button class="btn btn-sm btn-outline-light rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold" id="btnScrollDown" type="button" style="width: 32px; height: 32px;" title="Geser Bawah">
+                ▼
               </button>
-              <button class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 fw-bold py-1 px-3" id="btnScrollRight" type="button" title="Geser Tabel Ke Kanan (Tanggal Akhir)">
-                <span>Kanan &gt;</span>
+              <span class="text-secondary opacity-50 mx-1">|</span>
+              <button class="btn btn-sm btn-primary rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold" id="btnScrollLeft" type="button" style="width: 32px; height: 32px;" title="Geser Kiri">
+                &lt;
+              </button>
+              <button class="btn btn-sm btn-warning fw-bold px-3 py-1 text-dark" id="btnScrollToday" type="button" style="border-radius: 999px; font-size: 12px;" title="Fokus Hari Ini">
+                Hari Ini
+              </button>
+              <button class="btn btn-sm btn-primary rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold" id="btnScrollRight" type="button" style="width: 32px; height: 32px;" title="Geser Kanan">
+                &gt;
               </button>
             </div>
           </div>
@@ -520,18 +526,7 @@
   </div>
 </div>
 
-<!-- Floating Navigation Controls for TV -->
-<div class="tv-scroll-overlay d-flex gap-2 align-items-center" style="position: fixed; bottom: 18px; right: 24px; z-index: 999; background: rgba(13, 21, 39, 0.9); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,0.7);">
-  <button class="btn btn-sm btn-primary rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold" id="btnFloatLeft" type="button" style="width: 36px; height: 36px;" title="Geser Kiri">
-    &lt;
-  </button>
-  <button class="btn btn-sm btn-warning fw-bold px-3 py-1 text-dark" id="btnFloatToday" type="button" style="border-radius: 999px; font-size: 12px;" title="Fokus Hari Ini">
-    Hari Ini
-  </button>
-  <button class="btn btn-sm btn-primary rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold" id="btnFloatRight" type="button" style="width: 36px; height: 36px;" title="Geser Kanan">
-    &gt;
-  </button>
-</div>
+
 
 <!-- Info / Notes Modal -->
 <div class="modal fade" id="tvInfoModal" tabindex="-1" aria-hidden="true">
@@ -1415,6 +1410,24 @@
       wrap.scrollTo({ left: 0, behavior: 'smooth' });
     }
   }
+
+  function scrollActiveWrapVertical(direction){
+    const wrap = getActiveWrap();
+    if (!wrap) return;
+
+    const amount = direction === 'up' ? -200 : 200;
+    wrap.scrollBy({ top: amount, behavior: 'smooth' });
+  }
+
+  ['btnScrollUp', 'btnFloatUp'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => scrollActiveWrapVertical('up'));
+  });
+
+  ['btnScrollDown', 'btnFloatDown'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => scrollActiveWrapVertical('down'));
+  });
 
   ['btnScrollLeft', 'btnFloatLeft'].forEach(id => {
     const el = document.getElementById(id);
