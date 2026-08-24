@@ -233,9 +233,9 @@
       letter-spacing: 0.4px;
       font-size: 11.5px;
       border-bottom: 2px solid #334155;
-      position: sticky;
+      position: sticky !important;
       top: 0;
-      z-index: 10;
+      z-index: 30 !important;
       padding: 8px 6px;
     }
 
@@ -245,6 +245,8 @@
       color: #cbd5e1;
       font-weight: 700;
       padding: 6px 4px;
+      position: sticky !important;
+      z-index: 30 !important;
     }
 
     .tv-table tbody tr:nth-child(odd) td{
@@ -260,15 +262,45 @@
        ======================================================== */
     td.col-freeze {
       background-color: #0d1527 !important;
+      position: sticky !important;
+      z-index: 20 !important;
     }
     .tv-table tbody tr:nth-child(odd) td.col-freeze {
       background-color: #090e1b !important;
+      position: sticky !important;
+      z-index: 20 !important;
     }
     .tv-table tbody tr:hover td.col-freeze {
       background-color: #1a2744 !important;
+      position: sticky !important;
+      z-index: 20 !important;
     }
     thead th.col-freeze {
       background-color: #162032 !important;
+      position: sticky !important;
+      z-index: 50 !important;
+    }
+
+    /* Fullscreen TV Mode Styles */
+    body.tv-fullscreen-active .topbar {
+      height: 44px;
+      padding: 4px 12px;
+    }
+    body.tv-fullscreen-active .brand-logo {
+      height: 28px;
+    }
+    body.tv-fullscreen-active .title {
+      font-size: 14px;
+    }
+    body.tv-fullscreen-active .wrap {
+      padding: 4px 6px;
+    }
+    body.tv-fullscreen-active .tv-tabs .nav-link {
+      padding: 5px 14px;
+      font-size: 12px;
+    }
+    body.tv-fullscreen-active .panel {
+      border-radius: 4px;
     }
 
     /* Column Sizing */
@@ -389,7 +421,6 @@
           <img src="{{ asset('assets/media/logos/logo_milenia_login.png') }}" alt="Logo Perusahaan" class="brand-logo">
           <div style="min-width:0">
             <div class="title d-flex align-items-center gap-2">
-              <i class="bi bi-tv text-primary"></i>
               <span>TV Display - Monitoring Stok</span>
             </div>
             <div class="meta" id="metaText">Memuat data...</div>
@@ -397,17 +428,17 @@
         </div>
 
         <div class="d-flex gap-2 align-items-center">
-          <button class="btn btn-sm btn-outline-info active d-inline-flex align-items-center gap-1" id="btnAutoRotate" type="button" style="font-weight: 700; border-radius: 6px; font-size: 12px; padding: 5px 10px;" title="Ganti tab Sub Assy ➡️ MIP ➡️ Finish Goods otomatis setiap 25 detik">
-            <i class="bi bi-arrow-repeat"></i>
+          <button class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 fw-bold" id="btnFullscreen" type="button" style="border-radius: 6px; font-size: 12px; padding: 5px 12px;" title="Tampilkan TV Fullscreen 100% (Shortcut: Tekan F)">
+            <span id="fullscreenText">Fullscreen TV</span>
+          </button>
+          <button class="btn btn-sm btn-outline-info active d-inline-flex align-items-center gap-1" id="btnAutoRotate" type="button" style="font-weight: 700; border-radius: 6px; font-size: 12px; padding: 5px 10px;" title="Ganti tab Sub Assy, MIP, Finish Goods otomatis setiap 25 detik">
             <span id="btnAutoRotateText">Auto Tab: ON</span>
           </button>
           <button class="btn btn-sm btn-outline-secondary text-light d-inline-flex align-items-center gap-1" type="button" data-bs-toggle="modal" data-bs-target="#tvInfoModal" style="font-weight: 700; border-radius: 6px; font-size: 12px; padding: 5px 10px;" title="Petunjuk & Informasi Penggunaan">
-            <i class="bi bi-info-circle text-info"></i>
             <span>Notes / Info</span>
           </button>
           <span id="clock">--:--:--</span>
           <button class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" id="btnReload" type="button" style="font-weight: 700; border-radius: 6px; font-size: 12px; padding: 5px 12px;">
-            <i class="bi bi-arrow-clockwise"></i>
             <span>Refresh</span>
           </button>
         </div>
@@ -416,26 +447,38 @@
       <div class="wrap">
         <div class="panel">
 
-          <ul class="nav nav-tabs tv-tabs px-3" role="tablist" id="tvTabs">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active d-inline-flex align-items-center gap-2" id="tab-subassy" data-bs-toggle="tab" data-bs-target="#pane-subassy" type="button" role="tab">
-                <i class="bi bi-gear-wide-connected text-primary fs-6"></i>
-                <span>Sub Assy</span>
+          <div class="d-flex justify-content-between align-items-center tv-tabs-wrapper px-3 bg-dark-subtle border-bottom border-secondary border-opacity-25" style="background-color: #070a13 !important;">
+            <ul class="nav nav-tabs tv-tabs border-0 mb-0" role="tablist" id="tvTabs">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active d-inline-flex align-items-center gap-2" id="tab-subassy" data-bs-toggle="tab" data-bs-target="#pane-subassy" type="button" role="tab">
+                  <span>Sub Assy</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link d-inline-flex align-items-center gap-2" id="tab-mip" data-bs-toggle="tab" data-bs-target="#pane-mip" type="button" role="tab">
+                  <span>MIP</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link d-inline-flex align-items-center gap-2" id="tab-fg" data-bs-toggle="tab" data-bs-target="#pane-fg" type="button" role="tab">
+                  <span>Finish Goods</span>
+                </button>
+              </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-2 py-1">
+              <span class="text-secondary fs-7 fw-bold me-1 d-none d-md-inline">Geser Tanggal:</span>
+              <button class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 fw-bold py-1 px-3" id="btnScrollLeft" type="button" title="Geser Tabel Ke Kiri (Tanggal Awal)">
+                <span>&lt; Kiri</span>
               </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link d-inline-flex align-items-center gap-2" id="tab-mip" data-bs-toggle="tab" data-bs-target="#pane-mip" type="button" role="tab">
-                <i class="bi bi-boxes text-success fs-6"></i>
-                <span>MIP</span>
+              <button class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1 fw-bold py-1 px-3" id="btnScrollToday" type="button" title="Fokus Langsung Ke Kolom Hari Ini">
+                <span>Hari Ini</span>
               </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link d-inline-flex align-items-center gap-2" id="tab-fg" data-bs-toggle="tab" data-bs-target="#pane-fg" type="button" role="tab">
-                <i class="bi bi-check2-circle text-info fs-6"></i>
-                <span>Finish Goods</span>
+              <button class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 fw-bold py-1 px-3" id="btnScrollRight" type="button" title="Geser Tabel Ke Kanan (Tanggal Akhir)">
+                <span>Kanan &gt;</span>
               </button>
-            </li>
-          </ul>
+            </div>
+          </div>
 
           <div class="tab-content">
 
@@ -477,41 +520,53 @@
   </div>
 </div>
 
+<!-- Floating Navigation Controls for TV -->
+<div class="tv-scroll-overlay d-flex gap-2 align-items-center" style="position: fixed; bottom: 18px; right: 24px; z-index: 999; background: rgba(13, 21, 39, 0.9); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,0.7);">
+  <button class="btn btn-sm btn-primary rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold" id="btnFloatLeft" type="button" style="width: 36px; height: 36px;" title="Geser Kiri">
+    &lt;
+  </button>
+  <button class="btn btn-sm btn-warning fw-bold px-3 py-1 text-dark" id="btnFloatToday" type="button" style="border-radius: 999px; font-size: 12px;" title="Fokus Hari Ini">
+    Hari Ini
+  </button>
+  <button class="btn btn-sm btn-primary rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold" id="btnFloatRight" type="button" style="width: 36px; height: 36px;" title="Geser Kanan">
+    &gt;
+  </button>
+</div>
+
 <!-- Info / Notes Modal -->
 <div class="modal fade" id="tvInfoModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="background: #0d1527; border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 14px; color: #ffffff; box-shadow: 0 20px 50px rgba(0,0,0,0.9);">
       <div class="modal-header border-secondary border-opacity-50 pb-3">
-        <h5 class="modal-title d-flex align-items-center gap-2 fw-bold text-white fs-6">
-          <i class="bi bi-info-circle-fill text-primary"></i>
+        <h5 class="modal-title fw-bold text-white fs-6">
           Petunjuk & Catatan Penggunaan TV Display
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body fs-7" style="color: #ffffff; line-height: 1.6;">
         <div class="mb-3">
-          <h6 class="text-info fw-bold mb-1"><i class="bi bi-arrow-repeat me-1"></i> Auto Tab (Rotate: ON / OFF)</h6>
+          <h6 class="text-info fw-bold mb-1">Auto Tab (Rotate: ON / OFF)</h6>
           <p class="mb-0 text-white" style="color: #ffffff !important;">
-            Bila status <b>ON</b>, layar TV akan secara otomatis berpindah tab setiap <b>25 detik</b> (Sub Assy ➡️ MIP ➡️ Finish Goods) secara berulang agar seluruh bagian dapat terpantau tanpa operator. Bila status <b>OFF</b>, tampilan akan tetap diam di tab yang dipilih.
+            Bila status <b>ON</b>, layar TV akan secara otomatis berpindah tab setiap <b>25 detik</b> (Sub Assy, MIP, Finish Goods) secara berulang agar seluruh bagian dapat terpantau tanpa operator. Bila status <b>OFF</b>, tampilan akan tetap diam di tab yang dipilih.
           </p>
         </div>
         <hr class="border-secondary border-opacity-50 my-2">
         <div class="mb-3">
-          <h6 class="text-info fw-bold mb-1"><i class="bi bi-arrow-clockwise me-1"></i> Tombol Refresh Manual</h6>
+          <h6 class="text-info fw-bold mb-1">Tombol Refresh Manual</h6>
           <p class="mb-0 text-white" style="color: #ffffff !important;">
             Untuk memuat ulang data stok terkini secara instan dari database kapan saja, klik tombol <b>Refresh</b>.
           </p>
         </div>
         <hr class="border-secondary border-opacity-50 my-2">
         <div class="mb-3">
-          <h6 class="text-info fw-bold mb-1"><i class="bi bi-pin-angle me-1"></i> Kolom Tetap (Fixed) & Scroll</h6>
+          <h6 class="text-info fw-bold mb-1">Kolom Tetap (Fixed) & Scroll</h6>
           <p class="mb-0 text-white" style="color: #ffffff !important;">
-            Semua kolom identitas dan ringkasan dari <b>No s/d Status</b> dikunci tetap di sebelah kiri. Kolom rincian harian <b>Tanggal 1 s.d. 31</b> dapat digeser/scroll ke samping (*horizontal scroll*) secara leluasa.
+            Semua kolom identitas dari <b>No s/d Part Name</b> dikunci tetap di sebelah kiri. Kolom rincian harian <b>Tanggal 1 s.d. 31</b> dapat digeser/scroll ke samping (*horizontal scroll*) secara leluasa.
           </p>
         </div>
         <hr class="border-secondary border-opacity-50 my-2">
         <div>
-          <h6 class="text-info fw-bold mb-2"><i class="bi bi-palette me-1"></i> Arti Warna Status</h6>
+          <h6 class="text-info fw-bold mb-2">Arti Warna Status</h6>
           <div class="d-flex flex-column gap-2 text-white" style="color: #ffffff !important;">
             <div><span class="badge bg-primary me-2 fw-bold">BIRU</span> : SPK (Sub Assy) / Balance Akhir (MIP & FG)</div>
             <div><span class="badge bg-success me-2 fw-bold">HIJAU</span> : Produksi (Sub Assy) / Total IN (MIP & FG)</div>
@@ -593,14 +648,12 @@
     const rows = Array.from(thead.querySelectorAll('tr'));
     if (rows.length <= 1) return;
 
-    let acc = 0;
-    rows.forEach((row, rIndex) => {
-      const rowHeight = row.getBoundingClientRect().height || 0;
+    rows.forEach((row) => {
+      const topOffset = row.offsetTop;
       const ths = Array.from(row.querySelectorAll('th'));
       ths.forEach(th => {
-        th.style.top = `${acc}px`;
+        th.style.top = `${topOffset}px`;
       });
-      acc += rowHeight;
     });
   }
 
@@ -625,7 +678,7 @@
       leftOffsets.push(currentLeft);
       th.style.position = 'sticky';
       th.style.left = `${currentLeft}px`;
-      th.style.zIndex = '40';
+      th.style.zIndex = '50';
       currentLeft += th.offsetWidth;
     });
 
@@ -778,6 +831,7 @@
       fixHeaderStickyTops(tableId);
       applyStickyLeftOffsets(tableId);
       highlightTodayGeneric(tableId, todayDay);
+      scrollToToday();
     });
   }
 </script>
@@ -794,13 +848,13 @@
         <th rowspan="2" class="col-freeze col-proj">Project</th>
         <th rowspan="2" class="col-freeze col-pn">Part Number</th>
         <th rowspan="2" class="col-freeze col-name">Part Name</th>
-        <th rowspan="2" class="col-freeze col-num">Total PO</th>
-        <th rowspan="2" class="col-freeze col-num">WIP Sblm</th>
-        <th rowspan="2" class="col-freeze col-num">Total SPK</th>
-        <th rowspan="2" class="col-freeze col-num">Total Prod</th>
-        <th rowspan="2" class="col-freeze col-num">WIP Akhir</th>
-        <th rowspan="2" class="col-freeze col-num">Prod %</th>
-        <th rowspan="2" class="col-freeze col-status">Status</th>
+        <th rowspan="2" class="col-num">Total PO</th>
+        <th rowspan="2" class="col-num">WIP Sblm</th>
+        <th rowspan="2" class="col-num">Total SPK</th>
+        <th rowspan="2" class="col-num">Total Prod</th>
+        <th rowspan="2" class="col-num">WIP Akhir</th>
+        <th rowspan="2" class="col-num">Prod %</th>
+        <th rowspan="2" class="col-status">Status</th>
         <th colspan="${daysInMonth}">Tanggal</th>
       </tr>
     `;
@@ -827,14 +881,14 @@
         <td class="col-freeze col-proj">${escapeHtml(r.project ?? '')}</td>
         <td class="col-freeze col-pn">${escapeHtml(r.part_number ?? '')}</td>
         <td class="col-freeze col-name" title="${escapeHtml(r.part_name ?? '')}">${escapeHtml(r.part_name ?? '')}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.total_po))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.wip_sebelumnya))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.total_spk))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.total_produksi))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.wip_akhir))}</td>
-        <td class="col-freeze col-num">${prodBadge(r.produktivitas)}</td>
+        <td class="col-num">${escapeHtml(n(r.total_po))}</td>
+        <td class="col-num">${escapeHtml(n(r.wip_sebelumnya))}</td>
+        <td class="col-num">${escapeHtml(n(r.total_spk))}</td>
+        <td class="col-num">${escapeHtml(n(r.total_produksi))}</td>
+        <td class="col-num">${escapeHtml(n(r.wip_akhir))}</td>
+        <td class="col-num">${prodBadge(r.produktivitas)}</td>
 
-        <td class="col-freeze col-status">
+        <td class="col-status">
           <div class="legend">
             <div class="tag tag-blue">SPK</div>
             <div class="tag tag-green">PROD</div>
@@ -924,15 +978,15 @@
         <th rowspan="2" class="col-freeze col-proj">Project</th>
         <th rowspan="2" class="col-freeze col-pn">Part Number</th>
         <th rowspan="2" class="col-freeze col-name">Part Name</th>
-        <th rowspan="2" class="col-freeze col-num">Total PO</th>
-        <th rowspan="2" class="col-freeze col-num">Stk Awal</th>
-        <th rowspan="2" class="col-freeze col-num">Tot IN</th>
-        <th rowspan="2" class="col-freeze col-num">Tot OUT</th>
-        <th rowspan="2" class="col-freeze col-num">Bal Akhir</th>
-        <th rowspan="2" class="col-freeze col-num">Min</th>
-        <th rowspan="2" class="col-freeze col-num">Safety</th>
-        <th rowspan="2" class="col-freeze col-num">Max</th>
-        <th rowspan="2" class="col-freeze col-status">Status</th>
+        <th rowspan="2" class="col-num">Total PO</th>
+        <th rowspan="2" class="col-num">Stk Awal</th>
+        <th rowspan="2" class="col-num">Tot IN</th>
+        <th rowspan="2" class="col-num">Tot OUT</th>
+        <th rowspan="2" class="col-num">Bal Akhir</th>
+        <th rowspan="2" class="col-num">Min</th>
+        <th rowspan="2" class="col-num">Safety</th>
+        <th rowspan="2" class="col-num">Max</th>
+        <th rowspan="2" class="col-status">Status</th>
         <th colspan="${daysInMonth}">Tanggal</th>
       </tr>
     `;
@@ -959,16 +1013,16 @@
         <td class="col-freeze col-proj">${escapeHtml(r.project ?? '')}</td>
         <td class="col-freeze col-pn">${escapeHtml(r.part_number ?? '')}</td>
         <td class="col-freeze col-name" title="${escapeHtml(r.part_name ?? '')}">${escapeHtml(r.part_name ?? '')}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.total_po))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.stock_awal))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.total_in))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.total_out))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.balance_akhir))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.level_min))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.level_safety))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.level_max))}</td>
+        <td class="col-num">${escapeHtml(n(r.total_po))}</td>
+        <td class="col-num">${escapeHtml(n(r.stock_awal))}</td>
+        <td class="col-num">${escapeHtml(n(r.total_in))}</td>
+        <td class="col-num">${escapeHtml(n(r.total_out))}</td>
+        <td class="col-num">${escapeHtml(n(r.balance_akhir))}</td>
+        <td class="col-num">${escapeHtml(n(r.level_min))}</td>
+        <td class="col-num">${escapeHtml(n(r.level_safety))}</td>
+        <td class="col-num">${escapeHtml(n(r.level_max))}</td>
 
-        <td class="col-freeze col-status">
+        <td class="col-status">
           <div class="legend">
             <div class="tag tag-green">IN</div>
             <div class="tag tag-red">OUT</div>
@@ -1072,19 +1126,19 @@
         <th rowspan="3" class="col-freeze col-proj">Project</th>
         <th rowspan="3" class="col-freeze col-pn">Part Number</th>
         <th rowspan="3" class="col-freeze col-name">Part Name</th>
-        <th rowspan="3" class="col-freeze col-num">Total PO</th>
-        <th rowspan="3" class="col-freeze col-num">Adv Del</th>
-        <th rowspan="3" class="col-freeze col-num">Outst</th>
-        <th rowspan="3" class="col-freeze col-num">% Del</th>
-        <th rowspan="3" class="col-freeze col-num">Stk Awal</th>
-        <th rowspan="3" class="col-freeze col-num">Tot IN</th>
-        <th rowspan="3" class="col-freeze col-num">Tot OUT</th>
-        <th rowspan="3" class="col-freeze col-num">Min</th>
-        <th rowspan="3" class="col-freeze col-num">Safety</th>
-        <th rowspan="3" class="col-freeze col-num">Max</th>
-        <th rowspan="3" class="col-freeze col-num">Stk Hand</th>
-        <th rowspan="3" class="col-freeze col-num">Status Stk</th>
-        <th rowspan="3" class="col-freeze col-status">Status</th>
+        <th rowspan="3" class="col-num">Total PO</th>
+        <th rowspan="3" class="col-num">Adv Del</th>
+        <th rowspan="3" class="col-num">Outst</th>
+        <th rowspan="3" class="col-num">% Del</th>
+        <th rowspan="3" class="col-num">Stk Awal</th>
+        <th rowspan="3" class="col-num">Tot IN</th>
+        <th rowspan="3" class="col-num">Tot OUT</th>
+        <th rowspan="3" class="col-num">Min</th>
+        <th rowspan="3" class="col-num">Safety</th>
+        <th rowspan="3" class="col-num">Max</th>
+        <th rowspan="3" class="col-num">Stk Hand</th>
+        <th rowspan="3" class="col-num">Status Stk</th>
+        <th rowspan="3" class="col-status">Status</th>
         <th colspan="${daysInMonth * 2}">Tanggal</th>
       </tr>
     `;
@@ -1117,20 +1171,20 @@
         <td class="col-freeze col-proj">${escapeHtml(r.project ?? '')}</td>
         <td class="col-freeze col-pn">${escapeHtml(r.part_number ?? '')}</td>
         <td class="col-freeze col-name" title="${escapeHtml(r.part_name ?? '')}">${escapeHtml(r.part_name ?? '')}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.total_po))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.advance_delivery))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.outstanding))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.percentage))}%</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.stock_awal))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.total_in))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.total_out))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.level_min))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.level_safety))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.level_max))}</td>
-        <td class="col-freeze col-num">${escapeHtml(n(r.stock_on_hand))}</td>
-        <td class="col-freeze col-num">${statusStockBadge(r.status_stock)}</td>
+        <td class="col-num">${escapeHtml(n(r.total_po))}</td>
+        <td class="col-num">${escapeHtml(n(r.advance_delivery))}</td>
+        <td class="col-num">${escapeHtml(n(r.outstanding))}</td>
+        <td class="col-num">${escapeHtml(n(r.percentage))}%</td>
+        <td class="col-num">${escapeHtml(n(r.stock_awal))}</td>
+        <td class="col-num">${escapeHtml(n(r.total_in))}</td>
+        <td class="col-num">${escapeHtml(n(r.total_out))}</td>
+        <td class="col-num">${escapeHtml(n(r.level_min))}</td>
+        <td class="col-num">${escapeHtml(n(r.level_safety))}</td>
+        <td class="col-num">${escapeHtml(n(r.level_max))}</td>
+        <td class="col-num">${escapeHtml(n(r.stock_on_hand))}</td>
+        <td class="col-num">${statusStockBadge(r.status_stock)}</td>
 
-        <td class="col-freeze col-status">
+        <td class="col-status">
           <div class="legend">
             <div class="tag tag-green">IN</div>
             <div class="tag tag-red">OUT</div>
@@ -1259,18 +1313,190 @@
     }
   }
 
+  const btnFullscreen = document.getElementById('btnFullscreen');
+  
+  function toggleFullscreenTV(){
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.warn('Fullscreen tidak diizinkan browser:', err);
+      });
+      document.body.classList.add('tv-fullscreen-active');
+      if (btnFullscreen) {
+        btnFullscreen.innerHTML = '<span>Exit Fullscreen</span>';
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+      document.body.classList.remove('tv-fullscreen-active');
+      if (btnFullscreen) {
+        btnFullscreen.innerHTML = '<span>Fullscreen TV</span>';
+      }
+    }
+    requestAnimationFrame(reflowVisibleTables);
+  }
+
+  if (btnFullscreen) {
+    btnFullscreen.addEventListener('click', toggleFullscreenTV);
+  }
+
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      document.body.classList.remove('tv-fullscreen-active');
+      if (btnFullscreen) {
+        btnFullscreen.innerHTML = '<span>Fullscreen TV</span>';
+      }
+    } else {
+      document.body.classList.add('tv-fullscreen-active');
+      if (btnFullscreen) {
+        btnFullscreen.innerHTML = '<span>Exit Fullscreen</span>';
+      }
+    }
+    requestAnimationFrame(reflowVisibleTables);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'f' || e.key === 'F') {
+      if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        toggleFullscreenTV();
+      }
+    }
+  });
+
+  function getActiveWrap(){
+    const tabKey = getActiveTabKey();
+    if (tabKey === 'mip') return document.getElementById('mipWrap');
+    if (tabKey === 'fg') return document.getElementById('fgWrap');
+    return document.getElementById('subassyWrap');
+  }
+
+  function scrollActiveWrap(direction){
+    const wrap = getActiveWrap();
+    if (!wrap) return;
+
+    const amount = direction === 'left' ? -130 : 130;
+    wrap.scrollBy({ left: amount, behavior: 'smooth' });
+  }
+
+  function getFrozenWidth(tableId){
+    const table = document.getElementById(tableId);
+    if (!table) return 0;
+    const frozenCells = table.querySelectorAll('thead tr:first-child th.col-freeze');
+    let total = 0;
+    frozenCells.forEach(th => {
+      total += th.offsetWidth || 0;
+    });
+    return total;
+  }
+
+  function scrollToToday(){
+    const activeTab = getActiveTabKey();
+    const tableIdMap = { subassy: 'subassyTable', mip: 'mipTable', fg: 'fgTable' };
+    const wrapIdMap  = { subassy: 'subassyWrap', mip: 'mipWrap', fg: 'fgWrap' };
+    
+    const tableId = tableIdMap[activeTab];
+    const wrap = document.getElementById(wrapIdMap[activeTab]);
+    const todayDay = state[activeTab]?.todayDay;
+
+    if (!wrap) return;
+
+    if (!todayDay) {
+      wrap.scrollTo({ left: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const todayHeader = document.querySelector(`#${tableId} th[data-day="${todayDay}"]`);
+    if (todayHeader) {
+      const frozenWidth = getFrozenWidth(tableId);
+      const targetLeft = todayHeader.offsetLeft - frozenWidth - 10;
+      wrap.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+    } else {
+      wrap.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+  }
+
+  ['btnScrollLeft', 'btnFloatLeft'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => scrollActiveWrap('left'));
+  });
+
+  ['btnScrollRight', 'btnFloatRight'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => scrollActiveWrap('right'));
+  });
+
+  ['btnScrollToday', 'btnFloatToday'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', scrollToToday);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+    const wrap = getActiveWrap();
+    if (!wrap) return;
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      wrap.scrollBy({ left: -130, behavior: 'smooth' });
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      wrap.scrollBy({ left: 130, behavior: 'smooth' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      wrap.scrollBy({ top: -140, behavior: 'smooth' });
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      wrap.scrollBy({ top: 140, behavior: 'smooth' });
+    } else if (e.key === 't' || e.key === 'T') {
+      e.preventDefault();
+      scrollToToday();
+    }
+  });
+
+  ['subassyWrap', 'mipWrap', 'fgWrap'].forEach(id => {
+    const wrap = document.getElementById(id);
+    if (!wrap) return;
+
+    let isDown = false;
+    let startX, scrollLeft;
+
+    wrap.addEventListener('mousedown', (e) => {
+      isDown = true;
+      startX = e.pageX - wrap.offsetLeft;
+      scrollLeft = wrap.scrollLeft;
+    });
+
+    wrap.addEventListener('mouseleave', () => {
+      isDown = false;
+    });
+
+    wrap.addEventListener('mouseup', () => {
+      isDown = false;
+    });
+
+    wrap.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - wrap.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      wrap.scrollLeft = scrollLeft - walk;
+    });
+  });
+
   document.getElementById('btnReload').addEventListener('click', reloadAll);
 
   const btnAutoRotate = document.getElementById('btnAutoRotate');
   btnAutoRotate.addEventListener('click', () => {
     autoRotateEnabled = !autoRotateEnabled;
     if (autoRotateEnabled) {
-      btnAutoRotate.innerHTML = '<i class="bi bi-arrow-repeat"></i><span>Auto Tab: ON</span>';
+      btnAutoRotate.innerHTML = '<span>Auto Tab: ON</span>';
       btnAutoRotate.classList.remove('btn-outline-secondary');
       btnAutoRotate.classList.add('btn-outline-info', 'active');
       startAutoRotate();
     } else {
-      btnAutoRotate.innerHTML = '<i class="bi bi-arrow-repeat"></i><span>Auto Tab: OFF</span>';
+      btnAutoRotate.innerHTML = '<span>Auto Tab: OFF</span>';
       btnAutoRotate.classList.remove('btn-outline-info', 'active');
       btnAutoRotate.classList.add('btn-outline-secondary');
       stopAutoRotate();
