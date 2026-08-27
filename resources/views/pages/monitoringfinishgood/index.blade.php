@@ -576,7 +576,8 @@
             $row.find('td:eq(16)').html(statusHtml);
 
             const outstanding = Math.max(0, totalPO - advanceDelivery - totalOut);
-            const percentage = totalPO > 0 ? ((totalOut / totalPO) * 100).toFixed(2) : '0.00';
+            const totalDelivered = advanceDelivery + totalOut;
+            const percentage = totalPO > 0 ? ((totalDelivered / totalPO) * 100).toFixed(2) : '0.00';
 
             $row.find('td:eq(7) span').text(outstanding);
             $row.find('td:eq(8) span').text(`${percentage}%`);
@@ -681,6 +682,10 @@
 
             $('#filter_customer').on('change', function () {
                 loadTable();
+            });
+
+            $('#fg_table tbody').on('input', 'input[name="advance_delivery"], input[name^="out_hari_"], input[name="stock_awal"]', function () {
+                calculateRow($(this).closest('tr'));
             });
 
             $('#fg_table tbody').on('blur', 'input[name^="out_hari_"]', function () {

@@ -159,7 +159,8 @@ class MonitoringFinishGoodsController extends Controller
 
                 $advance = (int) ($header->advance_delivery ?? 0);
                 $outstanding = max(0, $row['total_po'] - $advance - $totalOutActual);
-                $percentage = $row['total_po'] > 0 ? round(($totalOutActual / $row['total_po']) * 100, 2) : 0;
+                $totalDelivered = $advance + $totalOutActual;
+                $percentage = $row['total_po'] > 0 ? round(($totalDelivered / $row['total_po']) * 100, 2) : 0;
 
                 $row['advance_delivery'] = $advance;
                 $row['outstanding'] = $outstanding;
@@ -200,28 +201,46 @@ class MonitoringFinishGoodsController extends Controller
         try {
             $bulan = (int) $request->bulan;
             $tahun = (int) $request->tahun;
-            $customer = trim($request->customer);
+            $customer = trim((string) $request->customer);
             $project = trim((string) $request->project);
-            if ($project === '') {
-                $project = null;
-            }
-            $partNumber = trim($request->part_number);
-            $partName = trim($request->part_name);
+            $partNumber = trim((string) $request->part_number);
+            $partName = trim((string) $request->part_name);
 
-            $header = MonitoringFGHeader::updateOrCreate([
+            $header = MonitoringFGHeader::where([
                 'bulan' => $bulan,
                 'tahun' => $tahun,
                 'customer' => $customer,
-                'project' => $project,
                 'part_number' => $partNumber,
-            ], [
+            ])
+            ->where(function($q) use ($project) {
+                if ($project === '') {
+                    $q->whereNull('project')->orWhere('project', '');
+                } else {
+                    $q->where('project', $project);
+                }
+            })
+            ->first();
+
+            $saveData = [
                 'part_name' => $partName,
                 'stock_awal' => (int) $request->stock_awal,
                 'advance_delivery' => (int) $request->advance_delivery,
                 'level_min' => (int) $request->level_min,
                 'level_safety' => (int) $request->level_safety,
                 'level_max' => (int) $request->level_max,
-            ]);
+            ];
+
+            if ($header) {
+                $header->update($saveData);
+            } else {
+                $header = MonitoringFGHeader::create(array_merge([
+                    'bulan' => $bulan,
+                    'tahun' => $tahun,
+                    'customer' => $customer,
+                    'project' => $project,
+                    'part_number' => $partNumber,
+                ], $saveData));
+            }
 
             $totalIn = 0;
             $totalOut = 0;
@@ -268,7 +287,7 @@ class MonitoringFinishGoodsController extends Controller
                 ->where('customer', $customer)
                 ->where('part_number', $partNumber)
                 ->where(function($q) use ($project) {
-                    if ($project === null) {
+                    if ($project === '') {
                         $q->whereNull('kode_project')->orWhere('kode_project', '');
                     } else {
                         $q->where('kode_project', $project);
@@ -287,7 +306,7 @@ class MonitoringFinishGoodsController extends Controller
                     ->where('customer', $customer)
                     ->where('part_number', $partNumber)
                     ->where(function($q) use ($project) {
-                        if ($project === null) {
+                        if ($project === '') {
                             $q->whereNull('kode_project')->orWhere('kode_project', '');
                         } else {
                             $q->where('kode_project', $project);
@@ -467,10 +486,11 @@ class MonitoringFinishGoodsController extends Controller
     {
         $bulan = (int) $request->input('bulan', now()->month);
         $tahun = (int) $request->input('tahun', now()->year);
+        $customer = $request->input('customer');
 
         $namaBulan = Carbon::create()->month($bulan)->translatedFormat('F');
         $fileName = "Monitoring_Finish_Goods_{$namaBulan}_{$tahun}.xlsx";
 
-        return Excel::download(new FinishGoodsExport($bulan, $tahun), $fileName);
+        return Excel::download(new FinishGoodsExport($bulan, $tahun, $customer), $fileName);
     }
 }

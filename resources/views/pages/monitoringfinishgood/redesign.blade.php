@@ -682,10 +682,11 @@
             else if (balance > levelMax) statusText = 'Over';
             $firstRow.find('td:eq(16)').html(getStatusBadge(statusText));
             const outstanding = Math.max(0, totalPO - advanceDelivery - totalOut);
-            const percentage = totalPO > 0 ? ((totalOut / totalPO) * 100).toFixed(2) : '0.00';
+            const totalDelivered = advanceDelivery + totalOut;
+            const percentage = totalPO > 0 ? ((totalDelivered / totalPO) * 100).toFixed(2) : '0.00';
             $firstRow.find('td:eq(7) span').text(outstanding);
             $firstRow.find('td:eq(8) span').text(percentage + '%');
-            return { stockAwal, totalIn, totalOut, stockOnHand: balance, statusText, outstanding, percentage, levelMin, levelMax, levelSafety: parseInt($firstRow.find('td:eq(13) span').text(), 10) || 0, advanceDelivery };
+            return { stockAwal, totalIn, totalOut, stockOnHand: balance, statusText, outstanding, percentage, levelMin, levelMax, levelSafety: parseInt($firstRow.find('td:eq(13) span').text(), 10) || 0, advanceDelivery, totalPO };
         }
 
         function collectRowData($rowGroup) {
@@ -863,7 +864,9 @@
                 loadTable();
             });
             $('#table_search').on('input', debounceRefreshVisibleTable);
-            $('#hide_zero_po').on('change', refreshVisibleTable);
+            $('#fg_table tbody').on('input', 'input[name="advance_delivery"], input[name^="out_hari_"], input[name="stock_awal"]', function () {
+                calculateRow(getRowGroup($(this)));
+            });
             $('#fg_table tbody').on('blur', 'input[name^="out_hari_"]', function () {
                 saveRow(getRowGroup($(this)));
             });

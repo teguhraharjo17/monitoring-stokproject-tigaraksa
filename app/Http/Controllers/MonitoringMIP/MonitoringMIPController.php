@@ -181,9 +181,6 @@ class MonitoringMIPController extends Controller
         $tahun = (int) $request->tahun;
         $customer = trim($request->customer);
         $project = trim((string) $request->project);
-        if ($project === '') {
-            $project = null;
-        }
         $partNumber = trim($request->part_number);
         $partName = trim($request->part_name);
 
@@ -197,7 +194,7 @@ class MonitoringMIPController extends Controller
                     ->where('customer', $customer)
                     ->where('part_number', $partNumber)
                     ->where(function($q) use ($project) {
-                        if ($project === null) {
+                        if ($project === '' || $project === null) {
                             $q->whereNull('kode_project')->orWhere('kode_project', '');
                         } else {
                             $q->where('kode_project', $project);
@@ -214,15 +211,22 @@ class MonitoringMIPController extends Controller
             $totalOut += (int) $request->input("out_hari_{$i}", 0);
         }
 
-        $header = MonitoringMIPHeader::updateOrCreate(
-            [
-                'bulan' => $bulan,
-                'tahun' => $tahun,
-                'customer' => $customer,
-                'project' => $project,
-                'part_number' => $partNumber,
-            ],
-            [
+        // Cari header dengan query fleksibel
+        $header = MonitoringMIPHeader::where('bulan', $bulan)
+            ->where('tahun', $tahun)
+            ->where('customer', $customer)
+            ->where('part_number', $partNumber)
+            ->where(function($q) use ($project) {
+                if ($project === '' || $project === null) {
+                    $q->whereNull('project')->orWhere('project', '');
+                } else {
+                    $q->where('project', $project);
+                }
+            })
+            ->first();
+
+        if ($header) {
+            $header->update([
                 'part_name' => $partName,
                 'stock_awal' => $stockAwal,
                 'level_min' => (int) $request->level_min,
@@ -230,8 +234,23 @@ class MonitoringMIPController extends Controller
                 'level_max' => (int) $request->level_max,
                 'total_out' => $totalOut,
                 'total_in' => $totalIn,
-            ]
-        );
+            ]);
+        } else {
+            $header = MonitoringMIPHeader::create([
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'customer' => $customer,
+                'project' => $project ?? '',
+                'part_number' => $partNumber,
+                'part_name' => $partName,
+                'stock_awal' => $stockAwal,
+                'level_min' => (int) $request->level_min,
+                'level_safety' => (int) $request->level_safety,
+                'level_max' => (int) $request->level_max,
+                'total_out' => $totalOut,
+                'total_in' => $totalIn,
+            ]);
+        }
 
         $balance = $stockAwal;
 
@@ -259,7 +278,7 @@ class MonitoringMIPController extends Controller
             ->where('customer', $customer)
             ->where('part_number', $partNumber)
             ->where(function($q) use ($project) {
-                if ($project === null) {
+                if ($project === '' || $project === null) {
                     $q->whereNull('kode_project')->orWhere('kode_project', '');
                 } else {
                     $q->where('kode_project', $project);
@@ -278,7 +297,7 @@ class MonitoringMIPController extends Controller
                 ->where('customer', $customer)
                 ->where('part_number', $partNumber)
                 ->where(function($q) use ($project) {
-                    if ($project === null) {
+                    if ($project === '' || $project === null) {
                         $q->whereNull('kode_project')->orWhere('kode_project', '');
                     } else {
                         $q->where('kode_project', $project);
@@ -296,7 +315,7 @@ class MonitoringMIPController extends Controller
                     'bulan' => $nextMonth,
                     'tahun' => $nextYear,
                     'customer' => $customer,
-                    'kode_project' => $project,
+                    'kode_project' => $project ?? '',
                     'part_number' => $partNumber,
                     'models' => $partName,
                     'stock_awal_mip' => $balance
@@ -328,35 +347,47 @@ class MonitoringMIPController extends Controller
 
         try {
             $project = trim((string) $request->project);
-            if ($project === '') {
-                $project = null;
+
+            $header = MonitoringMIPHeader::where('bulan', $request->bulan)
+                ->where('tahun', $request->tahun)
+                ->where('customer', $request->customer)
+                ->where('part_number', $request->part_number)
+                ->where(function($q) use ($project) {
+                    if ($project === null || $project === '') {
+                        $q->whereNull('project')->orWhere('project', '');
+                    } else {
+                        $q->where('project', $project);
+                    }
+                })
+                ->first();
+
+            if (!$header) {
+                $header = MonitoringMIPHeader::create([
+                    'bulan' => (int) $request->bulan,
+                    'tahun' => (int) $request->tahun,
+                    'customer' => $request->customer,
+                    'project' => $project ?? '',
+                    'part_number' => $request->part_number,
+                    'part_name' => $request->part_name ?? '',
+                    'stock_awal' => (int) $request->stock_awal,
+                    'level_min' => 0,
+                    'level_safety' => 0,
+                    'level_max' => 0,
+                    'total_out' => 0,
+                    'total_in' => 0,
+                ]);
+            } else {
+                $header->update([
+                    'stock_awal' => (int) $request->stock_awal
+                ]);
             }
-
-            $header = MonitoringMIPHeader::where([
-                'bulan' => $request->bulan,
-                'tahun' => $request->tahun,
-                'customer' => $request->customer,
-                'part_number' => $request->part_number,
-            ])
-            ->where(function($q) use ($project) {
-                if ($project === null) {
-                    $q->whereNull('project')->orWhere('project', '');
-                } else {
-                    $q->where('project', $project);
-                }
-            })
-            ->firstOrFail();
-
-            $header->update([
-                'stock_awal' => $request->stock_awal
-            ]);
 
             RekapData::where('bulan', $request->bulan)
                 ->where('tahun', $request->tahun)
                 ->where('customer', $request->customer)
                 ->where('part_number', $request->part_number)
                 ->where(function($q) use ($project) {
-                    if ($project === null) {
+                    if ($project === null || $project === '') {
                         $q->whereNull('kode_project')->orWhere('kode_project', '');
                     } else {
                         $q->where('kode_project', $project);
@@ -443,11 +474,12 @@ class MonitoringMIPController extends Controller
             'tahun' => 'required|integer|min:2020',
         ]);
 
-        $bulan = $request->bulan;
-        $tahun = $request->tahun;
+        $bulan = (int) $request->bulan;
+        $tahun = (int) $request->tahun;
+        $customer = $request->customer;
 
         return Excel::download(
-            new MonitoringMIPExport($bulan, $tahun),
+            new MonitoringMIPExport($bulan, $tahun, $customer),
             "Monitoring_MIP_{$bulan}_{$tahun}.xlsx"
         );
     }

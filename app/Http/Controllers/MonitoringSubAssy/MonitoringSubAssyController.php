@@ -493,11 +493,12 @@ class MonitoringSubAssyController extends Controller
             'tahun' => 'required|integer|min:2020',
         ]);
 
-        $bulan = $request->bulan;
-        $tahun = $request->tahun;
+        $bulan = (int) $request->bulan;
+        $tahun = (int) $request->tahun;
+        $customer = $request->customer;
 
         return Excel::download(
-            new SubAssyExport($bulan, $tahun),
+            new SubAssyExport($bulan, $tahun, $customer),
             "Monitoring_SubAssy_{$bulan}_{$tahun}.xlsx"
         );
     }
@@ -505,7 +506,7 @@ class MonitoringSubAssyController extends Controller
     /**
      * Mengambil SPK Map dengan sistem caching dan fallback Last Known Good.
      */
-    private function getSpkMap($bulan, $tahun, $forceRefresh = false)
+    public function getSpkMap($bulan, $tahun, $forceRefresh = false)
     {
         $cacheKeyMap = "spk_map_v2_{$bulan}_{$tahun}";
         
