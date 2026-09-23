@@ -12,7 +12,7 @@ class RekapDataController extends Controller
 {
     public function index()
     {
-        $masterItems = MasterItem::select('part_number', 'customer', 'kode_project', 'nama_part')->get();
+        $masterItems = MasterItem::select('id', 'part_number', 'customer', 'kode_project', 'nama_part')->get();
 
         return view('pages.rekapdata.redesign', compact('masterItems'));
     }
@@ -26,6 +26,8 @@ class RekapDataController extends Controller
 
         $items = MasterItem::leftJoin('rekap_data', function ($join) use ($bulan, $tahun) {
                 $join->on('master_items.part_number', '=', 'rekap_data.part_number')
+                    ->on('master_items.customer', '=', 'rekap_data.customer')
+                    ->on('master_items.nama_part', '=', 'rekap_data.models')
                     ->where('rekap_data.bulan', $bulan)
                     ->where('rekap_data.tahun', $tahun);
             })
@@ -135,6 +137,7 @@ class RekapDataController extends Controller
                 'tahun' => $rekap->tahun,
                 'customer' => $rekap->customer,
                 'part_number' => $rekap->part_number,
+                'part_name' => $rekap->models,
             ])
             ->where(function($q) use ($rekap) {
                 $proj = trim((string)$rekap->kode_project);
@@ -173,6 +176,7 @@ class RekapDataController extends Controller
                         ->where('tahun', $nextYear)
                         ->where('customer', $rekap->customer)
                         ->where('part_number', $rekap->part_number)
+                        ->where('models', $rekap->models)
                         ->where(function($q) use ($rekap) {
                             $proj = trim((string)$rekap->kode_project);
                             if ($proj === '') {
@@ -212,6 +216,7 @@ class RekapDataController extends Controller
                 'tahun' => $rekap->tahun,
                 'customer' => $rekap->customer,
                 'part_number' => $rekap->part_number,
+                'part_name' => $rekap->models,
             ])
             ->where(function($q) use ($rekap) {
                 $proj = trim((string)$rekap->kode_project);
@@ -260,6 +265,7 @@ class RekapDataController extends Controller
                         ->where('tahun', $nextYear)
                         ->where('customer', $rekap->customer)
                         ->where('part_number', $rekap->part_number)
+                        ->where('models', $rekap->models)
                         ->where(function($q) use ($rekap) {
                             $proj = trim((string)$rekap->kode_project);
                             if ($proj === '') {
@@ -299,6 +305,7 @@ class RekapDataController extends Controller
                 'tahun' => $rekap->tahun,
                 'customer' => $rekap->customer,
                 'part_number' => $rekap->part_number,
+                'part_name' => $rekap->models,
             ])
             ->where(function($q) use ($rekap) {
                 $proj = trim((string)$rekap->kode_project);
@@ -354,6 +361,7 @@ class RekapDataController extends Controller
                         ->where('tahun', $nextYear)
                         ->where('customer', $rekap->customer)
                         ->where('part_number', $rekap->part_number)
+                        ->where('models', $rekap->models)
                         ->where(function($q) use ($rekap) {
                             $proj = trim((string)$rekap->kode_project);
                             if ($proj === '') {

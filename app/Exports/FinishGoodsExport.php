@@ -117,21 +117,22 @@ class FinishGoodsExport implements FromArray, WithEvents, WithStyles, WithColumn
             ->where('bulan', $this->bulan)
             ->where('tahun', $this->tahun)
             ->get()
-            ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number));
+            ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number) . '|' . $this->normalize($h->part_name));
 
         // 4. Bulk Load MIP Headers & Details
         $mipHeaders = MonitoringMIPHeader::with('details')
             ->where('bulan', $this->bulan)
             ->where('tahun', $this->tahun)
             ->get()
-            ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number));
+            ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number) . '|' . $this->normalize($h->part_name));
 
         $itemIdx = 0;
         foreach ($aggregatedRekap as $rekap) {
             $itemIdx++;
-            $matchKey = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number);
+            $matchKey = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number) . '|' . $this->normalize($rekap->models);
+            $levelKey = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number);
 
-            $level = $levelStokMap[$matchKey] ?? null;
+            $level = $levelStokMap[$levelKey] ?? null;
             $header = $fgHeaders[$matchKey] ?? null;
             $details = $header ? $header->details->keyBy('tanggal') : collect();
 

@@ -38,14 +38,27 @@ class MonitoringSubAssyController extends Controller
             . $this->normalize($partName);
     }
 
-    private function itemKey($customer, $project, $partNumber): string
+    private function itemKey($customer, $project, $partNumber, $partName = null): string
     {
-        return $this->normalize($customer) . '|'
+        $key = $this->normalize($customer) . '|'
             . $this->normalize($project) . '|'
             . $this->normalize($partNumber);
+        if ($partName !== null && $partName !== '') {
+            $key .= '|' . $this->normalize($partName);
+        }
+        return $key;
     }
 
-    private function spkKey($customer, $partNumber): string
+    private function spkKey($customer, $partNumber, $partName = null): string
+    {
+        $key = $this->normalize($customer) . '|' . $this->normalize($partNumber);
+        if ($partName !== null && $partName !== '') {
+            $key .= '|' . $this->normalize($partName);
+        }
+        return $key;
+    }
+
+    private function spkFallbackKey($customer, $partNumber): string
     {
         return $this->normalize($customer) . '|' . $this->normalize($partNumber);
     }
@@ -119,7 +132,7 @@ class MonitoringSubAssyController extends Controller
             ->orderBy('updated_at')
             ->orderBy('id')
             ->get()
-            ->keyBy(fn ($s) => $this->itemKey($s->customer, $s->project, $s->part_number));
+            ->keyBy(fn ($s) => $this->itemKey($s->customer, $s->project, $s->part_number, $s->part_name));
 
         $prevBulan = $bulan == 1 ? 12 : $bulan - 1;
         $prevTahun = $bulan == 1 ? $tahun - 1 : $tahun;
@@ -144,7 +157,7 @@ class MonitoringSubAssyController extends Controller
         $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
         $data = [];
         foreach ($aggregatedRekap as $rekap) {
-            $key = $this->itemKey($rekap->customer, $rekap->kode_project, $rekap->part_number);
+            $key = $this->itemKey($rekap->customer, $rekap->kode_project, $rekap->part_number, $rekap->models);
             $subAssy = $subAssies[$key] ?? null;
             $wipSebelumnya = 0;
             if ($subAssy && $subAssy->wip_sebelumnya != 0) {
@@ -189,10 +202,12 @@ class MonitoringSubAssyController extends Controller
                 }
             }
 
-            $apiKeyNormalized = $this->spkKey($rekap->customer, $rekap->part_number);
+            $apiKeyNormalized = $this->spkKey($rekap->customer, $rekap->part_number, $rekap->models);
+            $fallbackKey = $this->spkFallbackKey($rekap->customer, $rekap->part_number);
             
-            if (isset($spkMap[$apiKeyNormalized])) {
-                foreach ($spkMap[$apiKeyNormalized] as $day => $jumlah) {
+            $targetSpk = $spkMap[$apiKeyNormalized] ?? ($spkMap[$fallbackKey] ?? null);
+            if ($targetSpk) {
+                foreach ($targetSpk as $day => $jumlah) {
                     if ($day >= 1 && $day <= $jumlahHari) {
                         $row["spk_hari_{$day}"] = (int) $jumlah;
                     }
@@ -260,8 +275,9 @@ class MonitoringSubAssyController extends Controller
 
         // 1. Ambil data SPK terbaru dari Map (Backend/Cache source of truth)
         $spkMap = $this->getSpkMap($bulan, $tahun);
-        $apiKeyNormalized = $this->spkKey($customer, $partNumber);
-        $localSpkData = $spkMap[$apiKeyNormalized] ?? [];
+        $apiKeyNormalized = $this->spkKey($customer, $partNumber, $partName);
+        $fallbackKey = $this->spkFallbackKey($customer, $partNumber);
+        $localSpkData = $spkMap[$apiKeyNormalized] ?? ($spkMap[$fallbackKey] ?? []);
 
         // 2. Hitung ulang total SPK dan Produksi berdasarkan data harian
         $totalSPK = 0;
@@ -308,6 +324,7 @@ class MonitoringSubAssyController extends Controller
                     ->whereRaw("TRIM(COALESCE(customer, '')) = ?", [$customer])
                     ->whereRaw("TRIM(COALESCE(project, '')) = ?", [$projectKey])
                     ->whereRaw("TRIM(COALESCE(part_number, '')) = ?", [$partNumber])
+                    ->whereRaw("TRIM(COALESCE(part_name, '')) = ?", [$partName])
                     ->orderByDesc('id')
                     ->lockForUpdate()
                     ->first();
@@ -322,6 +339,7 @@ class MonitoringSubAssyController extends Controller
                     'customer' => $customer,
                     'project' => $project,
                     'part_number' => $partNumber,
+                    'part_name' => $partName,
                 ]);
             }
 
@@ -346,6 +364,7 @@ class MonitoringSubAssyController extends Controller
                     ->where('tahun', $tahun)
                     ->where('customer', $customer)
                     ->where('part_number', $partNumber)
+                    ->where('models', $partName)
                     ->where(function($q) use ($project) {
                         $proj = trim((string)$project);
                         if ($proj === '') {
@@ -431,6 +450,7 @@ class MonitoringSubAssyController extends Controller
                     ->where('tahun', $nextYear)
                     ->where('customer', $customer)
                     ->where('part_number', $partNumber)
+                    ->where('models', $partName)
                     ->where(function($q) use ($project) {
                         $proj = trim((string)$project);
                         if ($proj === '') {
@@ -462,7 +482,7 @@ class MonitoringSubAssyController extends Controller
             }
 
             // Cascade WIP updates to subsequent months
-            $this->cascadeWipUpdate($customer, $project, $partNumber, $bulan, $tahun, $oldWipAkhir, $wipAkhir);
+            $this->cascadeWipUpdate($customer, $project, $partNumber, $partName, $bulan, $tahun, $oldWipAkhir, $wipAkhir);
 
             return response()->json([
                 'status' => 'success',
@@ -508,7 +528,7 @@ class MonitoringSubAssyController extends Controller
      */
     public function getSpkMap($bulan, $tahun, $forceRefresh = false)
     {
-        $cacheKeyMap = "spk_map_v2_{$bulan}_{$tahun}";
+        $cacheKeyMap = "spk_map_v3_{$bulan}_{$tahun}";
         
         if (!$forceRefresh && Cache::has($cacheKeyMap)) {
             return Cache::get($cacheKeyMap);
@@ -559,8 +579,20 @@ class MonitoringSubAssyController extends Controller
 
                 $tgl = $tanggal->day;
                 foreach (($spk['details'] ?? []) as $detail) {
-                    $key = $this->spkKey($detail['customer'] ?? '', $detail['part_number'] ?? '');
-                    $spkMap[$key][$tgl] = ($spkMap[$key][$tgl] ?? 0) + (int) ($detail['qty_order_prod'] ?? 0);
+                    $cust = $detail['customer'] ?? '';
+                    $pn = $detail['part_number'] ?? '';
+                    $namaPart = $detail['nama_part'] ?? ($detail['part_name'] ?? '');
+                    $qty = (int) ($detail['qty_order_prod'] ?? 0);
+
+                    // 1. Kunci spesifik dengan nama part
+                    $key = $this->spkKey($cust, $pn, $namaPart);
+                    $spkMap[$key][$tgl] = ($spkMap[$key][$tgl] ?? 0) + $qty;
+
+                    // 2. Kunci fallback jika nama_part di SPK kosong
+                    if (trim((string)$namaPart) === '') {
+                        $fallbackKey = $this->spkFallbackKey($cust, $pn);
+                        $spkMap[$fallbackKey][$tgl] = ($spkMap[$fallbackKey][$tgl] ?? 0) + $qty;
+                    }
                 }
             } catch (\Throwable $e) {
                 continue;
@@ -588,7 +620,7 @@ class MonitoringSubAssyController extends Controller
         return $payload;
     }
 
-    private function cascadeWipUpdate($customer, $project, $partNumber, $bulan, $tahun, $oldWipAkhir, $newWipAkhir)
+    private function cascadeWipUpdate($customer, $project, $partNumber, $partName, $bulan, $tahun, $oldWipAkhir, $newWipAkhir)
     {
         if ((int)$oldWipAkhir === (int)$newWipAkhir) {
             return;
@@ -604,6 +636,7 @@ class MonitoringSubAssyController extends Controller
             'customer' => $customer,
             'project' => $project,
             'part_number' => $partNumber,
+            'part_name' => $partName,
         ])->first();
 
         if ($nextSubAssy) {
@@ -628,7 +661,7 @@ class MonitoringSubAssyController extends Controller
                 $this->recalculateDailyWip($nextSubAssy);
 
                 // Cascade recursively to the month after next
-                $this->cascadeWipUpdate($customer, $project, $partNumber, $nextBulan, $nextTahun, $oldNextWipAkhir, $newNextWipAkhir);
+                $this->cascadeWipUpdate($customer, $project, $partNumber, $partName, $nextBulan, $nextTahun, $oldNextWipAkhir, $newNextWipAkhir);
             }
         }
     }

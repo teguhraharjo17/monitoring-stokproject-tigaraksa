@@ -71,9 +71,15 @@ class SyncMonitoringFromRekap extends Command
 
         $levelStokDetails = [];
         if ($levelStokHeader) {
-            $levelStokDetails = LevelStokDetail::where('level_stok_id', $levelStokHeader->id)
-                ->get()
-                ->keyBy(fn($item) => $this->normalizeKey($item->customer, $item->kode_projek, $item->part_number));
+            $details = LevelStokDetail::where('level_stok_id', $levelStokHeader->id)->get();
+            foreach ($details as $item) {
+                $keyWithModel = $this->normalizeKey($item->customer, $item->kode_projek, $item->part_number, $item->models);
+                $keyWithoutModel = $this->normalizeKey($item->customer, $item->kode_projek, $item->part_number);
+                $levelStokDetails[$keyWithModel] = $item;
+                if (!isset($levelStokDetails[$keyWithoutModel])) {
+                    $levelStokDetails[$keyWithoutModel] = $item;
+                }
+            }
         }
 
         $countSubAssy = 0;
@@ -81,8 +87,9 @@ class SyncMonitoringFromRekap extends Command
         $countFG = 0;
 
         foreach ($rekapList as $rekap) {
-            $key = $this->normalizeKey($rekap->customer, $rekap->kode_project, $rekap->part_number);
-            $level = $levelStokDetails[$key] ?? null;
+            $keyExact = $this->normalizeKey($rekap->customer, $rekap->kode_project, $rekap->part_number, $rekap->models);
+            $keyFallback = $this->normalizeKey($rekap->customer, $rekap->kode_project, $rekap->part_number);
+            $level = $levelStokDetails[$keyExact] ?? ($levelStokDetails[$keyFallback] ?? null);
 
             $project = trim((string)$rekap->kode_project);
 
@@ -95,6 +102,7 @@ class SyncMonitoringFromRekap extends Command
                 'customer' => $rekap->customer,
                 'project' => $project,
                 'part_number' => $rekap->part_number,
+                'part_name' => $rekap->models,
             ])->first();
 
             if (!$subAssy) {
@@ -189,9 +197,9 @@ class SyncMonitoringFromRekap extends Command
                     'customer' => $rekap->customer,
                     'project' => $project,
                     'part_number' => $rekap->part_number,
+                    'part_name' => $rekap->models,
                 ],
                 [
-                    'part_name' => $rekap->models,
                     'stock_awal' => (int) ($rekap->stock_awal_mip ?? 0),
                     'level_min' => (int) ($level->min ?? 0),
                     'level_safety' => (int) ($level->safety_mip ?? 0),
@@ -241,11 +249,10 @@ class SyncMonitoringFromRekap extends Command
                     'customer' => $rekap->customer,
                     'project' => $project,
                     'part_number' => $rekap->part_number,
+                    'part_name' => $rekap->models,
                 ],
                 [
-                    'part_name' => $rekap->models,
                     'stock_awal' => (int) ($rekap->stock_awal_fg ?? 0),
-                    'total_po' => (int) ($rekap->total_qty_bulan_ini ?? 0),
                     'level_min' => (int) ($level->min ?? 0),
                     'level_safety' => (int) ($level->safety_fg ?? 0),
                     'level_max' => (int) ($level->max ?? 0),
@@ -311,13 +318,18 @@ class SyncMonitoringFromRekap extends Command
     /**
      * Normalisasi key untuk matching Level Stok Detail
      */
-    private function normalizeKey(?string $customer, ?string $project, ?string $partNumber): string
+    private function normalizeKey(?string $customer, ?string $project, ?string $partNumber, ?string $models = null): string
     {
         $cust = strtoupper(str_replace([' ', '-', '_'], '', $customer ?? ''));
         $proj = strtoupper(str_replace([' ', '-', '_'], '', $project ?? ''));
         $pn = strtoupper(str_replace([' ', '-', '_'], '', $partNumber ?? ''));
 
-        return "{$cust}|{$proj}|{$pn}";
+        $key = "{$cust}|{$proj}|{$pn}";
+        if ($models !== null && $models !== '') {
+            $modelStr = strtoupper(str_replace([' ', '-', '_'], '', $models));
+            $key .= "|{$modelStr}";
+        }
+        return $key;
     }
 
     private function normalizePartKey(?string $partNumber, ?string $partName): string

@@ -106,7 +106,7 @@ class MonitoringMIPExport implements FromArray, WithStyles, WithEvents
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->get()
-            ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number));
+            ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number) . '|' . $this->normalize($h->part_name));
 
         // 4. SubAssy Produksi (IN)
         $subAssyList = SubAssy::with(['details' => function ($q) {
@@ -115,13 +115,14 @@ class MonitoringMIPExport implements FromArray, WithStyles, WithEvents
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->get()
-            ->keyBy(fn($s) => $this->normalize($s->customer) . '|' . $this->normalize($s->project) . '|' . $this->normalize($s->part_number));
+            ->keyBy(fn($s) => $this->normalize($s->customer) . '|' . $this->normalize($s->project) . '|' . $this->normalize($s->part_number) . '|' . $this->normalize($s->part_name));
 
         $no = 1;
         foreach ($aggregatedRekap as $item) {
-            $matchKey = $this->normalize($item->customer) . '|' . $this->normalize($item->kode_project) . '|' . $this->normalize($item->part_number);
+            $matchKey = $this->normalize($item->customer) . '|' . $this->normalize($item->kode_project) . '|' . $this->normalize($item->part_number) . '|' . $this->normalize($item->models);
+            $levelKey = $this->normalize($item->customer) . '|' . $this->normalize($item->kode_project) . '|' . $this->normalize($item->part_number);
 
-            $level = $levelStokMap[$matchKey] ?? null;
+            $level = $levelStokMap[$levelKey] ?? null;
             $header = $mipHeaders[$matchKey] ?? null;
             $details = $header ? $header->details->keyBy('tanggal') : collect();
 

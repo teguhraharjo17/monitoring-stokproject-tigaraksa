@@ -24,7 +24,7 @@ class LevelStockController extends Controller
             ['jumlah_hari_kerja_atas_100' => 0, 'jumlah_hari_kerja_bawah_100' => 0]
         );
 
-        $masterItems = MasterItem::select('part_number', 'customer', 'kode_project', 'nama_part')->get();
+        $masterItems = MasterItem::select('id', 'part_number', 'customer', 'kode_project', 'nama_part')->get();
 
         return view('pages.levelstock.redesign', compact(
             'selectedBulan',

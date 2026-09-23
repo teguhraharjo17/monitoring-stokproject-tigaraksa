@@ -87,7 +87,7 @@ class SubAssyExport implements FromArray, WithStyles, WithTitle, WithEvents
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->get()
-            ->keyBy(fn ($s) => $this->normalize($s->customer) . '|' . $this->normalize($s->project) . '|' . $this->normalize($s->part_number));
+            ->keyBy(fn ($s) => $this->normalize($s->customer) . '|' . $this->normalize($s->project) . '|' . $this->normalize($s->part_number) . '|' . $this->normalize($s->part_name));
 
         $prevBulan = $bulan == 1 ? 12 : $bulan - 1;
         $prevTahun = $bulan == 1 ? $tahun - 1 : $tahun;
@@ -109,7 +109,7 @@ class SubAssyExport implements FromArray, WithStyles, WithTitle, WithEvents
 
         $no = 1;
         foreach ($aggregatedRekap as $rekap) {
-            $key = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number);
+            $key = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number) . '|' . $this->normalize($rekap->models);
             $subAssy = $subAssies[$key] ?? null;
 
             $wipSebelumnya = 0;
@@ -121,8 +121,9 @@ class SubAssyExport implements FromArray, WithStyles, WithTitle, WithEvents
                 $wipSebelumnya = (int) ($prevSubAssy ? $prevSubAssy->wip_akhir : ($rekap->wip_spk_sa ?? 0));
             }
 
-            $apiKeyNormalized = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->part_number);
-            $localSpk = $spkMap[$apiKeyNormalized] ?? [];
+            $apiKeyNormalized = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->part_number) . '|' . $this->normalize($rekap->models);
+            $fallbackKey = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->part_number);
+            $localSpk = $spkMap[$apiKeyNormalized] ?? ($spkMap[$fallbackKey] ?? []);
 
             $prodMap = [];
             if ($subAssy && $subAssy->details) {

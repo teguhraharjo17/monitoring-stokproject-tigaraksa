@@ -93,7 +93,7 @@ class MonitoringMIPController extends Controller
                 ->where('bulan', $bulan)
                 ->where('tahun', $tahun)
                 ->get()
-                ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number));
+                ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number) . '|' . $this->normalize($h->part_name));
 
             // 4. Bulk Load SubAssy (Produksi)
             $subAssyList = SubAssy::with(['details' => function ($q) {
@@ -102,15 +102,16 @@ class MonitoringMIPController extends Controller
                 ->where('bulan', $bulan)
                 ->where('tahun', $tahun)
                 ->get()
-                ->keyBy(fn($s) => $this->normalize($s->customer) . '|' . $this->normalize($s->project) . '|' . $this->normalize($s->part_number));
+                ->keyBy(fn($s) => $this->normalize($s->customer) . '|' . $this->normalize($s->project) . '|' . $this->normalize($s->part_number) . '|' . $this->normalize($s->part_name));
 
             $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
             $data = [];
 
             foreach ($aggregatedRekap as $item) {
-                $matchKey = $this->normalize($item->customer) . '|' . $this->normalize($item->kode_project) . '|' . $this->normalize($item->part_number);
+                $matchKey = $this->normalize($item->customer) . '|' . $this->normalize($item->kode_project) . '|' . $this->normalize($item->part_number) . '|' . $this->normalize($item->models);
+                $levelKey = $this->normalize($item->customer) . '|' . $this->normalize($item->kode_project) . '|' . $this->normalize($item->part_number);
                 
-                $level = $levelStokMap[$matchKey] ?? null;
+                $level = $levelStokMap[$levelKey] ?? null;
                 $header = $mipHeaders[$matchKey] ?? null;
                 $details = $header ? $header->details->keyBy('tanggal') : collect();
                 
@@ -193,6 +194,7 @@ class MonitoringMIPController extends Controller
                     ->where('tahun', $tahun)
                     ->where('customer', $customer)
                     ->where('part_number', $partNumber)
+                    ->where('models', $partName)
                     ->where(function($q) use ($project) {
                         if ($project === '' || $project === null) {
                             $q->whereNull('kode_project')->orWhere('kode_project', '');
@@ -216,6 +218,7 @@ class MonitoringMIPController extends Controller
             ->where('tahun', $tahun)
             ->where('customer', $customer)
             ->where('part_number', $partNumber)
+            ->where('part_name', $partName)
             ->where(function($q) use ($project) {
                 if ($project === '' || $project === null) {
                     $q->whereNull('project')->orWhere('project', '');
@@ -277,6 +280,7 @@ class MonitoringMIPController extends Controller
             ->where('tahun', $tahun)
             ->where('customer', $customer)
             ->where('part_number', $partNumber)
+            ->where('models', $partName)
             ->where(function($q) use ($project) {
                 if ($project === '' || $project === null) {
                     $q->whereNull('kode_project')->orWhere('kode_project', '');
@@ -296,6 +300,7 @@ class MonitoringMIPController extends Controller
                 ->where('tahun', $nextYear)
                 ->where('customer', $customer)
                 ->where('part_number', $partNumber)
+                ->where('models', $partName)
                 ->where(function($q) use ($project) {
                     if ($project === '' || $project === null) {
                         $q->whereNull('kode_project')->orWhere('kode_project', '');
@@ -340,6 +345,7 @@ class MonitoringMIPController extends Controller
             'customer' => 'required|string',
             'project' => 'nullable|string',
             'part_number' => 'required|string',
+            'part_name' => 'nullable|string',
             'stock_awal' => 'required|integer',
         ]);
 
@@ -347,11 +353,15 @@ class MonitoringMIPController extends Controller
 
         try {
             $project = trim((string) $request->project);
+            $partName = trim((string) $request->part_name);
 
             $header = MonitoringMIPHeader::where('bulan', $request->bulan)
                 ->where('tahun', $request->tahun)
                 ->where('customer', $request->customer)
                 ->where('part_number', $request->part_number)
+                ->when($partName !== '', function($q) use ($partName) {
+                    $q->where('part_name', $partName);
+                })
                 ->where(function($q) use ($project) {
                     if ($project === null || $project === '') {
                         $q->whereNull('project')->orWhere('project', '');
@@ -386,6 +396,9 @@ class MonitoringMIPController extends Controller
                 ->where('tahun', $request->tahun)
                 ->where('customer', $request->customer)
                 ->where('part_number', $request->part_number)
+                ->when($partName !== '', function($q) use ($partName) {
+                    $q->where('models', $partName);
+                })
                 ->where(function($q) use ($project) {
                     if ($project === null || $project === '') {
                         $q->whereNull('kode_project')->orWhere('kode_project', '');
@@ -418,6 +431,9 @@ class MonitoringMIPController extends Controller
                 ->where('tahun', $nextYear)
                 ->where('customer', $request->customer)
                 ->where('part_number', $request->part_number)
+                ->when($partName !== '', function($q) use ($partName) {
+                    $q->where('models', $partName);
+                })
                 ->where(function($q) use ($project) {
                     if ($project === null) {
                         $q->whereNull('kode_project')->orWhere('kode_project', '');

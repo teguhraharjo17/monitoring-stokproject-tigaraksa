@@ -392,11 +392,12 @@
 
                             masterItems.forEach(item => {
                                 const selected = item.part_number === partNumberFromDB ? 'selected' : '';
+                                const label = `${item.part_number} — ${item.nama_part || '-'} (${item.customer || '-'})`;
                                 options += `<option value="${item.part_number}" ${selected}
                                     data-customer="${item.customer}"
                                     data-kode_project="${item.kode_project}"
                                     data-models="${item.nama_part}">
-                                    ${item.part_number}
+                                    ${label}
                                 </option>`;
                             });
 
@@ -529,7 +530,7 @@
                         data-customer="{{ $item->customer }}"
                         data-kode_project="{{ $item->kode_project }}"
                         data-models="{{ $item->nama_part }}">
-                        {{ $item->part_number }}
+                        {{ $item->part_number }} — {{ $item->nama_part ?? '-' }} ({{ $item->customer ?? '-' }})
                     </option>`;
                 @endforeach
 

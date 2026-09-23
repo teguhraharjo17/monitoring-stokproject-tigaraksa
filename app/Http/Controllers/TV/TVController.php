@@ -51,7 +51,7 @@ class TVController extends Controller
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->get()
-            ->keyBy(fn ($s) => $this->normalizeKey($s->customer) . '|' . $this->normalizeKey($s->project) . '|' . $this->normalizeKey($s->part_number));
+            ->keyBy(fn ($s) => $this->normalizeKey($s->customer) . '|' . $this->normalizeKey($s->project) . '|' . $this->normalizeKey($s->part_number) . '|' . $this->normalizeKey($s->part_name));
 
         $prevBulan = $bulan == 1 ? 12 : $bulan - 1;
         $prevTahun = $bulan == 1 ? $tahun - 1 : $tahun;
@@ -73,7 +73,7 @@ class TVController extends Controller
 
         $rows = [];
         foreach ($aggregatedRekap as $rekap) {
-            $key = $this->normalizeKey($rekap->customer) . '|' . $this->normalizeKey($rekap->kode_project) . '|' . $this->normalizeKey($rekap->part_number);
+            $key = $this->normalizeKey($rekap->customer) . '|' . $this->normalizeKey($rekap->kode_project) . '|' . $this->normalizeKey($rekap->part_number) . '|' . $this->normalizeKey($rekap->models);
             $subAssy = $subAssies[$key] ?? null;
 
             $wipSebelumnya = 0;
@@ -85,8 +85,9 @@ class TVController extends Controller
                 $wipSebelumnya = (int) ($prevSubAssy ? $prevSubAssy->wip_akhir : ($rekap->wip_spk_sa ?? 0));
             }
 
-            $apiKeyNormalized = $this->normalizeKey($rekap->customer) . '|' . $this->normalizeKey($rekap->part_number);
-            $localSpk = $spkMap[$apiKeyNormalized] ?? [];
+            $apiKeyNormalized = $this->normalizeKey($rekap->customer) . '|' . $this->normalizeKey($rekap->part_number) . '|' . $this->normalizeKey($rekap->models);
+            $fallbackKey = $this->normalizeKey($rekap->customer) . '|' . $this->normalizeKey($rekap->part_number);
+            $localSpk = $spkMap[$apiKeyNormalized] ?? ($spkMap[$fallbackKey] ?? []);
 
             $prodMap = [];
             if ($subAssy && $subAssy->details) {
@@ -181,19 +182,28 @@ class TVController extends Controller
         }
 
         // 2. Bulk Load Level Stok
-        $levelStokMap = DB::table('level_stok_detail as d')
+        $levelStokMap = [];
+        $levelStokDetails = DB::table('level_stok_detail as d')
             ->join('level_stok as l', 'l.id', '=', 'd.level_stok_id')
             ->where('l.bulan', $bulan)
             ->where('l.tahun', $tahun)
-            ->get()
-            ->keyBy(fn($l) => $this->normalizeKey($l->customer) . '|' . $this->normalizeKey($l->kode_projek) . '|' . $this->normalizeKey($l->part_number));
+            ->get();
+
+        foreach ($levelStokDetails as $l) {
+            $keyWithModel = $this->normalizeKey($l->customer) . '|' . $this->normalizeKey($l->kode_projek) . '|' . $this->normalizeKey($l->part_number) . '|' . $this->normalizeKey($l->models);
+            $keyWithoutModel = $this->normalizeKey($l->customer) . '|' . $this->normalizeKey($l->kode_projek) . '|' . $this->normalizeKey($l->part_number);
+            $levelStokMap[$keyWithModel] = $l;
+            if (!isset($levelStokMap[$keyWithoutModel])) {
+                $levelStokMap[$keyWithoutModel] = $l;
+            }
+        }
 
         // 3. Bulk Load MIP Headers & Details
         $mipHeaders = MonitoringMIPHeader::with('details')
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->get()
-            ->keyBy(fn($h) => $this->normalizeKey($h->customer) . '|' . $this->normalizeKey($h->project) . '|' . $this->normalizeKey($h->part_number));
+            ->keyBy(fn($h) => $this->normalizeKey($h->customer) . '|' . $this->normalizeKey($h->project) . '|' . $this->normalizeKey($h->part_number) . '|' . $this->normalizeKey($h->part_name));
 
         // 4. Bulk Load SubAssy (Produksi)
         $subAssyList = SubAssy::with(['details' => function ($q) {
@@ -202,13 +212,15 @@ class TVController extends Controller
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->get()
-            ->keyBy(fn($s) => $this->normalizeKey($s->customer) . '|' . $this->normalizeKey($s->project) . '|' . $this->normalizeKey($s->part_number));
+            ->keyBy(fn($s) => $this->normalizeKey($s->customer) . '|' . $this->normalizeKey($s->project) . '|' . $this->normalizeKey($s->part_number) . '|' . $this->normalizeKey($s->part_name));
 
         $rows = [];
         foreach ($aggregatedRekap as $item) {
-            $matchKey = $this->normalizeKey($item->customer) . '|' . $this->normalizeKey($item->kode_project) . '|' . $this->normalizeKey($item->part_number);
+            $matchKey = $this->normalizeKey($item->customer) . '|' . $this->normalizeKey($item->kode_project) . '|' . $this->normalizeKey($item->part_number) . '|' . $this->normalizeKey($item->models);
+            $levelKeyWithModel = $matchKey;
+            $levelKeyWithoutModel = $this->normalizeKey($item->customer) . '|' . $this->normalizeKey($item->kode_project) . '|' . $this->normalizeKey($item->part_number);
 
-            $level = $levelStokMap[$matchKey] ?? null;
+            $level = $levelStokMap[$levelKeyWithModel] ?? ($levelStokMap[$levelKeyWithoutModel] ?? null);
             $header = $mipHeaders[$matchKey] ?? null;
             $details = $header ? $header->details->keyBy('tanggal') : collect();
 
@@ -312,33 +324,44 @@ class TVController extends Controller
         }
 
         // 2. Bulk Load Level Stok
-        $levelStokMap = DB::table('level_stok_detail as d')
+        $levelStokMap = [];
+        $levelStokDetails = DB::table('level_stok_detail as d')
             ->join('level_stok as l', 'l.id', '=', 'd.level_stok_id')
             ->where('l.bulan', $bulan)
             ->where('l.tahun', $tahun)
-            ->get()
-            ->keyBy(fn($l) => $this->normalizeText($l->customer) . '|' . $this->normalizeText($l->kode_projek) . '|' . $this->normalizeText($l->part_number));
+            ->get();
+
+        foreach ($levelStokDetails as $l) {
+            $keyWithModel = $this->normalizeText($l->customer) . '|' . $this->normalizeText($l->kode_projek) . '|' . $this->normalizeText($l->part_number) . '|' . $this->normalizeText($l->models);
+            $keyWithoutModel = $this->normalizeText($l->customer) . '|' . $this->normalizeText($l->kode_projek) . '|' . $this->normalizeText($l->part_number);
+            $levelStokMap[$keyWithModel] = $l;
+            if (!isset($levelStokMap[$keyWithoutModel])) {
+                $levelStokMap[$keyWithoutModel] = $l;
+            }
+        }
 
         // 3. Bulk Load FG Headers & Details
         $fgHeaders = MonitoringFGHeader::with('details')
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->get()
-            ->keyBy(fn($h) => $this->normalizeText($h->customer) . '|' . $this->normalizeText($h->project) . '|' . $this->normalizeText($h->part_number));
+            ->keyBy(fn($h) => $this->normalizeText($h->customer) . '|' . $this->normalizeText($h->project) . '|' . $this->normalizeText($h->part_number) . '|' . $this->normalizeText($h->part_name));
 
         // 4. Bulk Load MIP Headers & Details
         $mipHeaders = MonitoringMIPHeader::with('details')
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->get()
-            ->keyBy(fn($h) => $this->normalizeText($h->customer) . '|' . $this->normalizeText($h->project) . '|' . $this->normalizeText($h->part_number));
+            ->keyBy(fn($h) => $this->normalizeText($h->customer) . '|' . $this->normalizeText($h->project) . '|' . $this->normalizeText($h->part_number) . '|' . $this->normalizeText($h->part_name));
 
         $rows = [];
 
         foreach ($aggregatedRekap as $rekap) {
-            $matchKey = $this->normalizeText($rekap->customer) . '|' . $this->normalizeText($rekap->kode_project) . '|' . $this->normalizeText($rekap->part_number);
+            $matchKey = $this->normalizeText($rekap->customer) . '|' . $this->normalizeText($rekap->kode_project) . '|' . $this->normalizeText($rekap->part_number) . '|' . $this->normalizeText($rekap->models);
+            $levelKeyWithModel = $matchKey;
+            $levelKeyWithoutModel = $this->normalizeText($rekap->customer) . '|' . $this->normalizeText($rekap->kode_project) . '|' . $this->normalizeText($rekap->part_number);
 
-            $level = $levelStokMap[$matchKey] ?? null;
+            $level = $levelStokMap[$levelKeyWithModel] ?? ($levelStokMap[$levelKeyWithoutModel] ?? null);
             $header = $fgHeaders[$matchKey] ?? null;
             $details = $header ? $header->details->keyBy('tanggal') : collect();
 
@@ -486,9 +509,13 @@ class TVController extends Controller
         };
     }
 
-    private function makeRekapKey(string $customer, string $project, string $partNumber): string
+    private function makeRekapKey(string $customer, string $project, string $partNumber, string $models = ''): string
     {
-        return $customer . '||' . $project . '||' . $partNumber;
+        $key = $customer . '||' . $project . '||' . $partNumber;
+        if ($models !== '') {
+            $key .= '||' . $models;
+        }
+        return $key;
     }
 
     private function buildRekapMap(int $bulan, int $tahun, string $customer = ''): array
@@ -500,6 +527,7 @@ class TVController extends Controller
                 'customer',
                 'kode_project',
                 'part_number',
+                'models',
                 'stock_awal_mip',
                 'stock_awal_fg',
                 'wip_spk_sa',
@@ -521,50 +549,60 @@ class TVController extends Controller
             $customerKey = $this->normalizeText($row->customer);
             $projectKey = $this->normalizeText($row->kode_project);
             $partNumberKey = $this->normalizeText($row->part_number);
+            $modelsKey = $this->normalizeText($row->models);
 
-            $keyExact = $this->makeRekapKey($customerKey, $projectKey, $partNumberKey);
+            $keyExact = $this->makeRekapKey($customerKey, $projectKey, $partNumberKey, $modelsKey);
+            $keyWithoutModel = $this->makeRekapKey($customerKey, $projectKey, $partNumberKey);
+            $keyFallbackWithoutProj = $this->makeRekapKey($customerKey, '', $partNumberKey, $modelsKey);
+            $keyGeneric = $this->makeRekapKey($customerKey, '', $partNumberKey);
 
-            if (!isset($map[$keyExact])) {
-                $map[$keyExact] = [
-                    'total_po' => 0,
-                    'total_qty_bulan_ini' => 0,
-                    'stock_awal_mip' => 0,
-                    'stock_awal_fg' => 0,
-                    'wip_spk_sa' => 0,
-                    'count' => 0,
-                ];
+            $entry = [
+                'total_po' => (int) ($row->os_bulan_lalu ?? 0) + (int) ($row->po_bulan_ini ?? 0),
+                'total_qty_bulan_ini' => (int) ($row->total_qty_bulan_ini ?? 0),
+                'stock_awal_mip' => (int) ($row->stock_awal_mip ?? 0),
+                'stock_awal_fg' => (int) ($row->stock_awal_fg ?? 0),
+                'wip_spk_sa' => (int) ($row->wip_spk_sa ?? 0),
+                'count' => 1,
+            ];
+
+            $map[$keyExact] = $entry;
+            if (!isset($map[$keyWithoutModel])) {
+                $map[$keyWithoutModel] = $entry;
             }
-
-            $map[$keyExact]['total_po'] += (int) ($row->os_bulan_lalu ?? 0) + (int) ($row->po_bulan_ini ?? 0);
-            $map[$keyExact]['total_qty_bulan_ini'] += (int) ($row->total_qty_bulan_ini ?? 0);
-            $map[$keyExact]['stock_awal_mip'] += (int) ($row->stock_awal_mip ?? 0);
-            $map[$keyExact]['stock_awal_fg'] += (int) ($row->stock_awal_fg ?? 0);
-            $map[$keyExact]['wip_spk_sa'] += (int) ($row->wip_spk_sa ?? 0);
-            $map[$keyExact]['count']++;
+            if (!isset($map[$keyFallbackWithoutProj])) {
+                $map[$keyFallbackWithoutProj] = $entry;
+            }
+            if (!isset($map[$keyGeneric])) {
+                $map[$keyGeneric] = $entry;
+            }
         }
 
         return $map;
     }
 
-    private function getRekapRow(array $rekapMap, ?string $customer, ?string $project, ?string $partNumber): array
+    private function getRekapRow(array $rekapMap, ?string $customer, ?string $project, ?string $partNumber, ?string $models = null): array
     {
         $customerKey = $this->normalizeText($customer);
         $projectKey = $this->normalizeText($project);
         $partNumberKey = $this->normalizeText($partNumber);
+        $modelsKey = $this->normalizeText($models);
 
-        $exactKey = $this->makeRekapKey($customerKey, $projectKey, $partNumberKey);
-        $fallbackKey = $this->makeRekapKey($customerKey, '', $partNumberKey);
-
-        if ($projectKey !== '' && isset($rekapMap[$exactKey])) {
-            return $rekapMap[$exactKey];
+        $keysToTry = [];
+        if ($modelsKey !== '') {
+            if ($projectKey !== '') {
+                $keysToTry[] = $this->makeRekapKey($customerKey, $projectKey, $partNumberKey, $modelsKey);
+            }
+            $keysToTry[] = $this->makeRekapKey($customerKey, '', $partNumberKey, $modelsKey);
         }
-
-        if (isset($rekapMap[$fallbackKey])) {
-            return $rekapMap[$fallbackKey];
+        if ($projectKey !== '') {
+            $keysToTry[] = $this->makeRekapKey($customerKey, $projectKey, $partNumberKey);
         }
+        $keysToTry[] = $this->makeRekapKey($customerKey, '', $partNumberKey);
 
-        if (isset($rekapMap[$exactKey])) {
-            return $rekapMap[$exactKey];
+        foreach ($keysToTry as $k) {
+            if (isset($rekapMap[$k])) {
+                return $rekapMap[$k];
+            }
         }
 
         return [
@@ -579,7 +617,7 @@ class TVController extends Controller
 
     private function transformSubAssyRow(SubAssy $item, int $daysInMonth, array $rekapMap): array
     {
-        $rekap = $this->getRekapRow($rekapMap, $item->customer, $item->project, $item->part_number);
+        $rekap = $this->getRekapRow($rekapMap, $item->customer, $item->project, $item->part_number, $item->part_name);
 
         $spkDays = $this->blankDayMap($daysInMonth);
         $prodDays = $this->blankDayMap($daysInMonth);
@@ -657,7 +695,7 @@ class TVController extends Controller
 
     private function transformMIPRow(MonitoringMIPHeader $item, int $daysInMonth, array $rekapMap): array
     {
-        $rekap = $this->getRekapRow($rekapMap, $item->customer, $item->project, $item->part_number);
+        $rekap = $this->getRekapRow($rekapMap, $item->customer, $item->project, $item->part_number, $item->part_name);
 
         $inDays = $this->blankDayMap($daysInMonth);
         $outDays = $this->blankDayMap($daysInMonth);

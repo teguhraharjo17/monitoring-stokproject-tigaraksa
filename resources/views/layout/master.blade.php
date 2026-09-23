@@ -72,6 +72,28 @@
 <!--end::Custom Javascript-->
 <!--end::Javascript-->
 
+<script>
+    // Global Accessibility Fix: Prevent 'Blocked aria-hidden on an element because its descendant retained focus'
+    document.addEventListener('hide.bs.modal', function (e) {
+        if (document.activeElement && e.target && e.target.contains(document.activeElement)) {
+            document.activeElement.blur();
+        }
+    }, true);
+
+    document.addEventListener('hidden.bs.modal', function (e) {
+        if (document.activeElement && e.target && e.target.contains(document.activeElement)) {
+            document.activeElement.blur();
+        }
+    }, true);
+
+    document.addEventListener('click', function (e) {
+        var dismissBtn = e.target.closest('[data-bs-dismiss="modal"], [data-dismiss="modal"], .btn-close');
+        if (dismissBtn) {
+            dismissBtn.blur();
+        }
+    }, true);
+</script>
+
 </body>
 <!--end::Body-->
 

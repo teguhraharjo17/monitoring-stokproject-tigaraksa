@@ -68,6 +68,20 @@ class MasterItemController extends Controller
             ], 422);
         }
 
+        $exists = MasterItem::where('customer', $request->customer)
+            ->where('part_number', $request->part_number)
+            ->where('nama_part', $request->nama_part)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors' => [
+                    'nama_part' => ['Item dengan Customer, Part Number, dan Nama Part ini sudah terdaftar.']
+                ]
+            ], 422);
+        }
+
         MasterItem::create($request->only(['customer', 'part_number', 'nama_part', 'kode_project']));
 
         return response()->json([
@@ -90,6 +104,21 @@ class MasterItemController extends Controller
             return response()->json([
                 'message' => 'Validasi gagal',
                 'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $exists = MasterItem::where('customer', $request->customer)
+            ->where('part_number', $request->part_number)
+            ->where('nama_part', $request->nama_part)
+            ->where('id', '!=', $id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors' => [
+                    'nama_part' => ['Item dengan Customer, Part Number, dan Nama Part ini sudah terdaftar.']
+                ]
             ], 422);
         }
 

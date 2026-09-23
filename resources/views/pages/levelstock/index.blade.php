@@ -391,10 +391,11 @@
                     },
                     {
                         data: 'part_number',
-                        render: function (data) {
+                        render: function (data, type, row) {
                             const options = masterItems.map(item => {
-                                const selected = data === item.part_number ? 'selected' : '';
-                                return `<option value="${item.part_number}" ${selected}>${item.part_number}</option>`;
+                                const selected = (data === item.part_number && (!row || !row.models || row.models === item.nama_part)) ? 'selected' : '';
+                                const label = `${item.part_number} — ${item.nama_part || '-'} (${item.customer || '-'})`;
+                                return `<option value="${item.part_number}" data-id="${item.id}" ${selected}>${label}</option>`;
                             }).join('');
                             return `
                                 <select class="form-select form-select-sm select-part-number" name="part_number">
@@ -468,8 +469,10 @@
             });
 
             $('#levelstock_table').on('change', '.select-part-number', function () {
+                const $selectedOption = $(this).find('option:selected');
                 const partNumber = $(this).val();
-                const selectedItem = masterItems.find(item => item.part_number === partNumber);
+                const itemId = $selectedOption.data('id');
+                const selectedItem = (itemId ? masterItems.find(item => item.id == itemId) : null) || masterItems.find(item => item.part_number === partNumber);
                 const $row = $(this).closest('tr');
 
                 if (!selectedItem) return;
@@ -578,7 +581,7 @@
 
             $('#tambah_baris').on('click', function () {
                 const options = masterItems.map(item =>
-                    `<option value="${item.part_number}">${item.part_number}</option>`
+                    `<option value="${item.part_number}" data-id="${item.id}">${item.part_number} — ${item.nama_part || '-'} (${item.customer || '-'})</option>`
                 ).join('');
 
                 const newRow = `

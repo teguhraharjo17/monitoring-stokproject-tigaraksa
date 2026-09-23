@@ -93,22 +93,23 @@ class MonitoringFinishGoodsController extends Controller
                 ->where('bulan', $bulan)
                 ->where('tahun', $tahun)
                 ->get()
-                ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number));
+                ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number) . '|' . $this->normalize($h->part_name));
 
             // 4. Bulk Load MIP Headers & Details
             $mipHeaders = MonitoringMIPHeader::with('details')
                 ->where('bulan', $bulan)
                 ->where('tahun', $tahun)
                 ->get()
-                ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number));
+                ->keyBy(fn($h) => $this->normalize($h->customer) . '|' . $this->normalize($h->project) . '|' . $this->normalize($h->part_number) . '|' . $this->normalize($h->part_name));
 
             $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
             $data = [];
 
             foreach ($aggregatedRekap as $rekap) {
-                $matchKey = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number);
+                $matchKey = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number) . '|' . $this->normalize($rekap->models);
+                $levelKey = $this->normalize($rekap->customer) . '|' . $this->normalize($rekap->kode_project) . '|' . $this->normalize($rekap->part_number);
                 
-                $level = $levelStokMap[$matchKey] ?? null;
+                $level = $levelStokMap[$levelKey] ?? null;
                 $header = $fgHeaders[$matchKey] ?? null;
                 $details = $header ? $header->details->keyBy('tanggal') : collect();
                 
@@ -211,6 +212,7 @@ class MonitoringFinishGoodsController extends Controller
                 'tahun' => $tahun,
                 'customer' => $customer,
                 'part_number' => $partNumber,
+                'part_name' => $partName,
             ])
             ->where(function($q) use ($project) {
                 if ($project === '') {
@@ -286,6 +288,7 @@ class MonitoringFinishGoodsController extends Controller
                 ->where('tahun', $tahun)
                 ->where('customer', $customer)
                 ->where('part_number', $partNumber)
+                ->where('models', $partName)
                 ->where(function($q) use ($project) {
                     if ($project === '') {
                         $q->whereNull('kode_project')->orWhere('kode_project', '');
@@ -305,6 +308,7 @@ class MonitoringFinishGoodsController extends Controller
                     ->where('tahun', $nextYear)
                     ->where('customer', $customer)
                     ->where('part_number', $partNumber)
+                    ->where('models', $partName)
                     ->where(function($q) use ($project) {
                         if ($project === '') {
                             $q->whereNull('kode_project')->orWhere('kode_project', '');
@@ -364,6 +368,7 @@ class MonitoringFinishGoodsController extends Controller
             'customer' => 'required|string',
             'kode_project' => 'nullable|string',
             'part_number' => 'required|string',
+            'part_name' => 'nullable|string',
             'stock_awal' => 'required|integer',
         ]);
 
@@ -375,12 +380,17 @@ class MonitoringFinishGoodsController extends Controller
                 $project = null;
             }
 
+            $partName = trim((string) $request->part_name);
+
             $header = MonitoringFGHeader::where([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'customer' => $request->customer,
                 'part_number' => $request->part_number,
             ])
+            ->when($partName !== '', function($q) use ($partName) {
+                $q->where('part_name', $partName);
+            })
             ->where(function($q) use ($project) {
                 if ($project === null) {
                     $q->whereNull('project')->orWhere('project', '');
@@ -398,6 +408,9 @@ class MonitoringFinishGoodsController extends Controller
                 ->where('tahun', $request->tahun)
                 ->where('customer', $request->customer)
                 ->where('part_number', $request->part_number)
+                ->when($partName !== '', function($q) use ($partName) {
+                    $q->where('models', $partName);
+                })
                 ->where(function($q) use ($project) {
                     if ($project === null) {
                         $q->whereNull('kode_project')->orWhere('kode_project', '');
@@ -434,6 +447,9 @@ class MonitoringFinishGoodsController extends Controller
                 ->where('tahun', $nextYear)
                 ->where('customer', $request->customer)
                 ->where('part_number', $request->part_number)
+                ->when($partName !== '', function($q) use ($partName) {
+                    $q->where('models', $partName);
+                })
                 ->where(function($q) use ($project) {
                     if ($project === null) {
                         $q->whereNull('kode_project')->orWhere('kode_project', '');

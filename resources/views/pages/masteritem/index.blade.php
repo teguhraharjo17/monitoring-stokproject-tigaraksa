@@ -26,16 +26,16 @@
     </div>
 
     {{-- Modal Tambah --}}
-    <div class="modal fade" id="addItemModal" tabindex="-1">
+    <div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="addItemModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-md">
             <div class="modal-content shadow">
                 <form id="formAddItem" action="{{ route('master.item.store') }}" method="POST">
                     @csrf
                     <div class="modal-header bg-light">
-                        <h5 class="modal-title">
+                        <h5 class="modal-title" id="addItemModalLabel">
                             <i class="fas fa-box me-2"></i> Tambah Master Item
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
@@ -70,17 +70,17 @@
     </div>
 
     {{-- Modal Edit --}}
-    <div class="modal fade" id="editItemModal" tabindex="-1">
+    <div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-md">
             <div class="modal-content shadow">
                 <form id="formEditItem" method="POST">
                     @csrf
                     @method('PUT')
                     <div class="modal-header bg-light">
-                        <h5 class="modal-title">
+                        <h5 class="modal-title" id="editItemModalLabel">
                             <i class="fas fa-edit me-2"></i> Edit Master Item
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="id" id="edit_id">
@@ -369,6 +369,7 @@
                         className: 'btn btn-sm btn-primary',
                         action: function () {
                             $('#formAddItem')[0].reset();
+                            $('#add_customer').val(null).trigger('change');
                             $('#addItemModal').modal('show');
                         }
                     }
@@ -402,18 +403,36 @@
 
             $('#formAddItem').on('submit', function (e) {
                 e.preventDefault();
+                if (document.activeElement) {
+                    document.activeElement.blur();
+                }
+                const $form = $(this);
+                const $btn = $form.find('button[type="submit"]');
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>');
+
                 $.ajax({
-                    url: $(this).attr('action'),
+                    url: $form.attr('action'),
                     method: 'POST',
-                    data: $(this).serialize(),
-                    beforeSend: () => Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() }),
+                    data: $form.serialize(),
                     success: res => {
+                        $btn.prop('disabled', false).find('.spinner-border').remove();
                         $('#addItemModal').modal('hide');
-                        table.ajax.reload();
-                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message });
+                        $form[0].reset();
+                        $('#add_customer').val(null).trigger('change');
+                        table.ajax.reload(null, false);
+                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 1500, showConfirmButton: false });
                     },
-                    error: err => {
-                        Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Gagal menyimpan item.' });
+                    error: xhr => {
+                        $btn.prop('disabled', false).find('.spinner-border').remove();
+                        let errorMsg = 'Gagal menyimpan item.';
+                        if (xhr.responseJSON) {
+                            if (xhr.responseJSON.errors) {
+                                errorMsg = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                            } else if (xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                        }
+                        Swal.fire({ icon: 'error', title: 'Gagal!', html: errorMsg });
                     }
                 });
             });
@@ -430,19 +449,38 @@
 
             $('#formEditItem').on('submit', function (e) {
                 e.preventDefault();
+                if (document.activeElement) {
+                    document.activeElement.blur();
+                }
+                const $form = $(this);
+                const $btn = $form.find('button[type="submit"]');
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>');
+
                 const id = $('#edit_id').val();
                 const url = "{{ route('master.item.update', ':id') }}".replace(':id', id);
+
                 $.ajax({
                     url,
                     method: 'POST',
-                    data: $(this).serialize(),
-                    beforeSend: () => Swal.fire({ title: 'Memperbarui...', didOpen: () => Swal.showLoading() }),
+                    data: $form.serialize(),
                     success: res => {
+                        $btn.prop('disabled', false).find('.spinner-border').remove();
                         $('#editItemModal').modal('hide');
-                        table.ajax.reload();
-                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message });
+                        table.ajax.reload(null, false);
+                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 1500, showConfirmButton: false });
                     },
-                    error: () => Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Update gagal.' })
+                    error: xhr => {
+                        $btn.prop('disabled', false).find('.spinner-border').remove();
+                        let errorMsg = 'Update gagal.';
+                        if (xhr.responseJSON) {
+                            if (xhr.responseJSON.errors) {
+                                errorMsg = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                            } else if (xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                        }
+                        Swal.fire({ icon: 'error', title: 'Gagal!', html: errorMsg });
+                    }
                 });
             });
 

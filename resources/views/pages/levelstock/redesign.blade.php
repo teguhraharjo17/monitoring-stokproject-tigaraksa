@@ -1,251 +1,384 @@
 <x-default-layout>
     @section('title', 'Level Stock MIP & FG')
 
-    <style>
-        .level-shell { display: grid; gap: 1.5rem; }
-        .surface-card { border: 1px solid #dbe4f0; border-radius: 24px; background: linear-gradient(180deg, #fff 0%, #f8fbff 100%); box-shadow: 0 16px 40px rgba(15, 23, 42, .06); }
-        .hero-card { padding: 2.5rem; background: radial-gradient(circle at top right, rgba(14, 165, 233, .16), transparent 28%), linear-gradient(135deg, #f8fbff 0%, #ffffff 100%); position: relative; overflow: hidden; }
-        .hero-card::before { content: ""; position: absolute; top: -50px; left: -50px; width: 150px; height: 150px; background: rgba(20, 184, 166, 0.05); border-radius: 50%; filter: blur(40px); }
-        .eyebrow { display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .85rem; border-radius: 999px; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #0f766e; background: rgba(20, 184, 166, .12); margin-bottom: 1.5rem; }
-        .hero-title { margin: 0 0 .65rem; font-size: clamp(2rem, 3vw, 2.8rem); line-height: 1.1; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; }
-        .hero-copy, .section-copy { color: #64748b; line-height: 1.7; font-size: 1.05rem; }
-        .hero-metrics, .stats-grid, .filter-grid { display: grid; gap: 1.25rem; }
-        .hero-metrics, .stats-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-        .filter-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-        .metric-card, .stat-card, .formula-item { padding: 1rem 1.1rem; border-radius: 18px; background: #fff; border: 1px solid #dce6f3; }
-        .metric-card .label, .stat-card .label, .field-label { display: block; color: #64748b; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: .35rem; font-weight: 700; }
-        .metric-card .value, .stat-card .value { font-size: 1.35rem; font-weight: 800; color: #0f172a; }
-        .panel-card, .table-card { padding: 1.35rem; }
-        .section-title { margin: 0 0 .35rem; font-size: 1.05rem; font-weight: 800; color: #0f172a; }
-        .field-hint { margin-top: .4rem; font-size: .83rem; color: #64748b; }
-        .table-toolbar, .table-toolbar-actions, .table-help, .action-row { display: flex; flex-wrap: wrap; gap: .75rem; }
-        .table-toolbar { justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
-        .table-chip, .help-pill, .action-chip { display: inline-flex; align-items: center; gap: .45rem; padding: .55rem .9rem; border-radius: 999px; font-size: .8rem; font-weight: 700; }
-        .table-chip { background: #eef6ff; color: #1d4ed8; }
-        .help-pill { background: #f8fafc; border: 1px solid #dbe4f0; color: #475569; }
-        .table-responsive { border-radius: 16px; overflow: hidden; border: 1px solid #cbd5e1; background: #fff; }
-        #levelstock_table { 
-            width: 100% !important; 
-            margin: 0 !important; 
-            border-collapse: collapse !important; 
-            border: 1px solid #cbd5e1 !important;
-        }
-        #levelstock_table th, #levelstock_table td { 
-            border: 1px solid #cbd5e1 !important;
-            padding: 8px 10px !important;
-            vertical-align: middle !important;
-            text-align: center !important;
-        }
-        #levelstock_table thead th { 
-            background-color: #f8fafc !important; 
-            color: #0f172a !important; 
-            font-size: 13px !important; 
-            text-transform: uppercase !important; 
-            letter-spacing: .02em !important; 
-            font-weight: 800 !important; 
-            white-space: nowrap !important; 
-            border-bottom: 2px solid #cbd5e1 !important;
-        }
-        #levelstock_table tbody tr:hover td { background-color: #f8fbff !important; }
-        #levelstock_table .form-control, #levelstock_table .form-select { 
-            width: 100% !important;
-            border-radius: 6px !important; 
-            border: 1px solid #cbd5e1 !important; 
-            box-shadow: none !important; 
-            height: 32px !important;
-            font-size: 13px !important;
-            padding: 4px 8px !important;
-            font-weight: 800 !important;
-            text-align: center !important;
-        }
-        #levelstock_table input[name="models"] {
-            text-align: left !important;
-        }
-        #levelstock_table .form-control[readonly] { background-color: #f1f5f9 !important; color: #334155 !important; font-weight: 700 !important; }
-        .calc-input { background-color: #eff6ff !important; color: #1e40af !important; border: 1px solid #bfdbfe !important; font-weight: 800 !important; }
-        .action-cell { min-width: 180px; }
-        .action-stack { display: flex; flex-direction: column; gap: .45rem; }
-        .action-chip.info { color: #1d4ed8; background: #eff6ff; }
-        .action-chip.pending { color: #92400e; background: #fff7ed; }
-        .action-btn { border: 0; border-radius: 999px; padding: .55rem .9rem; font-size: .8rem; font-weight: 800; display: inline-flex; align-items: center; gap: .45rem; }
-        .action-btn.save { color: #fff; background: linear-gradient(135deg, #0f766e, #14b8a6); }
-        .action-btn.delete { color: #fff; background: linear-gradient(135deg, #b91c1c, #ef4444); }
-        .dataTables_wrapper .dataTables_filter input, .dataTables_wrapper .dataTables_length select { border-radius: 12px; border: 1px solid #d6e0ec; padding: .45rem .7rem; background: #fff; }
-        .dataTables_wrapper .dataTables_info { color: #64748b; padding-top: .85rem; }
-        .select2-container--default .select2-selection--single { min-height: 32px; height: 32px; border-radius: 6px; border: 1px solid #cbd5e1; display: flex; align-items: center; font-size: 13px; }
-        .select2-container .select2-selection__rendered { padding-left: .5rem !important; line-height: 30px !important; font-weight: 800; }
-        .select2-container .select2-selection__arrow { height: 30px !important; }
-
-        /* Premium Skeleton Loading */
-        .skeleton-row td { padding: 18px 10px !important; }
-        .skeleton-box { 
-            height: 20px; 
-            background: #e2e8f0; 
-            border-radius: 8px; 
-            position: relative; 
-            overflow: hidden; 
-        }
-        .skeleton-box::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            transform: translateX(-100%);
-            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
-            animation: shimmer 1.5s infinite;
-        }
-        @keyframes shimmer {
-            100% { transform: translateX(100%); }
-        }
-        .progress-container {
-            height: 3px;
-            width: 100%;
-            background: #f1f5f9;
-            overflow: hidden;
-            margin-bottom: 12px;
-            border-radius: 999px;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            width: 30%;
-            background: linear-gradient(90deg, #0ea5e9, #38bdf8);
-            border-radius: 999px;
-            animation: progress-move 1.2s infinite ease-in-out;
-        }
-        @keyframes progress-move {
-            0% { margin-left: -30%; }
-            100% { margin-left: 100%; }
-        }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        @media (max-width: 768px) { .surface-card { border-radius: 18px; } .table-toolbar { flex-direction: column; } }
-    </style>
-
-    <div class="level-shell mt-5">
-        <section class="surface-card hero-card">
-            <span class="eyebrow"><i class="fas fa-layer-group"></i> Kontrol Level Stock</span>
-            <h1 class="hero-title">Level Stock MIP & FG yang lebih jelas</h1>
-            <p class="hero-copy">Tentukan hari kerja, isi QTY per box, lalu sistem hitung otomatis nilai minimum, safety stock, dan maksimum agar keputusan stok lebih konsisten dan mudah dicek.</p>
-            <div class="hero-metrics">
-                <div class="metric-card"><span class="label">Periode aktif</span><span class="value" id="metricPeriod">{{ \Carbon\Carbon::create()->month((int) $selectedBulan)->translatedFormat('F') }} {{ $selectedTahun }}</span></div>
-                <div class="metric-card"><span class="label">Hari kerja > 100 set</span><span class="value" id="metricHariAtas">{{ $latestLevel->jumlah_hari_kerja_atas_100 ?? 0 }}</span></div>
-                <div class="metric-card"><span class="label">Hari kerja PO < 100 set</span><span class="value" id="metricHariBawah">{{ $latestLevel->jumlah_hari_kerja_bawah_100 ?? 0 }}</span></div>
-            </div>
-        </section>
-
-        <section class="row g-4">
-            <div class="col-12 col-xl-7">
-                <div class="surface-card panel-card h-100">
-                    <h2 class="section-title">Filter dan parameter hitung</h2>
-                    <p class="section-copy mb-4">Pilih periode aktif dan isi jumlah hari kerja untuk batas PO di atas atau di bawah 100 set.</p>
-                    <div class="filter-grid mb-4">
-                        <div>
-                            <label class="field-label" for="filter_bulan">Bulan</label>
-                            <select id="filter_bulan" class="form-select">
-                                @for ($i = 1; $i <= 12; $i++)
-                                    <option value="{{ $i }}" {{ (int) $selectedBulan === $i ? 'selected' : '' }}>{{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}</option>
-                                @endfor
-                            </select>
-                        </div>
-                        <div>
-                            <label class="field-label" for="filter_tahun">Tahun</label>
-                            <select id="filter_tahun" class="form-select">
-                                @for ($year = now()->year - 5; $year <= now()->year + 1; $year++)
-                                    <option value="{{ $year }}" {{ (int) $selectedTahun === $year ? 'selected' : '' }}>{{ $year }}</option>
-                                @endfor
-                            </select>
-                        </div>
-                        <div>
-                            <label class="field-label" for="hari_atas_100">Hari kerja untuk PO > 100 set</label>
-                            <input type="number" min="0" id="hari_atas_100" class="form-control" value="{{ $latestLevel->jumlah_hari_kerja_atas_100 ?? 0 }}" data-field="jumlah_hari_kerja_atas_100">
-                            <div class="field-hint">Dipakai saat total qty bulan ini lebih dari 100 set.</div>
-                        </div>
-                        <div>
-                            <label class="field-label" for="hari_bawah_100">Hari kerja untuk PO &lt; 100 set</label>
-                            <input type="number" min="0" id="hari_bawah_100" class="form-control" value="{{ $latestLevel->jumlah_hari_kerja_bawah_100 ?? 0 }}" data-field="jumlah_hari_kerja_bawah_100">
-                            <div class="field-hint">Dipakai saat total qty bulan ini tidak lebih dari 100 set.</div>
-                        </div>
+    <div class="level-shell my-5">
+        <!-- Hero Header -->
+        <section class="level-hero card">
+            <div class="card-body">
+                <div class="row g-4 align-items-center">
+                    <div class="col-xl-7">
+                        <span class="hero-chip mb-3"><i class="fas fa-layer-group me-2"></i>Kontrol Level Stock MIP & FG</span>
+                        <h1 class="text-white fw-bolder mb-2">Penetapan Level Stock Minimum & Maksimum</h1>
+                        <p class="hero-copy mb-0">Tentukan parameter hari kerja dan QTY per box. Sistem menghitung otomatis nilai Min, Safety MIP, Safety FG, dan Max berdasarkan kebutuhan PO bulan ini.</p>
                     </div>
-                    <div class="stats-grid">
-                        <div class="stat-card"><span class="label">Total baris</span><span class="value" id="summaryRows">0</span></div>
-                        <div class="stat-card"><span class="label">Sudah punya QTY/Box</span><span class="value" id="summaryConfigured">0</span></div>
-                        <div class="stat-card"><span class="label">Rata-rata Min</span><span class="value" id="summaryMin">0</span></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-xl-5">
-                <div class="surface-card panel-card h-100">
-                    <h2 class="section-title">Rumus yang dipakai</h2>
-                    <p class="section-copy mb-4">Aturan hitung dibuat transparan supaya user bisa memahami hasil MIP dan FG tanpa menebak-nebak.</p>
-                    <div class="d-grid gap-3">
-                        <div class="formula-item"><strong>Langkah 1</strong> hitung <strong>total qty bulan ini / hari kerja</strong>.</div>
-                        <div class="formula-item"><strong>Langkah 2</strong> nilai <strong>Min</strong> mengikuti Excel: <strong>CEILING(total qty bulan ini / hari kerja, QTY per box)</strong>.</div>
-                        <div class="formula-item"><strong>Safety MIP</strong> = <strong>Min x 2</strong> dan <strong>Safety FG</strong> = <strong>Min x 2</strong>.</div>
-                        <div class="formula-item"><strong>Max</strong> = <strong>Min x 5</strong>.</div>
+                    <div class="col-xl-5">
+                        <div class="hero-stats">
+                            <div class="hero-stat"><span class="label">Periode Aktif</span><span class="value" id="metricPeriod">{{ \Carbon\Carbon::create()->month((int) $selectedBulan)->translatedFormat('F') }} {{ $selectedTahun }}</span><span class="note">Bulan & tahun aktif</span></div>
+                            <div class="hero-stat"><span class="label">Hari PO > 100</span><span class="value" id="metricHariAtas">{{ $latestLevel->jumlah_hari_kerja_atas_100 ?? 0 }}</span><span class="note">Hari kerja order tinggi</span></div>
+                            <div class="hero-stat"><span class="label">Hari PO ≤ 100</span><span class="value" id="metricHariBawah">{{ $latestLevel->jumlah_hari_kerja_bawah_100 ?? 0 }}</span><span class="note">Hari kerja order rendah</span></div>
+                            <div class="hero-stat"><span class="label">Item Terkonfigurasi</span><span class="value" id="summaryConfigured">0</span><span class="note">Part dengan QTY/Box</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="surface-card table-card">
-            <div class="table-toolbar">
-                <div>
-                    <h2 class="section-title mb-1">Tabel level stock</h2>
-                    <p class="section-copy">Pilih part number, isi QTY per box, lalu simpan. Nilai Min, Safety, dan Max dihitung otomatis.</p>
+        <!-- Filter & Control Panel -->
+        <section class="card control-panel">
+            <div class="card-body p-4 p-lg-5">
+                <div class="row g-4 align-items-stretch">
+                    <div class="col-xl-7">
+                        <div class="panel-box h-100">
+                            <div class="panel-title"><i class="fas fa-sliders text-primary me-2"></i>Parameter Hari Kerja & Periode</div>
+                            <div class="panel-subtitle">Atur hari kerja bulanan untuk batas order > 100 set dan ≤ 100 set. Perubahan tersimpan otomatis.</div>
+                            <div class="row g-3 align-items-end mt-1">
+                                <div class="col-md-3 col-sm-6">
+                                    <label class="form-label fw-bold fs-7" for="filter_bulan">Bulan</label>
+                                    <select id="filter_bulan" class="form-select form-select-solid">
+                                        @for ($i = 1; $i <= 12; $i++)
+                                            <option value="{{ $i }}" {{ (int) $selectedBulan === $i ? 'selected' : '' }}>{{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}</option>
+                                        @endfor
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <label class="form-label fw-bold fs-7" for="filter_tahun">Tahun</label>
+                                    <select id="filter_tahun" class="form-select form-select-solid">
+                                        @for ($year = now()->year - 5; $year <= now()->year + 1; $year++)
+                                            <option value="{{ $year }}" {{ (int) $selectedTahun === $year ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endfor
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <label class="form-label fw-bold fs-7" for="hari_atas_100">Hari (PO &gt; 100)</label>
+                                    <input type="number" min="0" id="hari_atas_100" class="form-control form-control-solid" value="{{ $latestLevel->jumlah_hari_kerja_atas_100 ?? 0 }}" data-field="jumlah_hari_kerja_atas_100">
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <label class="form-label fw-bold fs-7" for="hari_bawah_100">Hari (PO ≤ 100)</label>
+                                    <input type="number" min="0" id="hari_bawah_100" class="form-control form-control-solid" value="{{ $latestLevel->jumlah_hari_kerja_bawah_100 ?? 0 }}" data-field="jumlah_hari_kerja_bawah_100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-5">
+                        <div class="panel-box h-100">
+                            <div class="panel-title"><i class="fas fa-calculator text-info me-2"></i>Panduan Rumus Hitung</div>
+                            <div class="formula-list mt-2">
+                                <div class="formula-row"><span class="badge-step">1</span> <span><strong>Kebutuhan/Hari</strong> = Total QTY Bulan Ini / Hari Kerja</span></div>
+                                <div class="formula-row"><span class="badge-step">2</span> <span><strong>Min</strong> = CEILING(Kebutuhan/Hari ÷ QTY Box) × QTY Box</span></div>
+                                <div class="formula-row"><span class="badge-step">3</span> <span><strong>Safety MIP & FG</strong> = Min × 2 &nbsp;|&nbsp; <strong>Max</strong> = Min × 5</span></div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <button id="tambah_baris" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Tambah Baris</button>
+                                <button id="refresh_table" class="btn btn-light-primary"><i class="fas fa-rotate-right me-2"></i>Refresh Data</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="table-toolbar-actions">
-                    <span class="table-chip"><i class="fas fa-circle-info"></i> Kolom biru dihitung otomatis</span>
-                    <button id="tambah_baris" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Baris</button>
-                    <button id="refresh_table" class="btn btn-light-primary"><i class="fas fa-rotate-right"></i> Refresh Data</button>
+            </div>
+        </section>
+
+        <!-- Main Data Grid Section -->
+        <section class="card table-panel">
+            <div class="card-body p-4 p-lg-5">
+                <!-- Toolbar Header -->
+                <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="panel-title mb-1">Tabel Penetapan Level Stock</div>
+                        <div class="panel-subtitle">Isi kolom <strong>QTY/Set Box</strong> untuk part terkait. Sistem akan menarik total order dan menghitung level stock otomatis.</div>
+                    </div>
+                    <div class="table-legend">
+                        <span class="legend-item"><span class="legend-box limit"></span>Batas Hitung (Min/Safety/Max)</span>
+                        <span class="legend-item"><span class="legend-box qtybox"></span>Input QTY per Box</span>
+                    </div>
                 </div>
-            </div>
 
-            <div id="table_progress_bar" class="progress-container d-none">
-                <div class="progress-bar-fill"></div>
-            </div>
+                <!-- Search and Live Counter Bar -->
+                <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center mb-3">
+                    <div class="position-relative" style="width: 320px; max-width: 100%;">
+                        <i class="fas fa-search position-absolute top-50 translate-middle-y ms-3 text-gray-400"></i>
+                        <input type="text" id="table_search" class="form-control form-control-solid ps-10" placeholder="Cari part number, customer, model...">
+                    </div>
+                    <div>
+                        <span class="badge badge-light-primary fs-7 fw-bold px-3 py-2" id="badge_counter">
+                            <i class="fas fa-database me-1 text-primary"></i> <span id="counter_visible">0</span> baris ditampilkan
+                        </span>
+                    </div>
+                </div>
 
-            <div class="table-help mb-3">
-                <span class="help-pill"><i class="fas fa-arrow-pointer"></i> Pilih part number untuk isi customer, project, dan model otomatis.</span>
-                <span class="help-pill"><i class="fas fa-calculator"></i> Isi QTY/Set Box agar rumus Min, Safety, dan Max langsung dihitung.</span>
-                <span class="help-pill"><i class="fas fa-floppy-disk"></i> Baris baru perlu disimpan sekali, setelah itu perubahan tersimpan otomatis.</span>
-            </div>
+                <!-- Loading Progress -->
+                <div id="table_progress_bar" class="progress-container d-none">
+                    <div class="progress-bar-fill"></div>
+                </div>
 
-            <div class="table-responsive">
-                <table id="levelstock_table" class="table table-bordered align-middle">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Part Number</th>
-                            <th>Customer</th>
-                            <th>Kode Projek</th>
-                            <th>Models</th>
-                            <th>Min</th>
-                            <th>Safety MIP</th>
-                            <th>Safety FG</th>
-                            <th>Max</th>
-                            <th>QTY/Set Box</th>
-                            <th>Aksi Baris</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <!-- High-Performance Data Grid Container (100% Locked Scroll) -->
+                <div class="table-grid-wrap">
+                    <table id="levelstock_table" class="table-grid align-middle mb-0">
+                        <colgroup>
+                            <col class="col-no">
+                            <col class="col-part">
+                            <col class="col-cust">
+                            <col class="col-proj">
+                            <col class="col-model">
+                            <col class="col-min">
+                            <col class="col-safety-mip">
+                            <col class="col-safety-fg">
+                            <col class="col-max">
+                            <col class="col-qty-box">
+                            <col class="col-action">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="col-no text-center">#</th>
+                                <th class="col-part text-start ps-3"><i class="fas fa-barcode text-muted me-1"></i> Part Number</th>
+                                <th class="col-cust text-center"><i class="fas fa-building text-muted me-1"></i> Customer</th>
+                                <th class="col-proj text-center"><i class="fas fa-hashtag text-muted me-1"></i> Proj</th>
+                                <th class="col-model text-start ps-3"><i class="fas fa-tag text-muted me-1"></i> Model</th>
+                                <th class="col-min th-limit text-end pe-2"><span class="th-badge th-badge-min">MIN</span> Minimum</th>
+                                <th class="col-safety-mip th-limit text-end pe-2"><span class="th-badge th-badge-safety">MIP</span> Safety Stock</th>
+                                <th class="col-safety-fg th-limit text-end pe-2"><span class="th-badge th-badge-safety">FG</span> Safety Stock</th>
+                                <th class="col-max th-limit text-end pe-2"><span class="th-badge th-badge-max">MAX</span> Maksimum</th>
+                                <th class="col-qty-box th-qtybox text-end pe-2"><span class="th-badge th-badge-qtybox">INPUT</span> QTY/Box</th>
+                                <th class="col-action text-center"><i class="fas fa-sliders text-muted me-1"></i> Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Footer Summary Info -->
+                <div class="d-flex justify-content-between align-items-center mt-3 text-muted fs-7">
+                    <div id="table_info_text">Menampilkan 0 baris level stock</div>
+                    <div class="text-end"><i class="fas fa-arrows-left-right me-1"></i> Geser horizontal untuk melihat seluruh kolom</div>
+                </div>
             </div>
         </section>
     </div>
 
+    <style>
+        .level-shell { display: grid; gap: 1.5rem; }
+        .level-hero { border: 0; border-radius: 24px; overflow: hidden; background: radial-gradient(circle at top right, rgba(255,255,255,.18), transparent 28%), linear-gradient(135deg, #0284c7 0%, #0369a1 44%, #0f766e 100%); box-shadow: 0 20px 50px rgba(3, 105, 161, .15); }
+        .level-hero .card-body { padding: 2rem; }
+        .hero-chip { display: inline-flex; align-items: center; padding: .55rem .95rem; border-radius: 999px; background: rgba(255,255,255,.15); color: #fff; font-size: .88rem; font-weight: 600; }
+        .hero-copy { color: rgba(255,255,255,.85); font-size: .95rem; max-width: 680px; }
+        .hero-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
+        .hero-stat { padding: 1rem 1.1rem; border-radius: 18px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); color: #fff; }
+        .hero-stat .label { display: block; font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.75); }
+        .hero-stat .value { display: block; margin-top: .3rem; font-weight: 800; font-size: 1.45rem; line-height: 1.1; font-family: 'Fira Code', monospace; }
+        .hero-stat .note { display: block; margin-top: .35rem; color: rgba(255,255,255,.75); font-size: .8rem; }
+        .control-panel, .table-panel { border: 0; border-radius: 20px; background: #fff; box-shadow: 0 10px 30px rgba(15, 23, 42, .05); border: 1px solid #e2e8f0; }
+        .panel-box { height: 100%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.1rem; }
+        .panel-title { font-size: 1.05rem; font-weight: 700; color: #0f172a; }
+        .panel-subtitle { color: #64748b; font-size: .88rem; }
+        
+        .formula-list { display: grid; gap: .4rem; }
+        .formula-row { font-size: .84rem; color: #334155; display: flex; align-items: center; gap: .5rem; }
+        .badge-step { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #0284c7; color: #fff; font-size: 10px; font-weight: 800; flex-shrink: 0; }
+
+        .table-legend { display: flex; flex-wrap: wrap; gap: .65rem; }
+        .legend-item { display: inline-flex; align-items: center; gap: .45rem; padding: .4rem .75rem; border-radius: 999px; background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; font-size: .82rem; font-weight: 600; }
+        .legend-box { width: 10px; height: 10px; border-radius: 3px; }
+        .legend-box.limit { background: #0284c7; }
+        .legend-box.qtybox { background: #8b5cf6; }
+
+        /* Unified Table Grid Container (UI/UX Pro Max Architecture) */
+        .table-grid-wrap { 
+            max-height: 68vh;
+            overflow: auto !important;
+            border-radius: 12px; 
+            border: 1px solid #cbd5e1; 
+            background: #fff; 
+            position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 #f1f5f9;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+        }
+        .table-grid-wrap::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-grid-wrap::-webkit-scrollbar-track { background: #f8fafc; }
+        .table-grid-wrap::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .table-grid-wrap::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+
+        .table-grid { 
+            width: 100% !important;
+            min-width: 1525px !important;
+            table-layout: fixed !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* Explicit Column Width Tokens (Spacious & Responsive on Zoom) */
+        .col-no { width: 45px !important; min-width: 45px !important; max-width: 45px !important; }
+        .col-part { width: 310px !important; min-width: 310px !important; max-width: 310px !important; }
+        .col-cust { width: 105px !important; min-width: 105px !important; max-width: 105px !important; }
+        .col-proj { width: 90px !important; min-width: 90px !important; max-width: 90px !important; }
+        .col-model { width: 225px !important; min-width: 225px !important; max-width: 225px !important; }
+        .col-min { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
+        .col-safety-mip { width: 145px !important; min-width: 145px !important; max-width: 145px !important; }
+        .col-safety-fg { width: 145px !important; min-width: 145px !important; max-width: 145px !important; }
+        .col-max { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
+        .col-qty-box { width: 125px !important; min-width: 125px !important; max-width: 125px !important; }
+        .col-action { width: 95px !important; min-width: 95px !important; max-width: 95px !important; }
+
+        .table-grid th, .table-grid td { 
+            border-right: 1px solid #e2e8f0 !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            border-left: 0 !important;
+            border-top: 0 !important;
+            padding: 6px 8px !important;
+            vertical-align: middle !important;
+            box-sizing: border-box !important;
+            background-color: #fff;
+        }
+
+        /* Sticky Header */
+        .table-grid thead th { 
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 10 !important;
+            background-color: #f8fafc !important; 
+            color: #0f172a !important; 
+            font-size: 11.5px !important; 
+            text-transform: uppercase !important; 
+            letter-spacing: .04em !important; 
+            font-weight: 800 !important; 
+            white-space: nowrap !important; 
+            overflow: visible !important;
+            border-bottom: 2px solid #cbd5e1 !important;
+            border-right: 1px solid #e2e8f0 !important;
+            padding: 10px 8px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            box-sizing: border-box !important;
+        }
+
+        /* Header Color Themes */
+        .table-grid thead th.th-limit { background-color: #f0f9ff !important; color: #0369a1 !important; border-top: 3px solid #0284c7 !important; }
+        .table-grid thead th.th-qtybox { background-color: #f5f3ff !important; color: #5b21b6 !important; border-top: 3px solid #8b5cf6 !important; }
+
+        .th-badge { font-size: 9.5px; padding: 2px 5px; border-radius: 4px; font-weight: 800; margin-right: 3px; display: inline-block; vertical-align: middle; }
+        .th-badge-min { background: #bae6fd; color: #0369a1; border: 1px solid #7dd3fc; }
+        .th-badge-safety { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
+        .th-badge-max { background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; }
+        .th-badge-qtybox { background: #ede9fe; color: #6d28d9; border: 1px solid #c4b5fd; }
+
+        .table-grid tbody tr:hover td { background-color: #f8fafc !important; }
+
+        /* Typography & Badges in Cells */
+        .badge-cust { display: inline-block; background: #f1f5f9; color: #1e293b; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.02em; border: 1px solid #e2e8f0; }
+        .badge-proj { display: inline-block; color: #475569; font-family: 'Fira Code', monospace; font-size: 11px; font-weight: 600; background: #f8fafc; padding: 3px 6px; border-radius: 4px; border: 1px solid #e2e8f0; }
+        .model-truncate { font-weight: 600; color: #1e293b; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 215px; }
+
+        /* Sleek Cell Input for Numbers */
+        .cell-num-input {
+            width: 100% !important;
+            height: 32px !important;
+            background: #fff !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            font-family: 'Fira Code', Consolas, monospace !important;
+            font-size: 12.5px !important;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+            text-align: right !important;
+            padding: 0 8px !important;
+            transition: all 0.15s ease !important;
+            outline: none !important;
+            box-shadow: none !important;
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+        .cell-num-input::-webkit-outer-spin-button,
+        .cell-num-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .cell-num-input:hover {
+            border-color: #94a3b8 !important;
+            background: #f8fafc !important;
+        }
+        .cell-num-input:focus {
+            border-color: #8b5cf6 !important;
+            background: #fff !important;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
+        }
+
+        /* Metric Pill Display for Calculated Values (No Input Borders) */
+        .metric-pill {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            height: 32px;
+            padding: 0 8px;
+            border-radius: 6px;
+            font-family: 'Fira Code', Consolas, monospace;
+            font-size: 12.5px;
+            font-weight: 800;
+            text-align: right;
+        }
+        .metric-min { background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
+        .metric-safety { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+        .metric-max { background: #faf5ff; color: #9333ea; border: 1px solid #e9d5ff; }
+
+        /* Action Badges & Buttons */
+        .badge-synced { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .65rem; border-radius: 999px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; font-size: 11px; font-weight: 700; }
+        .btn-action-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; border: 0; font-size: 11px; cursor: pointer; transition: all 0.15s; }
+        .btn-action-icon.save { background: #10b981; color: #fff; }
+        .btn-action-icon.save:hover { background: #059669; }
+        .btn-action-icon.delete { background: #ef4444; color: #fff; }
+        .btn-action-icon.delete:hover { background: #dc2626; }
+
+        /* Select2 In-Table Styling */
+        .table-grid .select2-container { width: 100% !important; max-width: 100% !important; display: block !important; }
+        .table-grid .select2-selection--single {
+            min-height: 32px !important;
+            height: 32px !important;
+            border-radius: 6px !important;
+            border: 1px solid #cbd5e1 !important;
+            display: flex !important;
+            align-items: center !important;
+            font-size: 12.5px !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+        }
+        .table-grid .select2-selection__rendered {
+            padding-left: .5rem !important;
+            padding-right: 1.5rem !important;
+            line-height: 30px !important;
+            font-weight: 700 !important;
+            text-align: left !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            display: block !important;
+            width: 100% !important;
+        }
+        .table-grid .select2-selection__arrow { height: 30px !important; right: 4px !important; }
+
+        /* Shimmer Progress */
+        .progress-container { height: 3px; width: 100%; background: #f1f5f9; overflow: hidden; margin-bottom: 10px; border-radius: 999px; }
+        .progress-bar-fill { height: 100%; width: 30%; background: linear-gradient(90deg, #0284c7, #38bdf8); border-radius: 999px; animation: progress-move 1.2s infinite ease-in-out; }
+        @keyframes progress-move { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
+
+        .skeleton-box { height: 22px; background: #e2e8f0; border-radius: 6px; position: relative; overflow: hidden; }
+        .skeleton-box::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%); animation: shimmer 1.4s infinite; }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+        @media (max-width: 991.98px) { .level-hero .card-body { padding: 1.5rem; } .hero-stats { grid-template-columns: 1fr; } }
+    </style>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
         window.currentLevelStokId = {{ $latestLevel?->id ?? 'null' }};
         const masterItems = @json($masterItems);
 
         $(function () {
+            let allRows = [];
+            let activeRows = [];
+            let searchTimer = null;
+
             // Disable scroll-to-change on number inputs
             $(document).on('wheel', 'input[type=number]', function (e) {
                 if ($(this).is(':focus')) {
@@ -253,20 +386,19 @@
                 }
             });
 
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 1600,
-                timerProgressBar: true,
-            });
-
             function showToast(message, icon = 'success') {
-                Toast.fire({ icon, title: message });
+                Swal.fire({ toast: true, position: 'top-end', icon, title: message, showConfirmButton: false, timer: 1500, timerProgressBar: true });
             }
 
-            function formatNumber(value) {
-                return new Intl.NumberFormat('id-ID').format(parseInt(value, 10) || 0);
+            function escapeHtml(text) {
+                if (text === null || text === undefined) return '';
+                return String(text).replace(/[&<>"']/g, function (m) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+                });
+            }
+
+            function formatVal(v) {
+                return (v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v))) ? Number(v).toLocaleString('id-ID') : '-';
             }
 
             function getFilterParams() {
@@ -277,7 +409,9 @@
             }
 
             function updateHeroPeriod() {
-                $('#metricPeriod').text(`${$('#filter_bulan option:selected').text()} ${$('#filter_tahun').val()}`);
+                const bulanLabel = $('#filter_bulan option:selected').text();
+                const tahunLabel = $('#filter_tahun').val();
+                $('#metricPeriod').text(`${bulanLabel} ${tahunLabel}`);
             }
 
             function updateHariMetrics() {
@@ -286,104 +420,12 @@
             }
 
             function updateSummary() {
-                const rows = $('#levelstock_table tbody tr').filter(function () {
-                    return $(this).find('td').length > 1;
-                });
-
+                const total = allRows.length;
                 let configured = 0;
-                let totalMin = 0;
-
-                rows.each(function () {
-                    const qty = parseInt($(this).find('input[name="qty_set_box"]').val(), 10) || 0;
-                    const min = parseInt($(this).find('input[name="min"]').val(), 10) || 0;
-                    if (qty > 0) configured += 1;
-                    totalMin += min;
+                allRows.forEach(r => {
+                    if (parseInt(r.qty_set_box, 10) > 0) configured++;
                 });
-
-                $('#summaryRows').text(formatNumber(rows.length));
-                $('#summaryConfigured').text(formatNumber(configured));
-                $('#summaryMin').text(formatNumber(rows.length ? Math.round(totalMin / rows.length) : 0));
-            }
-
-            function getPartOptions(selectedPartNumber = '') {
-                return masterItems.map(item => {
-                    const selected = selectedPartNumber === item.part_number ? 'selected' : '';
-                    return `<option value="${item.part_number}" ${selected}>${item.part_number}</option>`;
-                }).join('');
-            }
-
-            function enhanceSelect2($scope) {
-                $scope.find('.select-part-number').select2({
-                    placeholder: '-- Pilih --',
-                    allowClear: true,
-                    width: '100%'
-                });
-            }
-            function getActionMarkup(isManual) {
-                if (!isManual) {
-                    return `
-                        <div class="action-stack">
-                            <span class="action-chip info"><i class="fas fa-wand-magic-sparkles"></i> Hitung otomatis saat QTY/Box diisi</span>
-                            <span class="action-chip pending"><i class="fas fa-cloud-arrow-up"></i> Perubahan tersimpan otomatis</span>
-                        </div>
-                    `;
-                }
-
-                return `
-                    <div class="action-stack">
-                        <span class="action-chip pending"><i class="fas fa-circle-exclamation"></i> Baris baru belum tersimpan</span>
-                        <div class="action-row">
-                            <button type="button" class="action-btn save simpan-row"><i class="fas fa-check"></i> Simpan Baris</button>
-                            <button type="button" class="action-btn delete hapus-row"><i class="fas fa-trash"></i> Hapus</button>
-                        </div>
-                    </div>
-                `;
-            }
-
-            function showSkeleton() {
-                let skeletonRows = '';
-                for (let i = 0; i < 5; i++) {
-                    skeletonRows += '<tr class="skeleton-row">';
-                    for (let j = 0; j < 11; j++) {
-                        skeletonRows += '<td><div class="skeleton-box"></div></td>';
-                    }
-                    skeletonRows += '</tr>';
-                }
-                $('#levelstock_table tbody').html(skeletonRows);
-                $('#table_progress_bar').removeClass('d-none');
-            }
-
-            function hideSkeleton() {
-                $('#table_progress_bar').addClass('d-none');
-            }
-
-            function buildRowPayload($row) {
-                const data = {
-                    _token: '{{ csrf_token() }}',
-                    level_stok_id: window.currentLevelStokId,
-                    ...getFilterParams()
-                };
-
-                $row.find('input[name], select[name]').each(function () {
-                    data[$(this).attr('name')] = $(this).val();
-                });
-
-                const rowId = $row.attr('data-id');
-                if (rowId) data.id = rowId;
-                return data;
-            }
-
-            function normalizeNumberInput($input) {
-                const value = parseInt($input.val(), 10);
-                $input.val(Number.isNaN(value) ? '' : Math.max(value, 0));
-            }
-
-            function syncCalculatedFields($row, values) {
-                $row.find('input[name="min"]').val(values.min);
-                $row.find('input[name="safety_mip"]').val(values.safetyMip);
-                $row.find('input[name="safety_fg"]').val(values.safetyFg);
-                $row.find('input[name="max"]').val(values.max);
-                updateSummary();
+                $('#summaryConfigured').text(configured);
             }
 
             function ensureLevelStokId() {
@@ -404,11 +446,171 @@
                 );
             }
 
+            function buildPartOptions(selectedValue = '', selectedModel = '') {
+                let options = '<option value="">-- Pilih Part Number --</option>';
+                masterItems.forEach(item => {
+                    const isSelected = item.part_number === selectedValue && (!selectedModel || item.nama_part === selectedModel);
+                    const selected = isSelected ? 'selected' : '';
+                    const label = item.part_number + ' — ' + (item.nama_part || '-') + ' (' + (item.customer || '-') + ')';
+                    options += `<option value="${escapeHtml(item.part_number)}" data-id="${item.id}" data-customer="${escapeHtml(item.customer || '')}" data-kode_projek="${escapeHtml(item.kode_project || '')}" data-models="${escapeHtml(item.nama_part || '')}" ${selected}>${escapeHtml(label)}</option>`;
+                });
+                return options;
+            }
+
+            function enhanceSelect2($context = $('#levelstock_table')) {
+                $context.find('.select-part-number:not(.select2-hidden-accessible)').select2({
+                    placeholder: '-- Pilih Part Number --',
+                    allowClear: true,
+                    width: '100%'
+                });
+            }
+
+            function showSkeleton() {
+                let skeletonRows = '';
+                for (let i = 0; i < 6; i++) {
+                    skeletonRows += '<tr>';
+                    for (let j = 0; j < 11; j++) {
+                        skeletonRows += '<td><div class="skeleton-box"></div></td>';
+                    }
+                    skeletonRows += '</tr>';
+                }
+                $('#levelstock_table tbody').html(skeletonRows);
+                $('#table_progress_bar').removeClass('d-none');
+            }
+
+            function hideSkeleton() {
+                $('#table_progress_bar').addClass('d-none');
+            }
+
+            function buildRowHtml(row, index, isManual = false) {
+                const rowId = row.id || '';
+                const trClass = isManual ? 'manual-row' : '';
+
+                return `
+                    <tr class="${trClass}" data-id="${rowId}">
+                        <td class="col-no text-center"><span class="text-muted fw-bold">${index}</span></td>
+                        <td class="col-part">
+                            <select class="form-select form-select-sm select-part-number" name="part_number">
+                                ${buildPartOptions(row.part_number, row.models)}
+                            </select>
+                        </td>
+                        <td class="col-cust text-center">
+                            <span class="badge-cust">${escapeHtml(row.customer || '-')}</span>
+                            <input type="hidden" name="customer" value="${escapeHtml(row.customer || '')}">
+                        </td>
+                        <td class="col-proj text-center">
+                            <span class="badge-proj">${escapeHtml(row.kode_projek || row.kode_project || '-')}</span>
+                            <input type="hidden" name="kode_projek" value="${escapeHtml(row.kode_projek || row.kode_project || '')}">
+                        </td>
+                        <td class="col-model">
+                            <div class="model-truncate" title="${escapeHtml(row.models || '')}">${escapeHtml(row.models || '-')}</div>
+                            <input type="hidden" name="models" value="${escapeHtml(row.models || '')}">
+                        </td>
+                        <td class="col-min">
+                            <div class="metric-pill metric-min">
+                                <span class="disp-min">${formatVal(row.min)}</span>
+                                <input type="hidden" name="min" value="${row.min ?? ''}">
+                            </div>
+                        </td>
+                        <td class="col-safety-mip">
+                            <div class="metric-pill metric-safety">
+                                <span class="disp-safety-mip">${formatVal(row.safety_mip)}</span>
+                                <input type="hidden" name="safety_mip" value="${row.safety_mip ?? ''}">
+                            </div>
+                        </td>
+                        <td class="col-safety-fg">
+                            <div class="metric-pill metric-safety">
+                                <span class="disp-safety-fg">${formatVal(row.safety_fg)}</span>
+                                <input type="hidden" name="safety_fg" value="${row.safety_fg ?? ''}">
+                            </div>
+                        </td>
+                        <td class="col-max">
+                            <div class="metric-pill metric-max">
+                                <span class="disp-max">${formatVal(row.max)}</span>
+                                <input type="hidden" name="max" value="${row.max ?? ''}">
+                            </div>
+                        </td>
+                        <td class="col-qty-box">
+                            <input type="number" min="0" class="cell-num-input editable-cell input-qty-box" name="qty_set_box" value="${row.qty_set_box ?? ''}" placeholder="0">
+                        </td>
+                        <td class="col-action text-center">
+                            ${isManual ? `
+                                <div class="d-flex justify-content-center gap-1">
+                                    <button type="button" class="btn-action-icon save simpan-row" title="Simpan baris"><i class="fas fa-check"></i></button>
+                                    <button type="button" class="btn-action-icon delete hapus-row" title="Hapus baris"><i class="fas fa-trash"></i></button>
+                                </div>
+                            ` : `
+                                <span class="badge-synced" title="Level stock tersinkron"><i class="fas fa-check-circle text-success"></i> Auto</span>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }
+
+            function renderRows(rows) {
+                activeRows = rows;
+                if (!rows || rows.length === 0) {
+                    $('#levelstock_table tbody').html(`
+                        <tr>
+                            <td colspan="11" class="text-center py-5 text-muted">
+                                <i class="fas fa-box-open fs-2x mb-3 d-block text-gray-400"></i>
+                                Belum ada data level stock untuk kriteria pencarian ini.
+                            </td>
+                        </tr>
+                    `);
+                    $('#counter_visible').text(0);
+                    $('#table_info_text').text('Menampilkan 0 baris level stock');
+                    return;
+                }
+
+                let html = '';
+                rows.forEach((r, idx) => {
+                    html += buildRowHtml(r, idx + 1, false);
+                });
+                $('#levelstock_table tbody').html(html);
+                enhanceSelect2($('#levelstock_table'));
+
+                $('#counter_visible').text(rows.length);
+                $('#table_info_text').text(`Menampilkan ${rows.length} dari ${allRows.length} baris level stock`);
+            }
+
+            function syncCalculatedFields($row, values) {
+                $row.find('input[name="min"]').val(values.min);
+                $row.find('.disp-min').text(formatVal(values.min));
+
+                $row.find('input[name="safety_mip"]').val(values.safetyMip);
+                $row.find('.disp-safety-mip').text(formatVal(values.safetyMip));
+
+                $row.find('input[name="safety_fg"]').val(values.safetyFg);
+                $row.find('.disp-safety-fg').text(formatVal(values.safetyFg));
+
+                $row.find('input[name="max"]').val(values.max);
+                $row.find('.disp-max').text(formatVal(values.max));
+
+                updateSummary();
+            }
+
+            function buildRowPayload($row) {
+                const data = {
+                    _token: '{{ csrf_token() }}',
+                    level_stok_id: window.currentLevelStokId,
+                    ...getFilterParams()
+                };
+
+                $row.find('input[name], select[name]').each(function () {
+                    data[$(this).attr('name')] = $(this).val();
+                });
+
+                const rowId = $row.attr('data-id');
+                if (rowId) data.id = rowId;
+                return data;
+            }
+
             function saveRow($row, successMessage, silent = false) {
                 const data = buildRowPayload($row);
 
                 if (!data.part_number) {
-                    Swal.fire('Part number wajib dipilih', 'Pilih part number terlebih dulu sebelum menyimpan.', 'warning');
+                    Swal.fire('Validasi', 'Silakan pilih part number terlebih dahulu!', 'warning');
                     return $.Deferred().reject().promise();
                 }
 
@@ -418,14 +620,14 @@
 
                         if ($row.hasClass('manual-row')) {
                             $row.removeClass('manual-row');
-                            $row.find('td:last').html(getActionMarkup(false));
+                            $row.find('.col-action').html('<span class="badge-synced" title="Level stock tersinkron"><i class="fas fa-check-circle text-success"></i> Auto</span>');
                         }
 
                         updateSummary();
                         if (!silent) showToast(successMessage);
                     })
                     .fail(xhr => {
-                        const message = xhr.responseJSON?.message || xhr.responseJSON?.error || 'Gagal menyimpan data level stock.';
+                        const message = xhr.responseJSON?.message || xhr.responseJSON?.error || 'Gagal menyimpan level stock.';
                         Swal.fire('Gagal', message, 'error');
                     });
             }
@@ -463,6 +665,7 @@
                     const min = kebutuhanPerHari > 0
                         ? Math.ceil(kebutuhanPerHari / qtyPerBox) * qtyPerBox
                         : 0;
+
                     syncCalculatedFields($row, {
                         min,
                         safetyMip: min * 2,
@@ -470,102 +673,112 @@
                         max: min * 5
                     });
                 }).fail(() => {
-                    Swal.fire('Gagal hitung', 'Data rekap untuk part ini tidak berhasil diambil.', 'error');
+                    showToast('Gagal menarik data rekap', 'error');
                 });
             }
 
-            const table = $('#levelstock_table').DataTable({
-                processing: true,
-                serverSide: true,
-                paging: false,
-                scrollX: true,
-                scrollY: '58vh',
-                responsive: false,
-                order: [[1, 'asc']],
-                ajax: {
-                    url: '{{ route("datastock.levelstock.data") }}',
-                    data: d => Object.assign(d, getFilterParams()),
-                    beforeSend: function() {
-                        showSkeleton();
-                    },
-                    dataSrc: function(json) {
-                        hideSkeleton();
-                        return json.data || [];
+            function loadData() {
+                showSkeleton();
+                return $.when(
+                    loadHariKerja(),
+                    $.get('{{ route("datastock.levelstock.data") }}', getFilterParams())
+                ).done(function(hariRes, tableRes) {
+                    hideSkeleton();
+                    const data = tableRes[0]?.data || [];
+                    allRows = data;
+
+                    const q = $('#table_search').val().toLowerCase().trim();
+                    if (q) {
+                        const filtered = allRows.filter(r => 
+                            (r.part_number && r.part_number.toLowerCase().includes(q)) ||
+                            (r.customer && r.customer.toLowerCase().includes(q)) ||
+                            (r.kode_projek && r.kode_projek.toLowerCase().includes(q)) ||
+                            (r.models && r.models.toLowerCase().includes(q))
+                        );
+                        renderRows(filtered);
+                    } else {
+                        renderRows(allRows);
                     }
-                },
-                columns: [
-                    { data: null, render: (data, type, row, meta) => meta.row + 1, orderable: false, searchable: false },
-                    {
-                        data: 'part_number',
-                        render: data => `
-                            <select class="form-select form-select-sm select-part-number" name="part_number">
-                                <option value="">-- Pilih --</option>
-                                ${getPartOptions(data ?? '')}
-                            </select>
-                        `
-                    },
-                    ...['customer', 'kode_projek', 'models'].map(field => ({
-                        data: field,
-                        render: d => `<input type="text" class="form-control form-control-sm" name="${field}" value="${d ?? ''}" readonly>`
-                    })),
-                    ...['min', 'safety_mip', 'safety_fg', 'max'].map(field => ({
-                        data: field,
-                        render: d => `<input type="number" class="form-control form-control-sm calc-input" name="${field}" value="${d ?? ''}" readonly>`
-                    })),
-                    { data: 'qty_set_box', render: d => `<input type="number" min="0" class="form-control form-control-sm" name="qty_set_box" value="${d ?? ''}">` },
-                    { data: null, className: 'action-cell', orderable: false, searchable: false, render: () => getActionMarkup(false) }
-                ],
-                rowCallback: function (row, data) {
-                    $(row).attr('data-id', data.id || '');
-                },
-                drawCallback: function () {
-                    $('#levelstock_table tbody').addClass('fade-in');
-                    setTimeout(() => $('#levelstock_table tbody').removeClass('fade-in'), 500);
-                    enhanceSelect2($('#levelstock_table'));
                     updateSummary();
-                },
-                language: {
-                    searchPlaceholder: 'Cari part, customer, atau model...',
-                    search: '',
-                    zeroRecords: 'Belum ada data level stock untuk periode ini.',
-                    info: 'Menampilkan _TOTAL_ baris level stock',
-                    infoEmpty: 'Belum ada data level stock'
-                }
+                }).fail(function() {
+                    hideSkeleton();
+                    showToast('Gagal memuat data level stock', 'error');
+                });
+            }
+
+            // Quick Client-Side Search
+            $('#table_search').on('input', function () {
+                clearTimeout(searchTimer);
+                const q = $(this).val().toLowerCase().trim();
+                searchTimer = setTimeout(() => {
+                    if (!q) {
+                        renderRows(allRows);
+                    } else {
+                        const filtered = allRows.filter(r => 
+                            (r.part_number && r.part_number.toLowerCase().includes(q)) ||
+                            (r.customer && r.customer.toLowerCase().includes(q)) ||
+                            (r.kode_projek && r.kode_projek.toLowerCase().includes(q)) ||
+                            (r.models && r.models.toLowerCase().includes(q))
+                        );
+                        renderRows(filtered);
+                    }
+                }, 180);
             });
 
-            $('#filter_bulan, #filter_tahun').on('change', function () {
-                loadHariKerja().always(() => table.ajax.reload(updateSummary, false));
-            });
-
-            $('#refresh_table').on('click', function () {
-                const adaManual = $('#levelstock_table tbody .manual-row').length > 0;
-                if (!adaManual) {
-                    table.ajax.reload(updateSummary, false);
-                    return;
-                }
-
-                Swal.fire({
-                    title: 'Refresh data periode?',
-                    text: 'Baris baru yang belum disimpan akan hilang saat refresh.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, refresh',
-                    cancelButtonText: 'Batal'
-                }).then(result => {
-                    if (result.isConfirmed) table.ajax.reload(updateSummary, false);
+            // QTY Set Box change and blur auto-save
+            $('#levelstock_table tbody').on('blur', 'input[name="qty_set_box"]', function () {
+                const $row = $(this).closest('tr');
+                calculateLevelStock($row).done(() => {
+                    if ($row.hasClass('manual-row')) {
+                        updateSummary();
+                        return;
+                    }
+                    saveRow($row, 'Level stock diperbarui');
                 });
             });
 
-            $('#hari_atas_100, #hari_bawah_100').on('input blur', function () {
-                normalizeNumberInput($(this));
-                updateHariMetrics();
+            // Part Number Change
+            $('#levelstock_table tbody').on('change', '.select-part-number', function () {
+                const $selectedOption = $(this).find('option:selected');
+                const partNumber = $(this).val();
+                const itemId = $selectedOption.data('id');
+                const selectedItem = (itemId ? masterItems.find(item => item.id == itemId) : null) || masterItems.find(item => item.part_number === partNumber);
+                const $row = $(this).closest('tr');
+
+                if (!selectedItem) {
+                    $row.find('input[name="customer"], input[name="kode_projek"], input[name="models"]').val('');
+                    $row.find('.badge-cust').text('-');
+                    $row.find('.badge-proj').text('-');
+                    $row.find('.model-truncate').text('-').attr('title', '');
+                    calculateLevelStock($row);
+                    return;
+                }
+
+                $row.find('input[name="customer"]').val(selectedItem.customer || '');
+                $row.find('.badge-cust').text(selectedItem.customer || '-');
+
+                $row.find('input[name="kode_projek"]').val(selectedItem.kode_project || '');
+                $row.find('.badge-proj').text(selectedItem.kode_project || '-');
+
+                $row.find('input[name="models"]').val(selectedItem.nama_part || '');
+                $row.find('.model-truncate').text(selectedItem.nama_part || '-').attr('title', selectedItem.nama_part || '');
+
+                calculateLevelStock($row).done(() => {
+                    if (!$row.hasClass('manual-row')) {
+                        saveRow($row, 'Level stock diperbarui');
+                    }
+                });
             });
 
+            // Hari Kerja update on blur
             $('#hari_atas_100, #hari_bawah_100').on('blur', function () {
+                const field = $(this).data('field');
+                const val = parseInt($(this).val(), 10) || 0;
+
                 $.post('{{ route("datastock.levelstock.updateHariKerja") }}', {
                     _token: '{{ csrf_token() }}',
-                    field: $(this).data('field'),
-                    value: parseInt($(this).val(), 10) || 0,
+                    field: field,
+                    value: val,
                     ...getFilterParams()
                 }).done(() => {
                     updateHariMetrics();
@@ -574,88 +787,49 @@
                         const $row = $(this);
                         calculateLevelStock($row).done(() => {
                             if (!$row.hasClass('manual-row') && $row.find('select[name="part_number"]').val()) {
-                                saveRow($row, 'Perubahan level stock tersimpan', true);
+                                saveRow($row, 'Level stock dihitung ulang', true);
                             }
                         });
                     });
                 }).fail(() => Swal.fire('Error', 'Gagal menyimpan jumlah hari kerja.', 'error'));
             });
 
-            $('#levelstock_table').on('change', '.select-part-number', function () {
-                const partNumber = $(this).val();
-                const selectedItem = masterItems.find(item => item.part_number === partNumber);
-                const $row = $(this).closest('tr');
-
-                if (!selectedItem) {
-                    $row.find('input[name="customer"], input[name="kode_projek"], input[name="models"]').val('');
-                    calculateLevelStock($row);
-                    return;
-                }
-
-                $row.find('input[name="customer"]').val(selectedItem.customer || '');
-                $row.find('input[name="kode_projek"]').val(selectedItem.kode_project || '');
-                $row.find('input[name="models"]').val(selectedItem.nama_part || '');
-                calculateLevelStock($row).done(() => {
-                    if (!$row.hasClass('manual-row')) {
-                        saveRow($row, 'Perubahan level stock tersimpan');
-                    }
-                });
-            });
-
-            $('#levelstock_table').on('input', 'input[name="qty_set_box"]', function () {
-                normalizeNumberInput($(this));
-                updateSummary();
-            });
-
-            $('#levelstock_table').on('blur', 'input[name="qty_set_box"]', function () {
-                normalizeNumberInput($(this));
-                const $row = $(this).closest('tr');
-                calculateLevelStock($row).done(() => {
-                    if ($row.hasClass('manual-row')) {
-                        updateSummary();
-                        return;
-                    }
-
-                    saveRow($row, 'Perubahan level stock tersimpan');
-                });
-            });
-
+            // Tambah Baris Manual
             $('#tambah_baris').on('click', function () {
-                $('#levelstock_table tbody').prepend(`
-                    <tr class="manual-row">
-                        <td>#</td>
-                        <td><select class="form-select form-select-sm select-part-number" name="part_number"><option value="">-- Pilih --</option>${getPartOptions()}</select></td>
-                        <td><input type="text" class="form-control form-control-sm" name="customer" readonly></td>
-                        <td><input type="text" class="form-control form-control-sm" name="kode_projek" readonly></td>
-                        <td><input type="text" class="form-control form-control-sm" name="models" readonly></td>
-                        <td><input type="number" class="form-control form-control-sm calc-input" name="min" readonly></td>
-                        <td><input type="number" class="form-control form-control-sm calc-input" name="safety_mip" readonly></td>
-                        <td><input type="number" class="form-control form-control-sm calc-input" name="safety_fg" readonly></td>
-                        <td><input type="number" class="form-control form-control-sm calc-input" name="max" readonly></td>
-                        <td><input type="number" min="0" class="form-control form-control-sm" name="qty_set_box"></td>
-                        <td class="action-cell">${getActionMarkup(true)}</td>
-                    </tr>
-                `);
-                enhanceSelect2($('#levelstock_table tbody tr:first'));
-                updateSummary();
-                setTimeout(() => table.columns.adjust(), 10);
+                const newRowHtml = buildRowHtml({}, '#', true);
+                $('#levelstock_table tbody').prepend(newRowHtml);
+                const $newRow = $('#levelstock_table tbody tr:first');
+                enhanceSelect2($newRow);
+                $newRow.find('select[name="part_number"]').select2('open');
             });
 
-            $('#levelstock_table').on('click', '.hapus-row', function () {
+            // Simpan Baris Manual
+            $('#levelstock_table tbody').on('click', '.simpan-row', function () {
+                const $row = $(this).closest('tr');
+                ensureLevelStokId().done(() => {
+                    calculateLevelStock($row).done(() => {
+                        saveRow($row, 'Baris level stock berhasil disimpan');
+                    });
+                });
+            });
+
+            // Hapus Baris Manual
+            $('#levelstock_table tbody').on('click', '.hapus-row', function () {
                 $(this).closest('tr').remove();
                 updateSummary();
             });
 
-            $('#levelstock_table').on('click', '.simpan-row', function () {
-                const $row = $(this).closest('tr');
-                ensureLevelStokId().done(() => saveRow($row, 'Baris baru berhasil disimpan'));
+            // Filter Change Events
+            $('#filter_bulan, #filter_tahun').on('change', function () {
+                loadData();
             });
 
-            loadHariKerja().always(() => {
-                updateHeroPeriod();
-                updateHariMetrics();
-                updateSummary();
+            $('#refresh_table').on('click', function () {
+                loadData();
             });
+
+            // Initial Load
+            loadData();
         });
     </script>
 </x-default-layout>
