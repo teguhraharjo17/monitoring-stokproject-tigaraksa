@@ -397,6 +397,13 @@
                 });
             }
 
+            function decodeHtml(html) {
+                if (!html) return '';
+                const txt = document.createElement("textarea");
+                txt.innerHTML = html;
+                return txt.value;
+            }
+
             function formatVal(v) {
                 return (v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v))) ? Number(v).toLocaleString('id-ID') : '-';
             }
@@ -448,8 +455,14 @@
 
             function buildPartOptions(selectedValue = '', selectedModel = '') {
                 let options = '<option value="">-- Pilih Part Number --</option>';
+                const cleanSelectedModel = decodeHtml(selectedModel || '').trim().toLowerCase();
+                const cleanSelectedValue = (selectedValue || '').trim();
+
                 masterItems.forEach(item => {
-                    const isSelected = item.part_number === selectedValue && (!selectedModel || item.nama_part === selectedModel);
+                    const itemPart = (item.part_number || '').trim();
+                    const itemModel = decodeHtml(item.nama_part || '').trim().toLowerCase();
+
+                    const isSelected = itemPart === cleanSelectedValue && (!cleanSelectedModel || itemModel === cleanSelectedModel);
                     const selected = isSelected ? 'selected' : '';
                     const label = item.part_number + ' — ' + (item.nama_part || '-') + ' (' + (item.customer || '-') + ')';
                     options += `<option value="${escapeHtml(item.part_number)}" data-id="${item.id}" data-customer="${escapeHtml(item.customer || '')}" data-kode_projek="${escapeHtml(item.kode_project || '')}" data-models="${escapeHtml(item.nama_part || '')}" ${selected}>${escapeHtml(label)}</option>`;
@@ -485,6 +498,9 @@
             function buildRowHtml(row, index, isManual = false) {
                 const rowId = row.id || '';
                 const trClass = isManual ? 'manual-row' : '';
+                const displayCustomer = decodeHtml(row.customer || '');
+                const displayProject = decodeHtml(row.kode_projek || row.kode_project || '');
+                const displayModel = decodeHtml(row.models || '');
 
                 return `
                     <tr class="${trClass}" data-id="${rowId}">
@@ -495,16 +511,16 @@
                             </select>
                         </td>
                         <td class="col-cust text-center">
-                            <span class="badge-cust">${escapeHtml(row.customer || '-')}</span>
-                            <input type="hidden" name="customer" value="${escapeHtml(row.customer || '')}">
+                            <span class="badge-cust">${escapeHtml(displayCustomer || '-')}</span>
+                            <input type="hidden" name="customer" value="${escapeHtml(displayCustomer)}">
                         </td>
                         <td class="col-proj text-center">
-                            <span class="badge-proj">${escapeHtml(row.kode_projek || row.kode_project || '-')}</span>
-                            <input type="hidden" name="kode_projek" value="${escapeHtml(row.kode_projek || row.kode_project || '')}">
+                            <span class="badge-proj">${escapeHtml(displayProject || '-')}</span>
+                            <input type="hidden" name="kode_projek" value="${escapeHtml(displayProject)}">
                         </td>
                         <td class="col-model">
-                            <div class="model-truncate" title="${escapeHtml(row.models || '')}">${escapeHtml(row.models || '-')}</div>
-                            <input type="hidden" name="models" value="${escapeHtml(row.models || '')}">
+                            <div class="model-truncate" title="${escapeHtml(displayModel)}">${escapeHtml(displayModel || '-')}</div>
+                            <input type="hidden" name="models" value="${escapeHtml(displayModel)}">
                         </td>
                         <td class="col-min">
                             <div class="metric-pill metric-min">

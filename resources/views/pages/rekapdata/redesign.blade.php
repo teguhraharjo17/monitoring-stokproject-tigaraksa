@@ -412,6 +412,13 @@
                 });
             }
 
+            function decodeHtml(html) {
+                if (!html) return '';
+                const txt = document.createElement("textarea");
+                txt.innerHTML = html;
+                return txt.value;
+            }
+
             function updateSummary(meta = {}) {
                 const rows = meta.rows ?? allRows.length;
                 const totalStock = meta.totalStock ?? allRows.reduce((sum, r) => sum + (parseFloat(r.total_stock) || 0), 0);
@@ -434,10 +441,18 @@
 
             function buildPartOptions(selectedValue = '', selectedModel = '', selectedCustomer = '') {
                 let options = '<option value="">-- Pilih Part Number --</option>';
+                const cleanSelectedModel = decodeHtml(selectedModel || '').trim().toLowerCase();
+                const cleanSelectedCustomer = decodeHtml(selectedCustomer || '').trim().toLowerCase();
+                const cleanSelectedValue = (selectedValue || '').trim();
+
                 masterItems.forEach((item) => {
-                    const isSelected = item.part_number === selectedValue 
-                        && (!selectedModel || item.nama_part === selectedModel)
-                        && (!selectedCustomer || item.customer === selectedCustomer);
+                    const itemPart = (item.part_number || '').trim();
+                    const itemModel = decodeHtml(item.nama_part || '').trim().toLowerCase();
+                    const itemCust = decodeHtml(item.customer || '').trim().toLowerCase();
+
+                    const isSelected = itemPart === cleanSelectedValue 
+                        && (!cleanSelectedModel || itemModel === cleanSelectedModel)
+                        && (!cleanSelectedCustomer || itemCust === cleanSelectedCustomer);
                     const selected = isSelected ? 'selected' : '';
                     const label = item.part_number + ' — ' + (item.nama_part || '-') + ' (' + (item.customer || '-') + ')';
                     options += `<option value="${escapeHtml(item.part_number)}" ${selected} data-customer="${escapeHtml(item.customer || '')}" data-kode_project="${escapeHtml(item.kode_project || '')}" data-models="${escapeHtml(item.nama_part || '')}">${escapeHtml(label)}</option>`;
@@ -498,6 +513,9 @@
                 const totStockVal = parseFloat(row.total_stock) || 0;
                 const totQtyVal = parseFloat(row.total_qty_bulan_ini) || 0;
                 const selisihVal = parseFloat(row.selisih_stock) || 0;
+                const displayCustomer = decodeHtml(row.customer || '');
+                const displayProject = decodeHtml(row.kode_project || '');
+                const displayModel = decodeHtml(row.models || '');
 
                 return `
                     <tr class="${trClass}" data-id="${rowId}">
@@ -508,16 +526,16 @@
                             </select>
                         </td>
                         <td class="col-cust text-center">
-                            <span class="badge-cust">${escapeHtml(row.customer || '-')}</span>
-                            <input type="hidden" name="customer" value="${escapeHtml(row.customer || '')}">
+                            <span class="badge-cust">${escapeHtml(displayCustomer || '-')}</span>
+                            <input type="hidden" name="customer" value="${escapeHtml(displayCustomer)}">
                         </td>
                         <td class="col-proj text-center">
-                            <span class="badge-proj">${escapeHtml(row.kode_project || '-')}</span>
-                            <input type="hidden" name="kode_project" value="${escapeHtml(row.kode_project || '')}">
+                            <span class="badge-proj">${escapeHtml(displayProject || '-')}</span>
+                            <input type="hidden" name="kode_project" value="${escapeHtml(displayProject)}">
                         </td>
                         <td class="col-model">
-                            <div class="model-truncate" title="${escapeHtml(row.models || '')}">${escapeHtml(row.models || '-')}</div>
-                            <input type="hidden" name="models" value="${escapeHtml(row.models || '')}">
+                            <div class="model-truncate" title="${escapeHtml(displayModel)}">${escapeHtml(displayModel || '-')}</div>
+                            <input type="hidden" name="models" value="${escapeHtml(displayModel)}">
                         </td>
                         <td class="col-stk-mip">
                             <input type="number" min="0" class="cell-num-input editable-cell" name="stock_awal_mip" value="${row.stock_awal_mip ?? ''}" placeholder="0">

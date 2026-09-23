@@ -52,7 +52,7 @@ class RekapDataController extends Controller
             ->orderBy('master_items.customer')
             ->orderBy('master_items.part_number');
 
-        return DataTables::of($items)->make(true);
+        return DataTables::of($items)->escapeColumns([])->make(true);
     }
 
 

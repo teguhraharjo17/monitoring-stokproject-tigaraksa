@@ -104,6 +104,7 @@ class LevelStockController extends Controller
             $finalData = $finalData->concat($orphanOverrides)->values();
 
             return DataTables::of($finalData->toArray())
+                ->escapeColumns([])
                 ->setRowId(fn ($row) => $row['id'] ?? 'row_' . uniqid())
                 ->make(true);
 
