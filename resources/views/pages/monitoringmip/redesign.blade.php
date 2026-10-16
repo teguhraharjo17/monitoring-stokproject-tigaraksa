@@ -594,9 +594,20 @@
             for (let i = 1; i <= jumlahHari; i++) {
                 const libur = currentHariLibur[i];
                 const isLibur = libur && libur.is_libur;
-                const liburClass = isLibur ? ' th-libur ' + (libur.is_weekend ? 'th-weekend' : 'th-tanggal-merah') : '';
-                const liburTitle = isLibur ? ' title="' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
-                const tagText = isLibur ? (libur.is_weekend ? (libur.nama_hari === 'Minggu' ? 'MINGGU' : 'SABTU') : 'LIBUR') : '';
+                const isWeekend = libur && (libur.is_weekend || libur.day_of_week === 0 || libur.day_of_week === 6 || libur.nama_hari === 'Minggu' || libur.nama_hari === 'Sunday' || libur.nama_hari === 'Sabtu' || libur.nama_hari === 'Saturday');
+                const isSunday = libur && (libur.day_of_week === 0 || libur.nama_hari === 'Minggu' || libur.nama_hari === 'Sunday');
+                const liburClass = isLibur ? ' th-libur ' + (isWeekend ? 'th-weekend' : 'th-tanggal-merah') : '';
+                const liburTitle = isLibur ? ' title="' + escapeHtml(libur.keterangan || (isWeekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
+                let tagText = '';
+                if (isLibur) {
+                    if (libur.badge) {
+                        tagText = libur.badge;
+                    } else if (isWeekend) {
+                        tagText = isSunday ? 'MINGGU' : 'SABTU';
+                    } else {
+                        tagText = 'LIBUR';
+                    }
+                }
                 const liburBadge = isLibur ? '<span class="libur-tag" title="' + escapeHtml(libur.keterangan || tagText) + '">' + escapeHtml(tagText) + '</span>' : '';
 
                 thead += '<th class="col-harian' + (i === 1 ? ' ps-3' : '') + liburClass + '"' + liburTitle + '><div class="th-date-wrapper"><span class="th-date-num">' + i + '</span>' + liburBadge + '</div></th>';

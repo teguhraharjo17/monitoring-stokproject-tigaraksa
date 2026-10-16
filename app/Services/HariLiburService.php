@@ -83,35 +83,56 @@ class HariLiburService
             }
         }
 
+        $namaHariMap = [
+            0 => 'Minggu',
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+        ];
+
         $result = [];
         for ($d = 1; $d <= $jumlahHari; $d++) {
             $date = Carbon::createFromDate($tahun, $bulan, $d);
             $dateStr = $date->toDateString();
-            $dayOfWeek = $date->dayOfWeek; // 0 = Sunday, 6 = Saturday
+            $dayOfWeek = (int) $date->dayOfWeek; // 0 = Sunday, 6 = Saturday
             $isWeekend = ($dayOfWeek === 0 || $dayOfWeek === 6);
-            $namaHari = $date->translatedFormat('l');
+            $namaHari = $namaHariMap[$dayOfWeek] ?? 'Hari';
 
             if (isset($apiMap[$dateStr])) {
                 $liburInfo = $apiMap[$dateStr];
+                $badge = $isWeekend ? ($dayOfWeek === 0 ? 'MINGGU' : 'SABTU') : 'LIBUR';
                 $result[$d] = [
+                    'tanggal' => $dateStr,
                     'is_libur' => true,
                     'is_weekend' => $isWeekend,
+                    'day_of_week' => $dayOfWeek,
+                    'badge' => $badge,
                     'tipe' => $liburInfo['jenis_libur'],
                     'keterangan' => $liburInfo['keterangan'] . ($liburInfo['jenis_libur'] ? ' (' . $liburInfo['jenis_libur'] . ')' : ''),
                     'nama_hari' => $namaHari,
                 ];
             } elseif ($isWeekend) {
+                $badge = ($dayOfWeek === 0 ? 'MINGGU' : 'SABTU');
                 $result[$d] = [
+                    'tanggal' => $dateStr,
                     'is_libur' => true,
                     'is_weekend' => true,
+                    'day_of_week' => $dayOfWeek,
+                    'badge' => $badge,
                     'tipe' => 'WEEKEND',
                     'keterangan' => $namaHari . ' (Akhir Pekan)',
                     'nama_hari' => $namaHari,
                 ];
             } else {
                 $result[$d] = [
+                    'tanggal' => $dateStr,
                     'is_libur' => false,
                     'is_weekend' => false,
+                    'day_of_week' => $dayOfWeek,
+                    'badge' => null,
                     'tipe' => null,
                     'keterangan' => null,
                     'nama_hari' => $namaHari,
