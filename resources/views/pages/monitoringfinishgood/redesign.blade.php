@@ -313,6 +313,38 @@
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Badge Nonaktif */
+        .badge-nonaktif {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #dc2626;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        .part-number-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .part-number-container .part-text {
+            font-weight: 800;
+        }
+        tr.row-nonaktif td, tr.row-nonaktif .freeze-col {
+            background-color: #fef2f2 !important;
+            opacity: 0.9;
+        }
+        tr.row-nonaktif:hover td, tr.row-nonaktif:hover .freeze-col {
+            background-color: #fee2e2 !important;
+        }
+
         @media (max-width: 991.98px) { .fg-hero .card-body { padding: 1.5rem; } .hero-stats, .quick-metrics { grid-template-columns: 1fr; } }
     </style>
 
@@ -494,18 +526,25 @@
         }
 
         function buildRow(row, index, jumlahHari) {
+            const isInactive = row && row.is_active === false;
+            const partNumberHtml = isInactive
+                ? '<div class="part-number-container"><span class="part-text">' + escapeHtml(row.part_number) + '</span><span class="badge-nonaktif"><i class="fas fa-ban" style="font-size:9px"></i> Nonaktif</span></div>'
+                : escapeHtml(row.part_number);
+            const rowClass = isInactive ? ' row-nonaktif' : '';
+            const lockAttr = isInactive ? ' readonly disabled' : '';
+
             // === Baris 1: IN ===
-            let html = '<tr class="row-group-first" data-group="' + index + '" data-customer="' + escapeHtml(row.customer) + '" data-project="' + escapeHtml(row.project) + '" data-part-number="' + escapeHtml(row.part_number) + '" data-part-name="' + escapeHtml(row.part_name) + '">' +
+            let html = '<tr class="row-group-first' + rowClass + '" data-group="' + index + '" data-customer="' + escapeHtml(row.customer) + '" data-project="' + escapeHtml(row.project) + '" data-part-number="' + escapeHtml(row.part_number) + '" data-part-name="' + escapeHtml(row.part_name) + '">' +
                 '<td class="freeze-col freeze-b-0" rowspan="3">' + (index + 1) + '</td>' +
                 '<td class="freeze-col freeze-b-1" rowspan="3">' + escapeHtml(row.customer) + '</td>' +
                 '<td class="freeze-col freeze-b-2" rowspan="3">' + escapeHtml(row.project) + '</td>' +
-                '<td class="freeze-col freeze-b-3" rowspan="3">' + escapeHtml(row.part_number) + '</td>' +
+                '<td class="freeze-col freeze-b-3" rowspan="3">' + partNumberHtml + '</td>' +
                 '<td class="freeze-col freeze-b-4" rowspan="3" style="text-align:left;">' + escapeHtml(row.part_name) + '</td>' +
                 '<td class="freeze-col freeze-b-5" rowspan="3"><span>' + (row.total_po ?? 0) + '</span></td>' +
-                '<td class="freeze-col freeze-b-6" rowspan="3"><input name="advance_delivery" class="form-control form-control-sm text-center" type="number" value="' + (row.advance_delivery ?? 0) + '"></td>' +
+                '<td class="freeze-col freeze-b-6" rowspan="3"><input name="advance_delivery" class="form-control form-control-sm text-center" type="number" value="' + (row.advance_delivery ?? 0) + '"' + lockAttr + '></td>' +
                 '<td class="freeze-col freeze-b-7" rowspan="3"><span>' + (row.outstanding ?? 0) + '</span></td>' +
                 '<td class="freeze-col freeze-b-8" rowspan="3"><span>' + (row.percentage ?? 0) + '%</span></td>' +
-                '<td class="freeze-col freeze-b-9" rowspan="3"><input name="stock_awal" class="form-control form-control-sm text-center input-biru" type="number" value="' + (row.stock_awal ?? 0) + '"></td>' +
+                '<td class="freeze-col freeze-b-9" rowspan="3"><input name="stock_awal" class="form-control form-control-sm text-center input-biru" type="number" value="' + (row.stock_awal ?? 0) + '"' + lockAttr + '></td>' +
                 '<td class="freeze-col freeze-b-10" rowspan="3"><span>' + (row.total_in ?? 0) + '</span></td>' +
                 '<td class="freeze-col freeze-b-11" rowspan="3"><span>' + (row.total_out ?? 0) + '</span></td>' +
                 '<td class="freeze-col freeze-b-12" rowspan="3"><span>' + (row.level_min ?? 0) + '</span></td>' +
@@ -515,20 +554,20 @@
                 '<td class="freeze-col freeze-b-16" rowspan="3">' + getStatusBadge(row.status_stock ?? 'Aman') + '</td>' +
                 '<td class="freeze-col freeze-b-17"><span class="badge bg-success">IN</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="in_hari_' + i + '_d" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i + '_d'] ?? 0) + '" readonly></td><td class="col-harian"><input name="in_hari_' + i + '_n" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i + '_n'] ?? 0) + '" readonly></td>';
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="in_hari_' + i + '_d" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i] ? (row['in_hari_' + i + '_d'] ?? 0) : (row['in_hari_' + i + '_d'] ?? 0)) + '" readonly></td><td class="col-harian"><input name="in_hari_' + i + '_n" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i + '_n'] ?? 0) + '" readonly></td>';
             }
             html += '</tr>';
 
             // === Baris 2: OUT ===
-            html += '<tr data-group="' + index + '">' +
+            html += '<tr class="' + rowClass + '" data-group="' + index + '">' +
                 '<td class="freeze-col freeze-b-17"><span class="badge bg-danger">OUT</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="out_hari_' + i + '_d" class="form-control form-control-sm text-center input-merah" type="number" value="' + (row['out_hari_' + i + '_d'] ?? 0) + '"></td><td class="col-harian"><input name="out_hari_' + i + '_n" class="form-control form-control-sm text-center input-merah" type="number" value="' + (row['out_hari_' + i + '_n'] ?? 0) + '"></td>';
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="out_hari_' + i + '_d" class="form-control form-control-sm text-center input-merah" type="number" value="' + (row['out_hari_' + i + '_d'] ?? 0) + '"' + lockAttr + '></td><td class="col-harian"><input name="out_hari_' + i + '_n" class="form-control form-control-sm text-center input-merah" type="number" value="' + (row['out_hari_' + i + '_n'] ?? 0) + '"' + lockAttr + '></td>';
             }
             html += '</tr>';
 
             // === Baris 3: BAL ===
-            html += '<tr data-group="' + index + '">' +
+            html += '<tr class="' + rowClass + '" data-group="' + index + '">' +
                 '<td class="freeze-col freeze-b-17"><span class="badge bg-primary">BAL</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
                 html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="balance_hari_' + i + '_d" class="form-control form-control-sm text-center input-biru" value="' + (row['balance_hari_' + i + '_d'] ?? 0) + '" readonly></td><td class="col-harian"><input name="balance_hari_' + i + '_n" class="form-control form-control-sm text-center input-biru" value="' + (row['balance_hari_' + i + '_n'] ?? 0) + '" readonly></td>';
@@ -720,6 +759,7 @@
 
         function saveRow($rowGroup, successTitle = 'Data berhasil disimpan') {
             const $firstRow = $rowGroup.first();
+            if ($firstRow.hasClass('row-nonaktif')) return;
             if ($firstRow.data('saving')) return;
             const payload = collectRowData($rowGroup);
             const signature = payloadSignature(payload);

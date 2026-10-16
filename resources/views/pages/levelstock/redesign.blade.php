@@ -364,6 +364,40 @@
         .skeleton-box::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%); animation: shimmer 1.4s infinite; }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
 
+        /* Badge Nonaktif */
+        .badge-nonaktif {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #dc2626;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        .part-number-readonly {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .part-number-readonly .part-text {
+            font-weight: 800;
+            font-size: 13px;
+            color: #64748b;
+        }
+        tr.row-nonaktif td {
+            background-color: #fef2f2 !important;
+            opacity: 0.85;
+        }
+        tr.row-nonaktif:hover td {
+            background-color: #fee2e2 !important;
+        }
+
         @media (max-width: 991.98px) { .level-hero .card-body { padding: 1.5rem; } .hero-stats { grid-template-columns: 1fr; } }
     </style>
 
@@ -471,7 +505,7 @@
             }
 
             function enhanceSelect2($context = $('#levelstock_table')) {
-                $context.find('.select-part-number:not(.select2-hidden-accessible)').select2({
+                $context.find('tr:not(.row-nonaktif) .select-part-number:not(.select2-hidden-accessible)').select2({
                     placeholder: '-- Pilih Part Number --',
                     allowClear: true,
                     width: '100%'
@@ -497,18 +531,38 @@
 
             function buildRowHtml(row, index, isManual = false) {
                 const rowId = row.id || '';
-                const trClass = isManual ? 'manual-row' : '';
+                const isInactive = row && row.is_active === false;
+                const trClass = isManual ? 'manual-row' : (isInactive ? 'row-nonaktif' : '');
                 const displayCustomer = decodeHtml(row.customer || '');
                 const displayProject = decodeHtml(row.kode_projek || row.kode_project || '');
                 const displayModel = decodeHtml(row.models || '');
+
+                const partCellHtml = isInactive
+                    ? `<div class="part-number-readonly">
+                           <span class="part-text">${escapeHtml(row.part_number || '-')}</span>
+                           <span class="badge-nonaktif"><i class="fas fa-ban" style="font-size:9px"></i> Nonaktif</span>
+                       </div>
+                       <input type="hidden" name="part_number" value="${escapeHtml(row.part_number || '')}">`
+                    : `<select class="form-select form-select-sm select-part-number" name="part_number">
+                           ${buildPartOptions(row.part_number, row.models)}
+                       </select>`;
+
+                const actionHtml = isInactive
+                    ? `<span class="badge badge-light-danger fw-bold fs-8" title="Item Nonaktif"><i class="fas fa-lock text-danger me-1"></i> Nonaktif</span>`
+                    : (isManual ? `
+                        <div class="d-flex justify-content-center gap-1">
+                            <button type="button" class="btn-action-icon save simpan-row" title="Simpan baris"><i class="fas fa-check"></i></button>
+                            <button type="button" class="btn-action-icon delete hapus-row" title="Hapus baris"><i class="fas fa-trash"></i></button>
+                        </div>
+                    ` : `
+                        <span class="badge-synced" title="Level stock tersinkron"><i class="fas fa-check-circle text-success"></i> Auto</span>
+                    `);
 
                 return `
                     <tr class="${trClass}" data-id="${rowId}">
                         <td class="col-no text-center"><span class="text-muted fw-bold">${index}</span></td>
                         <td class="col-part">
-                            <select class="form-select form-select-sm select-part-number" name="part_number">
-                                ${buildPartOptions(row.part_number, row.models)}
-                            </select>
+                            ${partCellHtml}
                         </td>
                         <td class="col-cust text-center">
                             <span class="badge-cust">${escapeHtml(displayCustomer || '-')}</span>
@@ -547,17 +601,10 @@
                             </div>
                         </td>
                         <td class="col-qty-box">
-                            <input type="number" min="0" class="cell-num-input editable-cell input-qty-box" name="qty_set_box" value="${row.qty_set_box ?? ''}" placeholder="0">
+                            <input type="number" min="0" class="cell-num-input editable-cell input-qty-box" name="qty_set_box" value="${row.qty_set_box ?? ''}" placeholder="0" ${isInactive ? 'readonly disabled' : ''}>
                         </td>
                         <td class="col-action text-center">
-                            ${isManual ? `
-                                <div class="d-flex justify-content-center gap-1">
-                                    <button type="button" class="btn-action-icon save simpan-row" title="Simpan baris"><i class="fas fa-check"></i></button>
-                                    <button type="button" class="btn-action-icon delete hapus-row" title="Hapus baris"><i class="fas fa-trash"></i></button>
-                                </div>
-                            ` : `
-                                <span class="badge-synced" title="Level stock tersinkron"><i class="fas fa-check-circle text-success"></i> Auto</span>
-                            `}
+                            ${actionHtml}
                         </td>
                     </tr>
                 `;
@@ -623,6 +670,10 @@
             }
 
             function saveRow($row, successMessage, silent = false) {
+                if ($row.hasClass('row-nonaktif')) {
+                    return $.Deferred().resolve().promise();
+                }
+
                 const data = buildRowPayload($row);
 
                 if (!data.part_number) {
@@ -649,7 +700,11 @@
             }
 
             function calculateLevelStock($row) {
-                const partNumber = $row.find('select[name="part_number"]').val();
+                if ($row.hasClass('row-nonaktif')) {
+                    return $.Deferred().resolve().promise();
+                }
+
+                const partNumber = $row.find('select[name="part_number"]').val() || $row.find('input[name="part_number"]').val();
                 const customer = $row.find('input[name="customer"]').val();
                 const kodeProjek = $row.find('input[name="kode_projek"]').val();
                 const models = $row.find('input[name="models"]').val();
@@ -744,6 +799,8 @@
             // QTY Set Box change and blur auto-save
             $('#levelstock_table tbody').on('blur', 'input[name="qty_set_box"]', function () {
                 const $row = $(this).closest('tr');
+                if ($row.hasClass('row-nonaktif')) return;
+
                 calculateLevelStock($row).done(() => {
                     if ($row.hasClass('manual-row')) {
                         updateSummary();
@@ -799,7 +856,7 @@
                 }).done(() => {
                     updateHariMetrics();
                     showToast('Hari kerja diperbarui');
-                    $('#levelstock_table tbody tr').each(function () {
+                    $('#levelstock_table tbody tr:not(.row-nonaktif)').each(function () {
                         const $row = $(this);
                         calculateLevelStock($row).done(() => {
                             if (!$row.hasClass('manual-row') && $row.find('select[name="part_number"]').val()) {

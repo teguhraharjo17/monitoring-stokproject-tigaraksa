@@ -58,7 +58,8 @@ class MonitoringFinishGoodsController extends Controller
             }
 
             // 1. Load RekapData & Aggregate duplicates
-            $rekapListRaw = RekapData::where('bulan', $bulan)
+            $rekapListRaw = RekapData::with('masterItem')
+                ->where('bulan', $bulan)
                 ->where('tahun', $tahun)
                 ->when($customer, function ($q) use ($customer) {
                     if (is_array($customer)) {
@@ -117,6 +118,7 @@ class MonitoringFinishGoodsController extends Controller
                 $mipDetails = $mipHeader ? $mipHeader->details->keyBy('tanggal') : collect();
 
                 $stockAwal = (int) ($header->stock_awal ?? ($rekap->stock_awal_fg ?? 0));
+                $isActive = $rekap->masterItem ? (bool)$rekap->masterItem->is_active : true;
                 
                 $row = [
                     'id' => $header->id ?? null,
@@ -131,6 +133,7 @@ class MonitoringFinishGoodsController extends Controller
                     'level_min' => (int) ($level->min ?? ($header->level_min ?? 0)),
                     'level_safety' => (int) ($level->safety_fg ?? ($header->level_safety ?? 0)),
                     'level_max' => (int) ($level->max ?? ($header->level_max ?? 0)),
+                    'is_active' => $isActive,
                 ];
 
                 $balance = $stockAwal;

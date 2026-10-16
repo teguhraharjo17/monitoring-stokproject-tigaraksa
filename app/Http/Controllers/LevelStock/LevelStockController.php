@@ -24,7 +24,7 @@ class LevelStockController extends Controller
             ['jumlah_hari_kerja_atas_100' => 0, 'jumlah_hari_kerja_bawah_100' => 0]
         );
 
-        $masterItems = MasterItem::select('id', 'part_number', 'customer', 'kode_project', 'nama_part')->get();
+        $masterItems = MasterItem::active()->select('id', 'part_number', 'customer', 'kode_project', 'nama_part')->get();
 
         return view('pages.levelstock.redesign', compact(
             'selectedBulan',
@@ -52,7 +52,8 @@ class LevelStockController extends Controller
             $overrideDetails = LevelStokDetail::where('level_stok_id', $levelStokId)->get();
 
             // Ambil semua item dari rekap_data
-            $rekapItems = RekapData::where('bulan', $bulan)
+            $rekapItems = RekapData::with('masterItem')
+                ->where('bulan', $bulan)
                 ->where('tahun', $tahun)
                 ->get();
 
@@ -65,6 +66,8 @@ class LevelStockController extends Controller
                         && trim($detail->models) === trim($item->models);
                 });
 
+                $isActive = $item->masterItem ? (bool)$item->masterItem->is_active : true;
+
                 return [
                     'id' => $matchedOverride->id ?? null,
                     'part_number' => $item->part_number,
@@ -76,8 +79,12 @@ class LevelStockController extends Controller
                     'safety_fg' => $matchedOverride->safety_fg ?? null,
                     'max' => $matchedOverride->max ?? null,
                     'qty_set_box' => $matchedOverride->qty_set_box ?? null,
+                    'is_active' => $isActive,
                 ];
             })->values();
+
+            $masterItemMap = MasterItem::whereIn('part_number', $overrideDetails->pluck('part_number'))
+                ->pluck('is_active', 'part_number');
 
             $orphanOverrides = $overrideDetails->filter(function ($detail) use ($rekapItems) {
                 return !$rekapItems->contains(function ($item) use ($detail) {
@@ -86,7 +93,7 @@ class LevelStockController extends Controller
                         && trim($detail->kode_projek) === trim($item->kode_project)
                         && trim($detail->models) === trim($item->models);
                 });
-            })->map(function ($detail) {
+            })->map(function ($detail) use ($masterItemMap) {
                 return [
                     'id' => $detail->id,
                     'part_number' => $detail->part_number,
@@ -98,6 +105,7 @@ class LevelStockController extends Controller
                     'safety_fg' => $detail->safety_fg,
                     'max' => $detail->max,
                     'qty_set_box' => $detail->qty_set_box,
+                    'is_active' => (bool) ($masterItemMap[$detail->part_number] ?? true),
                 ];
             })->values();
 

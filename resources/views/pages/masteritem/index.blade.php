@@ -15,6 +15,7 @@
                             <th>Part Number</th>
                             <th>Kode Project</th>
                             <th>Nama Part</th>
+                            <th>Status</th>
                             <th>Dibuat Pada</th>
                             <th>Aksi</th>
                         </tr>
@@ -337,6 +338,32 @@
             background-color: #cfcfcf;
             border-radius: 4px;
         }
+
+        /* ==== TOGGLE SWITCH STATUS ==== */
+        .form-check-input.toggle-status {
+            cursor: pointer;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+
+        .form-check-input.toggle-status:checked {
+            background-color: #198754;
+            border-color: #198754;
+        }
+
+        .form-check-input.toggle-status:not(:checked) {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .form-check-input.toggle-status:focus {
+            box-shadow: none;
+        }
+
+        .badge-status {
+            min-width: 55px;
+            display: inline-block;
+            text-align: center;
+        }
     </style>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -354,6 +381,7 @@
                     { data: 'part_number', name: 'part_number' },
                     { data: 'kode_project', name: 'kode_project' },
                     { data: 'nama_part', name: 'nama_part' },
+                    { data: 'status', name: 'status', orderable: false, searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                 ],
@@ -504,6 +532,63 @@
                             },
                             error: () => Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal menghapus item.' })
                         });
+                    }
+                });
+            });
+
+            // Toggle Status Aktif/Nonaktif
+            $(document).on('change', '.toggle-status', function () {
+                const checkbox = $(this);
+                const id = checkbox.data('id');
+                const isActive = checkbox.is(':checked');
+                const statusText = isActive ? 'mengaktifkan' : 'menonaktifkan';
+
+                Swal.fire({
+                    title: `Yakin ingin ${statusText} item ini?`,
+                    text: isActive 
+                        ? 'Item akan muncul kembali di semua menu monitoring.' 
+                        : 'Item tidak akan muncul di monitoring bulan berjalan & ke depan, tapi data historis tetap aman.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Ubah!',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: isActive ? '#198754' : '#dc3545',
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('master.item.toggleStatus', ':id') }}".replace(':id', id),
+                            method: 'PATCH',
+                            data: { _token: '{{ csrf_token() }}' },
+                            success: res => {
+                                // Update label text & color
+                                const label = $(`#status-label-${id}`);
+                                if (res.is_active) {
+                                    label.text('Aktif').removeClass('text-danger').addClass('text-success');
+                                } else {
+                                    label.text('Nonaktif').removeClass('text-success').addClass('text-danger');
+                                }
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: res.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                            },
+                            error: () => {
+                                // Revert checkbox on error
+                                checkbox.prop('checked', !isActive);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: 'Gagal mengubah status item.'
+                                });
+                            }
+                        });
+                    } else {
+                        // Revert checkbox if cancelled
+                        checkbox.prop('checked', !isActive);
                     }
                 });
             });

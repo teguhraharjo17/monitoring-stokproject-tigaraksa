@@ -27,6 +27,27 @@ class MasterItemController extends Controller
                 ->addIndexColumn()
                 ->addColumn('created_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->addColumn('kode_project', fn($row) => $row->kode_project ?? '-')
+                ->addColumn('status', function ($item) {
+                    $checked = $item->is_active ? 'checked' : '';
+                    $label = $item->is_active ? 'Aktif' : 'Nonaktif';
+                    $labelClass = $item->is_active ? 'text-success' : 'text-danger';
+                    return '
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input toggle-status" 
+                                    type="checkbox" 
+                                    data-id="' . $item->id . '" 
+                                    ' . $checked . '
+                                    style="cursor: pointer; width: 2.5em; height: 1.25em;">
+                            </div>
+                            <span class="badge-status ' . $labelClass . '" 
+                                  id="status-label-' . $item->id . '"
+                                  style="font-size: 0.75rem; font-weight: 600;">
+                                ' . $label . '
+                            </span>
+                        </div>
+                    ';
+                })
                 ->addColumn('action', function ($item) {
                     return '
                         <div class="d-flex justify-content-center gap-2">
@@ -47,7 +68,7 @@ class MasterItemController extends Controller
                         </div>
                     ';
                 })
-                ->rawColumns(['action'])
+                ->rawColumns(['status', 'action'])
                 ->make(true);
         }
     }
@@ -138,4 +159,25 @@ class MasterItemController extends Controller
             'message' => 'Item berhasil dihapus'
         ]);
     }
+
+    /**
+     * Toggle status aktif/nonaktif item
+     */
+    public function toggleStatus($id)
+    {
+        $item = MasterItem::findOrFail($id);
+
+        $item->is_active = !$item->is_active;
+        $item->deactivated_at = $item->is_active ? null : now();
+        $item->save();
+
+        $status = $item->is_active ? 'Aktif' : 'Nonaktif';
+
+        return response()->json([
+            'message' => "Status item berhasil diubah menjadi {$status}",
+            'is_active' => $item->is_active,
+            'deactivated_at' => $item->deactivated_at?->format('d-m-Y H:i'),
+        ]);
+    }
 }
+

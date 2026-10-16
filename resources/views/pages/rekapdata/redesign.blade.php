@@ -384,6 +384,40 @@
         .skeleton-box::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%); animation: shimmer 1.4s infinite; }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
 
+        /* Badge Nonaktif */
+        .badge-nonaktif {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #dc2626;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        .part-number-readonly {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .part-number-readonly .part-text {
+            font-weight: 800;
+            font-size: 13px;
+            color: #64748b;
+        }
+        tr.row-nonaktif td {
+            background-color: #fef2f2 !important;
+            opacity: 0.85;
+        }
+        tr.row-nonaktif:hover td {
+            background-color: #fee2e2 !important;
+        }
+
         @media (max-width: 991.98px) { .rekap-hero .card-body { padding: 1.5rem; } .hero-stats, .quick-metrics { grid-template-columns: 1fr; } }
     </style>
 
@@ -461,7 +495,7 @@
             }
 
             function inisialisasiSelect2($context = $('#rekap_table')) {
-                $context.find('.select-part-number:not(.select2-hidden-accessible)').select2({
+                $context.find('tr:not(.row-nonaktif) .select-part-number:not(.select2-hidden-accessible)').select2({
                     placeholder: '-- Pilih Part Number --',
                     allowClear: true,
                     width: '100%'
@@ -509,7 +543,8 @@
 
             function buildRowHtml(row, index, isManual = false) {
                 const rowId = row.id || '';
-                const trClass = isManual ? 'manual-row' : '';
+                const isInactive = row && row.is_active === false;
+                const trClass = isManual ? 'manual-row' : (isInactive ? 'row-nonaktif' : '');
                 const totStockVal = parseFloat(row.total_stock) || 0;
                 const totQtyVal = parseFloat(row.total_qty_bulan_ini) || 0;
                 const selisihVal = parseFloat(row.selisih_stock) || 0;
@@ -517,13 +552,32 @@
                 const displayProject = decodeHtml(row.kode_project || '');
                 const displayModel = decodeHtml(row.models || '');
 
+                const partCellHtml = isInactive
+                    ? `<div class="part-number-readonly">
+                           <span class="part-text">${escapeHtml(row.part_number || '-')}</span>
+                           <span class="badge-nonaktif"><i class="fas fa-ban" style="font-size:9px"></i> Nonaktif</span>
+                       </div>
+                       <input type="hidden" name="part_number" value="${escapeHtml(row.part_number || '')}">`
+                    : `<select class="form-select form-select-sm select-part-number" name="part_number">
+                           ${buildPartOptions(row.part_number, row.models, row.customer)}
+                       </select>`;
+
+                const readonlyAttr = isInactive ? 'readonly disabled' : '';
+
+                const actionHtml = isInactive
+                    ? `<span class="badge badge-light-danger fw-bold fs-8" title="Item Nonaktif"><i class="fas fa-lock text-danger me-1"></i> Nonaktif</span>`
+                    : (isManual
+                        ? `<div class="d-flex justify-content-center gap-1">
+                               <button type="button" class="btn-action-icon save simpan-row" title="Simpan baris"><i class="fas fa-check"></i></button>
+                               <button type="button" class="btn-action-icon delete hapus-row" title="Hapus baris"><i class="fas fa-trash"></i></button>
+                           </div>`
+                        : `<span class="badge-synced" title="Data tersimpan"><i class="fas fa-check text-success"></i></span>`);
+
                 return `
                     <tr class="${trClass}" data-id="${rowId}">
                         <td class="col-no text-center"><span class="text-muted fw-bold">${index}</span></td>
                         <td class="col-part">
-                            <select class="form-select form-select-sm select-part-number" name="part_number">
-                                ${buildPartOptions(row.part_number, row.models, row.customer)}
-                            </select>
+                            ${partCellHtml}
                         </td>
                         <td class="col-cust text-center">
                             <span class="badge-cust">${escapeHtml(displayCustomer || '-')}</span>
@@ -538,13 +592,13 @@
                             <input type="hidden" name="models" value="${escapeHtml(displayModel)}">
                         </td>
                         <td class="col-stk-mip">
-                            <input type="number" min="0" class="cell-num-input editable-cell" name="stock_awal_mip" value="${row.stock_awal_mip ?? ''}" placeholder="0">
+                            <input type="number" min="0" class="cell-num-input editable-cell" name="stock_awal_mip" value="${row.stock_awal_mip ?? ''}" placeholder="0" ${readonlyAttr}>
                         </td>
                         <td class="col-stk-fg">
-                            <input type="number" min="0" class="cell-num-input editable-cell" name="stock_awal_fg" value="${row.stock_awal_fg ?? ''}" placeholder="0">
+                            <input type="number" min="0" class="cell-num-input editable-cell" name="stock_awal_fg" value="${row.stock_awal_fg ?? ''}" placeholder="0" ${readonlyAttr}>
                         </td>
                         <td class="col-wip">
-                            <input type="number" min="0" class="cell-num-input editable-cell" name="wip_spk_sa" value="${row.wip_spk_sa ?? ''}" placeholder="0">
+                            <input type="number" min="0" class="cell-num-input editable-cell" name="wip_spk_sa" value="${row.wip_spk_sa ?? ''}" placeholder="0" ${readonlyAttr}>
                         </td>
                         <td class="col-tot-stk">
                             <div class="metric-pill metric-stock">
@@ -553,10 +607,10 @@
                             </div>
                         </td>
                         <td class="col-os">
-                            <input type="number" min="0" class="cell-num-input editable-cell input-demand" name="os_bulan_lalu" value="${row.os_bulan_lalu ?? ''}" placeholder="0">
+                            <input type="number" min="0" class="cell-num-input editable-cell input-demand" name="os_bulan_lalu" value="${row.os_bulan_lalu ?? ''}" placeholder="0" ${readonlyAttr}>
                         </td>
                         <td class="col-po">
-                            <input type="number" min="0" class="cell-num-input editable-cell input-demand" name="po_bulan_ini" value="${row.po_bulan_ini ?? ''}" placeholder="0">
+                            <input type="number" min="0" class="cell-num-input editable-cell input-demand" name="po_bulan_ini" value="${row.po_bulan_ini ?? ''}" placeholder="0" ${readonlyAttr}>
                         </td>
                         <td class="col-tot-qty">
                             <div class="metric-pill metric-qty">
@@ -571,14 +625,7 @@
                             </div>
                         </td>
                         <td class="col-action text-center">
-                            ${isManual ? `
-                                <div class="d-flex justify-content-center gap-1">
-                                    <button type="button" class="btn-action-icon save simpan-row" title="Simpan baris"><i class="fas fa-check"></i></button>
-                                    <button type="button" class="btn-action-icon delete hapus-row" title="Hapus baris"><i class="fas fa-trash"></i></button>
-                                </div>
-                            ` : `
-                                <span class="badge-synced" title="Data tersimpan"><i class="fas fa-check text-success"></i></span>
-                            `}
+                            ${actionHtml}
                         </td>
                     </tr>
                 `;
@@ -674,7 +721,7 @@
             // Auto-save on blur
             $('#rekap_table tbody').on('blur', 'input.editable-cell', function () {
                 const $row = $(this).closest('tr');
-                if ($row.hasClass('manual-row')) return;
+                if ($row.hasClass('manual-row') || $row.hasClass('row-nonaktif')) return;
 
                 const rowKey = $row.attr('data-id') || $row.index();
                 clearTimeout(saveTimers[rowKey]);

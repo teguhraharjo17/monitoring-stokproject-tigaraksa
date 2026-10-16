@@ -317,6 +317,38 @@
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Badge Nonaktif */
+        .badge-nonaktif {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #dc2626;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        .part-number-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .part-number-container .part-text {
+            font-weight: 800;
+        }
+        tr.row-nonaktif td, tr.row-nonaktif .freeze-col {
+            background-color: #fef2f2 !important;
+            opacity: 0.9;
+        }
+        tr.row-nonaktif:hover td, tr.row-nonaktif:hover .freeze-col {
+            background-color: #fee2e2 !important;
+        }
+
         @media (max-width: 991.98px) { .subassy-hero .card-body { padding: 1.5rem; } .hero-stats, .quick-metrics { grid-template-columns: 1fr; } }
     </style>
 
@@ -492,15 +524,22 @@
         }
 
         function buildRow(row, index, jumlahHari) {
+            const isInactive = row && row.is_active === false;
+            const partNumberHtml = isInactive
+                ? '<div class="part-number-container"><span class="part-text">' + escapeHtml(row.part_number) + '</span><span class="badge-nonaktif"><i class="fas fa-ban" style="font-size:9px"></i> Nonaktif</span></div>'
+                : escapeHtml(row.part_number);
+            const rowClass = isInactive ? ' row-nonaktif' : '';
+            const lockAttr = isInactive ? ' readonly disabled' : '';
+
             // === Baris 1: SPK ===
-            let html = '<tr class="row-group-first" data-group="' + index + '" data-id="' + escapeHtml(row.id) + '" data-customer="' + escapeHtml(row.customer) + '" data-project="' + escapeHtml(row.project) + '" data-part-number="' + escapeHtml(row.part_number) + '" data-part-name="' + escapeHtml(row.part_name) + '">' +
+            let html = '<tr class="row-group-first' + rowClass + '" data-group="' + index + '" data-id="' + escapeHtml(row.id) + '" data-customer="' + escapeHtml(row.customer) + '" data-project="' + escapeHtml(row.project) + '" data-part-number="' + escapeHtml(row.part_number) + '" data-part-name="' + escapeHtml(row.part_name) + '">' +
                 '<td class="freeze-col freeze-b-0" rowspan="3">' + (index + 1) + '</td>' +
                 '<td class="freeze-col freeze-b-1" rowspan="3">' + escapeHtml(row.customer) + '</td>' +
                 '<td class="freeze-col freeze-b-2" rowspan="3">' + escapeHtml(row.project) + '</td>' +
-                '<td class="freeze-col freeze-b-3" rowspan="3">' + escapeHtml(row.part_number) + '</td>' +
+                '<td class="freeze-col freeze-b-3" rowspan="3">' + partNumberHtml + '</td>' +
                 '<td class="freeze-col freeze-b-4" rowspan="3" style="text-align:left;">' + escapeHtml(row.part_name) + '</td>' +
                 '<td class="freeze-col freeze-b-5" rowspan="3"><span>' + (row.total_po ?? 0) + '</span></td>' +
-                '<td class="freeze-col freeze-b-6" rowspan="3"><input type="number" name="wip_sebelumnya" class="form-control form-control-sm text-center" value="' + (row.wip_sebelumnya ?? 0) + '"></td>' +
+                '<td class="freeze-col freeze-b-6" rowspan="3"><input type="number" name="wip_sebelumnya" class="form-control form-control-sm text-center" value="' + (row.wip_sebelumnya ?? 0) + '"' + lockAttr + '></td>' +
                 '<td class="freeze-col freeze-b-7" rowspan="3"><span>' + (row.total_spk ?? 0) + '</span></td>' +
                 '<td class="freeze-col freeze-b-8" rowspan="3"><span>' + (row.total_produksi ?? 0) + '</span></td>' +
                 '<td class="freeze-col freeze-b-9" rowspan="3"><span>' + (row.wip_akhir ?? 0) + '</span></td>' +
@@ -512,15 +551,15 @@
             html += '</tr>';
 
             // === Baris 2: Produksi ===
-            html += '<tr data-group="' + index + '">' +
+            html += '<tr class="' + rowClass + '" data-group="' + index + '">' +
                 '<td class="freeze-col freeze-b-11"><span class="badge bg-success">PRODUKSI</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input type="number" name="produksi_hari_' + i + '" class="form-control form-control-sm text-center input-hijau" value="' + (row['produksi_hari_' + i] ?? 0) + '"></td>';
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input type="number" name="produksi_hari_' + i + '" class="form-control form-control-sm text-center input-hijau" value="' + (row['produksi_hari_' + i] ?? 0) + '"' + lockAttr + '></td>';
             }
             html += '</tr>';
 
             // === Baris 3: WIP ===
-            html += '<tr data-group="' + index + '">' +
+            html += '<tr class="' + rowClass + '" data-group="' + index + '">' +
                 '<td class="freeze-col freeze-b-11"><span class="badge bg-danger">WIP</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
                 html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input type="number" name="wip_hari_' + i + '" class="form-control form-control-sm text-center input-merah" value="' + (row['wip_hari_' + i] ?? 0) + '" readonly tabindex="-1"></td>';
@@ -693,6 +732,7 @@
 
         function saveRow($rowGroup, successTitle = 'Tersimpan') {
             const $firstRow = $rowGroup.first();
+            if ($firstRow.hasClass('row-nonaktif')) return;
             if ($firstRow.data('saving')) return;
             const payload = collectRowData($rowGroup);
             const signature = payloadSignature(payload);

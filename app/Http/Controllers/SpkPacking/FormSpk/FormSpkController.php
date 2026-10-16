@@ -23,7 +23,7 @@ class FormSpkController extends Controller
     {
         $search = $request->get('search', '');
 
-        $items = MasterItem::when($search, function ($query, $search) {
+        $items = MasterItem::active()->when($search, function ($query, $search) {
             $query->where('part_number', 'like', "%$search%");
         })->limit(20)->get();
 

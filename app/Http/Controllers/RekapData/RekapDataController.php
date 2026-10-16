@@ -12,7 +12,7 @@ class RekapDataController extends Controller
 {
     public function index()
     {
-        $masterItems = MasterItem::select('id', 'part_number', 'customer', 'kode_project', 'nama_part')->get();
+        $masterItems = MasterItem::active()->select('id', 'part_number', 'customer', 'kode_project', 'nama_part')->get();
 
         return view('pages.rekapdata.redesign', compact('masterItems'));
     }
@@ -31,6 +31,11 @@ class RekapDataController extends Controller
                     ->where('rekap_data.bulan', $bulan)
                     ->where('rekap_data.tahun', $tahun);
             })
+            ->where(function ($query) {
+                // Tampilkan item aktif ATAU item nonaktif yang sudah punya data rekap di bulan ini
+                $query->where('master_items.is_active', true)
+                      ->orWhereNotNull('rekap_data.id');
+            })
             ->when($customer, function ($query) use ($customer) {
                 $query->where('master_items.customer', $customer);
             })
@@ -39,6 +44,7 @@ class RekapDataController extends Controller
                 'master_items.customer',
                 'master_items.kode_project',
                 'master_items.nama_part as models',
+                'master_items.is_active',
                 'rekap_data.id',
                 'rekap_data.stock_awal_mip',
                 'rekap_data.stock_awal_fg',

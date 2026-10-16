@@ -112,7 +112,8 @@ class MonitoringSubAssyController extends Controller
         $forceRefresh = $request->boolean('force_refresh');
         $spkMap = $this->getSpkMap($bulan, $tahun, $forceRefresh);
 
-        $rekapData = RekapData::where('bulan', $bulan)
+        $rekapData = RekapData::with('masterItem')
+            ->where('bulan', $bulan)
             ->where('tahun', $tahun)
             ->when($customer, function ($q) use ($customer) {
                 if (is_array($customer)) {
@@ -168,6 +169,8 @@ class MonitoringSubAssyController extends Controller
                 $wipSebelumnya = (int) ($prevSubAssy ? $prevSubAssy->wip_akhir : ($rekap->wip_spk_sa ?? 0));
             }
 
+            $isActive = $rekap->masterItem ? (bool)$rekap->masterItem->is_active : true;
+
             $row = [
                 'id' => $subAssy->id ?? null,
                 'customer' => $rekap->customer,
@@ -180,6 +183,7 @@ class MonitoringSubAssyController extends Controller
                 'total_produksi' => (int) ($subAssy->total_produksi ?? 0),
                 'wip_akhir' => (int) ($subAssy->wip_akhir ?? 0),
                 'produktivitas' => (int) ($subAssy->produktivitas ?? 0),
+                'is_active' => $isActive,
             ];
 
             for ($i = 1; $i <= $jumlahHari; $i++) {

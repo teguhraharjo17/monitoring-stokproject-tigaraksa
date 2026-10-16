@@ -69,6 +69,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/', [MasterItemController::class, 'store'])->name('store');
             Route::put('/{id}', [MasterItemController::class, 'update'])->name('update');
             Route::delete('/{id}', [MasterItemController::class, 'destroy'])->name('destroy');
+            Route::patch('/{id}/toggle-status', [MasterItemController::class, 'toggleStatus'])->name('toggleStatus');
         });
 
         Route::prefix('company')->name('company.')->group(function () {

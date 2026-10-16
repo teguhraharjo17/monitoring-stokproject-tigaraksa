@@ -34,4 +34,12 @@ class RekapData extends Model
     {
         return $query->where('tahun', $tahun);
     }
+
+    /**
+     * Relasi ke master item berdasarkan part_number
+     */
+    public function masterItem()
+    {
+        return $this->belongsTo(MasterItem::class, 'part_number', 'part_number');
+    }
 }
