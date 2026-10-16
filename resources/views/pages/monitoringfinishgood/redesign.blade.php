@@ -150,6 +150,8 @@
             color: #991b1b !important;
             border-bottom: 2px solid #ef4444 !important;
             cursor: help !important;
+            text-align: center !important;
+            vertical-align: middle !important;
         }
         .th-libur.th-weekend {
             background: #fff1f2 !important;
@@ -158,31 +160,62 @@
         .th-libur-sub {
             background: #fee2e2 !important;
             color: #991b1b !important;
+            text-align: center !important;
         }
         .th-libur-sub.th-weekend {
             background: #fff1f2 !important;
             color: #be123c !important;
         }
-        .libur-tag {
+        .th-date-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            margin: 0 auto;
+            text-align: center;
+            gap: 2px;
+        }
+        .th-date-num {
             display: block;
+            font-weight: 800;
+            font-size: 13px;
+            line-height: 1.1;
+            text-align: center;
+            color: #0f172a;
+        }
+        .th-libur .th-date-num {
+            color: #991b1b !important;
+        }
+        .th-libur.th-weekend .th-date-num {
+            color: #be123c !important;
+        }
+        .libur-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-size: 8px;
             font-weight: 800;
-            line-height: 1.1;
-            padding: 1px 3px;
-            border-radius: 3px;
+            line-height: 1;
+            padding: 2px 6px;
+            border-radius: 999px;
             background: rgba(239, 68, 68, 0.18);
             color: #991b1b;
-            margin-top: 2px;
-            letter-spacing: -0.02em;
+            border: 1px solid rgba(239, 68, 68, 0.28);
+            letter-spacing: 0.04em;
             text-transform: uppercase;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 58px;
+            margin: 0 auto;
+            max-width: 90%;
+            box-sizing: border-box;
+            box-shadow: 0 1px 2px rgba(153, 27, 27, 0.08);
         }
         .th-weekend .libur-tag {
             background: rgba(190, 18, 60, 0.18);
             color: #9f1239;
+            border-color: rgba(190, 18, 60, 0.28);
+            box-shadow: 0 1px 2px rgba(159, 18, 57, 0.08);
         }
         .cell-libur {
             background-color: #fff1f2 !important;
@@ -582,7 +615,7 @@
                 const tagText = isLibur ? (libur.is_weekend ? (libur.nama_hari === 'Minggu' ? 'MINGGU' : 'SABTU') : 'LIBUR') : '';
                 const liburBadge = isLibur ? '<span class="libur-tag" title="' + escapeHtml(libur.keterangan || tagText) + '">' + escapeHtml(tagText) + '</span>' : '';
 
-                thead += '<th colspan="2" class="col-harian' + (i === 1 ? ' ps-3' : '') + liburClass + '"' + liburTitle + '><span>' + i + '</span>' + liburBadge + '</th>';
+                thead += '<th colspan="2" class="col-harian' + (i === 1 ? ' ps-3' : '') + liburClass + '"' + liburTitle + '><div class="th-date-wrapper"><span class="th-date-num">' + i + '</span>' + liburBadge + '</div></th>';
             }
             thead += '</tr><tr><th class="col-number freeze-col freeze-h-10">IN</th><th class="col-number freeze-col freeze-h-11">OUT</th><th class="col-number freeze-col freeze-h-12">Min</th><th class="col-number freeze-col freeze-h-13">Safety</th><th class="col-number freeze-col freeze-h-14">Max</th>';
             for (let i = 1; i <= jumlahHari; i++) {
