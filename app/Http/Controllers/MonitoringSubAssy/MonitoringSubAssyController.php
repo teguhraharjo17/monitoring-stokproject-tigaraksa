@@ -14,6 +14,7 @@ use App\Exports\SubAssyExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
+use App\Services\HariLiburService;
 
 class MonitoringSubAssyController extends Controller
 {
@@ -243,7 +244,8 @@ class MonitoringSubAssyController extends Controller
         }
 
             return response()->json([
-                'data' => $data
+                'data' => $data,
+                'hari_libur' => HariLiburService::getLiburBulan($bulan, $tahun),
             ]);
         } catch (\Throwable $e) {
             Log::error('MonitoringSubAssyController::data Error: ' . $e->getMessage(), [
@@ -283,16 +285,17 @@ class MonitoringSubAssyController extends Controller
         $fallbackKey = $this->spkFallbackKey($customer, $partNumber);
         $localSpkData = $spkMap[$apiKeyNormalized] ?? ($spkMap[$fallbackKey] ?? []);
 
-        // 2. Hitung ulang total SPK dan Produksi berdasarkan data harian
+        $liburMap = HariLiburService::getLiburBulan($bulan, $tahun);
         $totalSPK = 0;
         $totalProduksi = 0;
         $dailyData = [];
 
         for ($i = 1; $i <= $jumlahHari; $i++) {
+            $isLibur = $liburMap[$i]['is_libur'] ?? false;
             // SPK utama dari API/cache. Jika API sedang tidak tersedia dan cache kosong,
             // pertahankan angka SPK yang sedang tampil agar update produksi tetap bisa disimpan.
             $spkVal = (int) ($localSpkData[$i] ?? $request->input("spk_hari_{$i}", 0));
-            $prodVal = (int) ($request->input("produksi_hari_{$i}", 0));
+            $prodVal = $isLibur ? 0 : (int) ($request->input("produksi_hari_{$i}", 0));
             
             $totalSPK += $spkVal;
             $totalProduksi += $prodVal;

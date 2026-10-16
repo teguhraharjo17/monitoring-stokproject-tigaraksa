@@ -98,6 +98,7 @@
                         <span class="legend-item"><span class="legend-box in"></span>IN</span>
                         <span class="legend-item"><span class="legend-box out"></span>OUT</span>
                         <span class="legend-item"><span class="legend-box bal"></span>BAL</span>
+                        <span class="legend-item"><span class="legend-box libur"></span>Libur / Weekend (Terkunci)</span>
                     </div>
                 </div>
                 <div id="table_progress_bar" class="progress-container d-none">
@@ -140,8 +141,65 @@
         .loading-banner { display: inline-flex; align-items: center; padding: .85rem 1rem; border-radius: 14px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
         .table-legend { display: flex; flex-wrap: wrap; gap: .75rem; }
         .legend-item { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem .8rem; border-radius: 999px; background: #fff; border: 1px solid #e2e8f0; color: #334155; font-size: .88rem; font-weight: 600; }
-        .legend-box { width: 12px; height: 12px; border-radius: 4px; }
         .legend-box.in { background: #dcfce7; border: 1px solid #86efac; } .legend-box.out { background: #fee2e2; border: 1px solid #fca5a5; } .legend-box.bal { background: #dbeafe; border: 1px solid #93c5fd; }
+        .legend-box.libur { background: #fee2e2; border: 1px solid #ef4444; }
+
+        /* Styling Kolom Hari Libur & Weekend */
+        .th-libur {
+            background: #fee2e2 !important;
+            color: #991b1b !important;
+            border-bottom: 2px solid #ef4444 !important;
+            cursor: help !important;
+        }
+        .th-libur.th-weekend {
+            background: #fff1f2 !important;
+            color: #be123c !important;
+        }
+        .th-libur-sub {
+            background: #fee2e2 !important;
+            color: #991b1b !important;
+        }
+        .th-libur-sub.th-weekend {
+            background: #fff1f2 !important;
+            color: #be123c !important;
+        }
+        .libur-tag {
+            display: block;
+            font-size: 8px;
+            font-weight: 800;
+            line-height: 1.1;
+            padding: 1px 3px;
+            border-radius: 3px;
+            background: rgba(239, 68, 68, 0.18);
+            color: #991b1b;
+            margin-top: 2px;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 58px;
+        }
+        .th-weekend .libur-tag {
+            background: rgba(190, 18, 60, 0.18);
+            color: #9f1239;
+        }
+        .cell-libur {
+            background-color: #fff1f2 !important;
+            cursor: not-allowed !important;
+        }
+        .cell-libur .form-control, .input-libur {
+            background-color: #fee2e2 !important;
+            border-color: #fca5a5 !important;
+            color: #991b1b !important;
+            cursor: not-allowed !important;
+            opacity: 0.85;
+            pointer-events: none;
+        }
+        .cell-libur .form-control:focus, .input-libur:focus {
+            box-shadow: none !important;
+            border-color: #fca5a5 !important;
+        }
         .empty-state { padding: 3rem 1rem; text-align: center; }
         .empty-icon { width: 70px; height: 70px; border-radius: 22px; margin: 0 auto 1rem; display: grid; place-items: center; background: #e2e8f0; color: #334155; font-size: 1.5rem; }
         .table-wrap { width: 100%; overflow: auto; max-height: 70vh; border: 1px solid #cbd5e1; border-radius: 20px; position: relative; background: #fff; }
@@ -399,6 +457,7 @@
     <script>
         let currentData = [];
         let visibleData = [];
+        let currentHariLibur = {};
         let tableRequest = null;
         let customerRequest = null;
         let searchTimer = null;
@@ -516,11 +575,23 @@
         function buildTableHeader(jumlahHari) {
             let thead = '<tr><th rowspan="2" class="col-no freeze-col freeze-h-0">No</th><th rowspan="2" class="col-customer freeze-col freeze-h-1">Customer</th><th rowspan="2" class="col-project freeze-col freeze-h-2">Project</th><th rowspan="2" class="col-part-number freeze-col freeze-h-3">Part Number</th><th rowspan="2" class="col-part-name freeze-col freeze-h-4">Part Name</th><th rowspan="2" class="col-number freeze-col freeze-h-5">Total PO</th><th rowspan="2" class="col-number freeze-col freeze-h-6">Advance Delivery</th><th rowspan="2" class="col-number freeze-col freeze-h-7">Outstanding</th><th rowspan="2" class="col-number freeze-col freeze-h-8">% Delivery</th><th rowspan="2" class="col-number freeze-col freeze-h-9">Stock Awal</th><th colspan="2" class="freeze-group-total">Total</th><th colspan="3" class="freeze-group-level">Level</th><th rowspan="2" class="col-number freeze-col freeze-h-15">Stock On Hand</th><th rowspan="2" class="col-status freeze-col freeze-h-16">Status Stock</th><th rowspan="2" class="col-status freeze-col freeze-h-17">Status</th>';
             for (let i = 1; i <= jumlahHari; i++) {
-                thead += '<th colspan="2" class="col-harian ' + (i === 1 ? 'ps-3' : '') + '">' + i + '</th>';
+                const libur = currentHariLibur[i];
+                const isLibur = libur && libur.is_libur;
+                const liburClass = isLibur ? ' th-libur ' + (libur.is_weekend ? 'th-weekend' : 'th-tanggal-merah') : '';
+                const liburTitle = isLibur ? ' title="' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
+                const tagText = isLibur ? (libur.is_weekend ? (libur.nama_hari === 'Minggu' ? 'MINGGU' : 'SABTU') : 'LIBUR') : '';
+                const liburBadge = isLibur ? '<span class="libur-tag" title="' + escapeHtml(libur.keterangan || tagText) + '">' + escapeHtml(tagText) + '</span>' : '';
+
+                thead += '<th colspan="2" class="col-harian' + (i === 1 ? ' ps-3' : '') + liburClass + '"' + liburTitle + '><span>' + i + '</span>' + liburBadge + '</th>';
             }
             thead += '</tr><tr><th class="col-number freeze-col freeze-h-10">IN</th><th class="col-number freeze-col freeze-h-11">OUT</th><th class="col-number freeze-col freeze-h-12">Min</th><th class="col-number freeze-col freeze-h-13">Safety</th><th class="col-number freeze-col freeze-h-14">Max</th>';
             for (let i = 1; i <= jumlahHari; i++) {
-                thead += '<th class="col-harian ' + (i === 1 ? 'ps-3' : '') + '">D</th><th class="col-harian">N</th>';
+                const libur = currentHariLibur[i];
+                const isLibur = libur && libur.is_libur;
+                const liburClass = isLibur ? ' th-libur-sub ' + (libur.is_weekend ? 'th-weekend' : 'th-tanggal-merah') : '';
+                const liburTitle = isLibur ? ' title="' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
+
+                thead += '<th class="col-harian' + (i === 1 ? ' ps-3' : '') + liburClass + '"' + liburTitle + '>D</th><th class="col-harian' + liburClass + '"' + liburTitle + '>N</th>';
             }
             $('#fg_table thead').html(thead + '</tr>');
         }
@@ -554,7 +625,13 @@
                 '<td class="freeze-col freeze-b-16" rowspan="3">' + getStatusBadge(row.status_stock ?? 'Aman') + '</td>' +
                 '<td class="freeze-col freeze-b-17"><span class="badge bg-success">IN</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="in_hari_' + i + '_d" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i] ? (row['in_hari_' + i + '_d'] ?? 0) : (row['in_hari_' + i + '_d'] ?? 0)) + '" readonly></td><td class="col-harian"><input name="in_hari_' + i + '_n" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i + '_n'] ?? 0) + '" readonly></td>';
+                const libur = currentHariLibur[i];
+                const isLibur = libur && libur.is_libur;
+                const cellLiburClass = isLibur ? ' cell-libur' : '';
+                const liburTitle = isLibur ? ' title="Libur: ' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
+                const inputLiburClass = isLibur ? ' input-libur' : ' input-hijau';
+
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input name="in_hari_' + i + '_d" class="form-control form-control-sm text-center ' + inputLiburClass + '" value="' + (row['in_hari_' + i + '_d'] ?? 0) + '" readonly tabindex="-1"' + liburTitle + '></td><td class="col-harian' + cellLiburClass + '"' + liburTitle + '><input name="in_hari_' + i + '_n" class="form-control form-control-sm text-center ' + inputLiburClass + '" value="' + (row['in_hari_' + i + '_n'] ?? 0) + '" readonly tabindex="-1"' + liburTitle + '></td>';
             }
             html += '</tr>';
 
@@ -562,7 +639,14 @@
             html += '<tr class="' + rowClass + '" data-group="' + index + '">' +
                 '<td class="freeze-col freeze-b-17"><span class="badge bg-danger">OUT</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="out_hari_' + i + '_d" class="form-control form-control-sm text-center input-merah" type="number" value="' + (row['out_hari_' + i + '_d'] ?? 0) + '"' + lockAttr + '></td><td class="col-harian"><input name="out_hari_' + i + '_n" class="form-control form-control-sm text-center input-merah" type="number" value="' + (row['out_hari_' + i + '_n'] ?? 0) + '"' + lockAttr + '></td>';
+                const libur = currentHariLibur[i];
+                const isLibur = libur && libur.is_libur;
+                const cellLiburClass = isLibur ? ' cell-libur' : '';
+                const liburTitle = isLibur ? ' title="Libur: ' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
+                const inputLiburClass = isLibur ? ' input-libur' : ' input-merah';
+                const dayLockAttr = (isInactive || isLibur) ? ' readonly disabled tabindex="-1"' : '';
+
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input name="out_hari_' + i + '_d" class="form-control form-control-sm text-center ' + inputLiburClass + '" type="number" value="' + (row['out_hari_' + i + '_d'] ?? 0) + '"' + dayLockAttr + liburTitle + '></td><td class="col-harian' + cellLiburClass + '"' + liburTitle + '><input name="out_hari_' + i + '_n" class="form-control form-control-sm text-center ' + inputLiburClass + '" type="number" value="' + (row['out_hari_' + i + '_n'] ?? 0) + '"' + dayLockAttr + liburTitle + '></td>';
             }
             html += '</tr>';
 
@@ -570,7 +654,13 @@
             html += '<tr class="' + rowClass + '" data-group="' + index + '">' +
                 '<td class="freeze-col freeze-b-17"><span class="badge bg-primary">BAL</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input name="balance_hari_' + i + '_d" class="form-control form-control-sm text-center input-biru" value="' + (row['balance_hari_' + i + '_d'] ?? 0) + '" readonly></td><td class="col-harian"><input name="balance_hari_' + i + '_n" class="form-control form-control-sm text-center input-biru" value="' + (row['balance_hari_' + i + '_n'] ?? 0) + '" readonly></td>';
+                const libur = currentHariLibur[i];
+                const isLibur = libur && libur.is_libur;
+                const cellLiburClass = isLibur ? ' cell-libur' : '';
+                const liburTitle = isLibur ? ' title="Libur: ' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
+                const inputLiburClass = isLibur ? ' input-libur' : ' input-biru';
+
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input name="balance_hari_' + i + '_d" class="form-control form-control-sm text-center ' + inputLiburClass + '" value="' + (row['balance_hari_' + i + '_d'] ?? 0) + '" readonly tabindex="-1"' + liburTitle + '></td><td class="col-harian' + cellLiburClass + '"' + liburTitle + '><input name="balance_hari_' + i + '_n" class="form-control form-control-sm text-center ' + inputLiburClass + '" value="' + (row['balance_hari_' + i + '_n'] ?? 0) + '" readonly tabindex="-1"' + liburTitle + '></td>';
             }
             html += '</tr>';
 
@@ -835,6 +925,7 @@
                         return $.trim(a.part_number).localeCompare($.trim(b.part_number));
                     });
                     
+                    currentHariLibur = res.hari_libur || {};
                     currentData = sortedData;
                     refreshVisibleTable();
                 },

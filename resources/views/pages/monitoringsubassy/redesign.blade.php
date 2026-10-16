@@ -102,6 +102,7 @@
                         <span class="legend-item"><span class="legend-box spk"></span>SPK</span>
                         <span class="legend-item"><span class="legend-box produksi"></span>Produksi</span>
                         <span class="legend-item"><span class="legend-box wip"></span>WIP</span>
+                        <span class="legend-item"><span class="legend-box libur"></span>Libur / Weekend (Terkunci)</span>
                     </div>
                 </div>
                 <div id="table_progress_bar" class="progress-container d-none">
@@ -148,6 +149,56 @@
         .legend-box.spk { background: #dbeafe; border: 1px solid #93c5fd; }
         .legend-box.produksi { background: #dcfce7; border: 1px solid #86efac; }
         .legend-box.wip { background: #fee2e2; border: 1px solid #fca5a5; }
+        .legend-box.libur { background: #fee2e2; border: 1px solid #ef4444; }
+
+        /* Styling Kolom Hari Libur & Weekend */
+        .th-libur {
+            background: #fee2e2 !important;
+            color: #991b1b !important;
+            border-bottom: 2px solid #ef4444 !important;
+            cursor: help !important;
+        }
+        .th-libur.th-weekend {
+            background: #fff1f2 !important;
+            color: #be123c !important;
+        }
+        .libur-tag {
+            display: block;
+            font-size: 8px;
+            font-weight: 800;
+            line-height: 1.1;
+            padding: 1px 3px;
+            border-radius: 3px;
+            background: rgba(239, 68, 68, 0.18);
+            color: #991b1b;
+            margin-top: 2px;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 58px;
+        }
+        .th-weekend .libur-tag {
+            background: rgba(190, 18, 60, 0.18);
+            color: #9f1239;
+        }
+        .cell-libur {
+            background-color: #fff1f2 !important;
+            cursor: not-allowed !important;
+        }
+        .cell-libur .form-control, .input-libur {
+            background-color: #fee2e2 !important;
+            border-color: #fca5a5 !important;
+            color: #991b1b !important;
+            cursor: not-allowed !important;
+            opacity: 0.85;
+            pointer-events: none;
+        }
+        .cell-libur .form-control:focus, .input-libur:focus {
+            box-shadow: none !important;
+            border-color: #fca5a5 !important;
+        }
         .empty-state { padding: 3rem 1rem; text-align: center; }
         .empty-icon { width: 70px; height: 70px; border-radius: 22px; margin: 0 auto 1rem; display: grid; place-items: center; background: #e2e8f0; color: #334155; font-size: 1.5rem; }
         .table-wrap { width: 100%; overflow: auto; max-height: 70vh; border: 1px solid #cbd5e1; border-radius: 20px; position: relative; background: #fff; }
@@ -403,6 +454,7 @@
     <script>
         let currentData = [];
         let visibleData = [];
+        let currentHariLibur = {};
         let tableRequest = null;
         let customerRequest = null;
         let searchTimer = null;
@@ -513,7 +565,14 @@
         function buildTableHeader(jumlahHari) {
             let thead = '<tr><th rowspan="2" class="col-no freeze-col freeze-h-0">No</th><th rowspan="2" class="col-customer freeze-col freeze-h-1">Customer</th><th rowspan="2" class="col-project freeze-col freeze-h-2">Project</th><th rowspan="2" class="col-part-number freeze-col freeze-h-3">Part Number</th><th rowspan="2" class="col-part-name freeze-col freeze-h-4">Part Name</th><th rowspan="2" class="col-number freeze-col freeze-h-5">Total PO</th><th rowspan="2" class="col-number freeze-col freeze-h-6">WIP Sebelumnya</th><th rowspan="2" class="col-number freeze-col freeze-h-7">Total SPK</th><th rowspan="2" class="col-number freeze-col freeze-h-8">Total Produksi</th><th rowspan="2" class="col-number freeze-col freeze-h-9">WIP Akhir</th><th rowspan="2" class="col-number freeze-col freeze-h-10">Produktivitas</th><th rowspan="2" class="col-status freeze-col freeze-h-11">Status</th><th colspan="' + jumlahHari + '">Tanggal</th></tr><tr>';
             for (let i = 1; i <= jumlahHari; i++) {
-                thead += '<th class="col-harian ' + (i === 1 ? 'ps-3' : '') + '">' + i + '</th>';
+                const libur = currentHariLibur[i];
+                const isLibur = libur && libur.is_libur;
+                const liburClass = isLibur ? ' th-libur ' + (libur.is_weekend ? 'th-weekend' : 'th-tanggal-merah') : '';
+                const liburTitle = isLibur ? ' title="' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
+                const tagText = isLibur ? (libur.is_weekend ? (libur.nama_hari === 'Minggu' ? 'MINGGU' : 'SABTU') : 'LIBUR') : '';
+                const liburBadge = isLibur ? '<span class="libur-tag" title="' + escapeHtml(libur.keterangan || tagText) + '">' + escapeHtml(tagText) + '</span>' : '';
+
+                thead += '<th class="col-harian' + (i === 1 ? ' ps-3' : '') + liburClass + '"' + liburTitle + '><span>' + i + '</span>' + liburBadge + '</th>';
             }
             $('#subassy_table thead').html(thead + '</tr>');
         }
@@ -546,7 +605,13 @@
                 '<td class="freeze-col freeze-b-10" rowspan="3">' + buildProduktivitas(row.produktivitas ?? 0) + '</td>' +
                 '<td class="freeze-col freeze-b-11"><span class="badge bg-primary">SPK</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input type="number" name="spk_hari_' + i + '" class="form-control form-control-sm text-center input-biru" value="' + (row['spk_hari_' + i] ?? 0) + '" readonly tabindex="-1"></td>';
+                const libur = currentHariLibur[i];
+                const isLibur = libur && libur.is_libur;
+                const cellLiburClass = isLibur ? ' cell-libur' : '';
+                const liburTitle = isLibur ? ' title="Libur: ' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
+                const inputLiburClass = isLibur ? ' input-libur' : ' input-biru';
+
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input type="number" name="spk_hari_' + i + '" class="form-control form-control-sm text-center ' + inputLiburClass + '" value="' + (row['spk_hari_' + i] ?? 0) + '" readonly tabindex="-1"' + liburTitle + '></td>';
             }
             html += '</tr>';
 
@@ -554,7 +619,14 @@
             html += '<tr class="' + rowClass + '" data-group="' + index + '">' +
                 '<td class="freeze-col freeze-b-11"><span class="badge bg-success">PRODUKSI</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input type="number" name="produksi_hari_' + i + '" class="form-control form-control-sm text-center input-hijau" value="' + (row['produksi_hari_' + i] ?? 0) + '"' + lockAttr + '></td>';
+                const libur = currentHariLibur[i];
+                const isLibur = libur && libur.is_libur;
+                const cellLiburClass = isLibur ? ' cell-libur' : '';
+                const liburTitle = isLibur ? ' title="Libur: ' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
+                const inputLiburClass = isLibur ? ' input-libur' : ' input-hijau';
+                const dayLockAttr = (isInactive || isLibur) ? ' readonly disabled tabindex="-1"' : '';
+
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input type="number" name="produksi_hari_' + i + '" class="form-control form-control-sm text-center ' + inputLiburClass + '" value="' + (row['produksi_hari_' + i] ?? 0) + '"' + dayLockAttr + liburTitle + '></td>';
             }
             html += '</tr>';
 
@@ -562,7 +634,13 @@
             html += '<tr class="' + rowClass + '" data-group="' + index + '">' +
                 '<td class="freeze-col freeze-b-11"><span class="badge bg-danger">WIP</span></td>';
             for (let i = 1; i <= jumlahHari; i++) {
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + '"><input type="number" name="wip_hari_' + i + '" class="form-control form-control-sm text-center input-merah" value="' + (row['wip_hari_' + i] ?? 0) + '" readonly tabindex="-1"></td>';
+                const libur = currentHariLibur[i];
+                const isLibur = libur && libur.is_libur;
+                const cellLiburClass = isLibur ? ' cell-libur' : '';
+                const liburTitle = isLibur ? ' title="Libur: ' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
+                const inputLiburClass = isLibur ? ' input-libur' : ' input-merah';
+
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input type="number" name="wip_hari_' + i + '" class="form-control form-control-sm text-center ' + inputLiburClass + '" value="' + (row['wip_hari_' + i] ?? 0) + '" readonly tabindex="-1"' + liburTitle + '></td>';
             }
             html += '</tr>';
 
@@ -813,6 +891,7 @@
                         return $.trim(a.part_number).localeCompare($.trim(b.part_number));
                     });
                     
+                    currentHariLibur = res.hari_libur || {};
                     currentData = sortedData;
                     refreshVisibleTable();
                 },
