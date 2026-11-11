@@ -102,7 +102,7 @@
                         <span class="legend-item"><span class="legend-box in"></span>IN</span>
                         <span class="legend-item"><span class="legend-box out"></span>OUT</span>
                         <span class="legend-item"><span class="legend-box bal"></span>BAL</span>
-                        <span class="legend-item"><span class="legend-box libur"></span>Libur / Weekend (Terkunci)</span>
+                        <span class="legend-item"><span class="legend-box libur"></span>Libur / Weekend</span>
                     </div>
                 </div>
                 <div id="table_progress_bar" class="progress-container d-none">
@@ -215,19 +215,6 @@
         }
         .cell-libur {
             background-color: #fff1f2 !important;
-            cursor: not-allowed !important;
-        }
-        .cell-libur .form-control, .input-libur {
-            background-color: #fee2e2 !important;
-            border-color: #fca5a5 !important;
-            color: #991b1b !important;
-            cursor: not-allowed !important;
-            opacity: 0.85;
-            pointer-events: none;
-        }
-        .cell-libur .form-control:focus, .input-libur:focus {
-            box-shadow: none !important;
-            border-color: #fca5a5 !important;
         }
         .empty-state { padding: 3rem 1rem; text-align: center; }
         .empty-icon { width: 70px; height: 70px; border-radius: 22px; margin: 0 auto 1rem; display: grid; place-items: center; background: #e2e8f0; color: #334155; font-size: 1.5rem; }
@@ -643,9 +630,8 @@
                 const isLibur = libur && libur.is_libur;
                 const cellLiburClass = isLibur ? ' cell-libur' : '';
                 const liburTitle = isLibur ? ' title="Libur: ' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
-                const inputLiburClass = isLibur ? ' input-libur' : ' input-hijau';
 
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input type="number" name="in_hari_' + i + '" class="form-control form-control-sm text-center ' + inputLiburClass + '" value="' + (row['in_hari_' + i] ?? 0) + '" readonly tabindex="-1"' + liburTitle + '></td>';
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input type="number" name="in_hari_' + i + '" class="form-control form-control-sm text-center input-hijau" value="' + (row['in_hari_' + i] ?? 0) + '" readonly tabindex="-1"' + liburTitle + '></td>';
             }
             html += '</tr>';
 
@@ -657,10 +643,9 @@
                 const isLibur = libur && libur.is_libur;
                 const cellLiburClass = isLibur ? ' cell-libur' : '';
                 const liburTitle = isLibur ? ' title="Libur: ' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
-                const inputLiburClass = isLibur ? ' input-libur' : ' input-merah';
-                const dayLockAttr = (isInactive || isLibur) ? ' readonly disabled tabindex="-1"' : '';
+                const dayLockAttr = isInactive ? ' readonly disabled tabindex="-1"' : '';
 
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input type="number" name="out_hari_' + i + '" class="form-control form-control-sm text-center ' + inputLiburClass + '" value="' + (row['out_hari_' + i] ?? 0) + '"' + dayLockAttr + liburTitle + '></td>';
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input type="number" name="out_hari_' + i + '" class="form-control form-control-sm text-center input-merah" value="' + (row['out_hari_' + i] ?? 0) + '"' + dayLockAttr + liburTitle + '></td>';
             }
             html += '</tr>';
 
@@ -672,9 +657,8 @@
                 const isLibur = libur && libur.is_libur;
                 const cellLiburClass = isLibur ? ' cell-libur' : '';
                 const liburTitle = isLibur ? ' title="Libur: ' + escapeHtml(libur.keterangan || (libur.is_weekend ? libur.nama_hari : 'Hari Libur')) + '"' : '';
-                const inputLiburClass = isLibur ? ' input-libur' : ' input-biru';
 
-                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input type="number" name="balance_hari_' + i + '" class="form-control form-control-sm text-center ' + inputLiburClass + '" value="' + (row['balance_hari_' + i] ?? 0) + '" readonly tabindex="-1"' + liburTitle + '></td>';
+                html += '<td class="col-harian' + (i === 1 ? ' ps-3' : '') + cellLiburClass + '"' + liburTitle + '><input type="number" name="balance_hari_' + i + '" class="form-control form-control-sm text-center input-biru" value="' + (row['balance_hari_' + i] ?? 0) + '" readonly tabindex="-1"' + liburTitle + '></td>';
             }
             html += '</tr>';
 

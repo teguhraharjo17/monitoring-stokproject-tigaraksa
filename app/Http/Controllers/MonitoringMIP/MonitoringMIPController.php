@@ -210,14 +210,12 @@ class MonitoringMIPController extends Controller
                     ->value('stock_awal_mip') ?? 0
             );
 
-        $liburMap = HariLiburService::getLiburBulan($bulan, $tahun);
         $totalIn = 0;
         $totalOut = 0;
 
         for ($i = 1; $i <= $jumlahHari; $i++) {
-            $isLibur = $liburMap[$i]['is_libur'] ?? false;
             $totalIn += (int) $request->input("in_hari_{$i}", 0);
-            $totalOut += $isLibur ? 0 : (int) $request->input("out_hari_{$i}", 0);
+            $totalOut += (int) $request->input("out_hari_{$i}", 0);
         }
 
         // Cari header dengan query fleksibel
@@ -265,9 +263,8 @@ class MonitoringMIPController extends Controller
         $balance = $stockAwal;
 
         for ($i = 1; $i <= $jumlahHari; $i++) {
-            $isLibur = $liburMap[$i]['is_libur'] ?? false;
             $in = (int) $request->input("in_hari_{$i}", 0);
-            $out = $isLibur ? 0 : (int) $request->input("out_hari_{$i}", 0);
+            $out = (int) $request->input("out_hari_{$i}", 0);
 
             $balance = $balance + $in - $out;
 

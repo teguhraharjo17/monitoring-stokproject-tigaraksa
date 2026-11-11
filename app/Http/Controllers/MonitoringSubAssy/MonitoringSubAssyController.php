@@ -285,17 +285,15 @@ class MonitoringSubAssyController extends Controller
         $fallbackKey = $this->spkFallbackKey($customer, $partNumber);
         $localSpkData = $spkMap[$apiKeyNormalized] ?? ($spkMap[$fallbackKey] ?? []);
 
-        $liburMap = HariLiburService::getLiburBulan($bulan, $tahun);
         $totalSPK = 0;
         $totalProduksi = 0;
         $dailyData = [];
 
         for ($i = 1; $i <= $jumlahHari; $i++) {
-            $isLibur = $liburMap[$i]['is_libur'] ?? false;
             // SPK utama dari API/cache. Jika API sedang tidak tersedia dan cache kosong,
             // pertahankan angka SPK yang sedang tampil agar update produksi tetap bisa disimpan.
             $spkVal = (int) ($localSpkData[$i] ?? $request->input("spk_hari_{$i}", 0));
-            $prodVal = $isLibur ? 0 : (int) ($request->input("produksi_hari_{$i}", 0));
+            $prodVal = (int) ($request->input("produksi_hari_{$i}", 0));
             
             $totalSPK += $spkVal;
             $totalProduksi += $prodVal;

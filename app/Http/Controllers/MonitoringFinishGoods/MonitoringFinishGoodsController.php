@@ -252,15 +252,13 @@ class MonitoringFinishGoodsController extends Controller
             $totalIn = 0;
             $totalOut = 0;
             $jumlahHari = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
-            $liburMap = HariLiburService::getLiburBulan($bulan, $tahun);
             $balance = (int) $header->stock_awal;
 
             for ($i = 1; $i <= $jumlahHari; $i++) {
-                $isLibur = $liburMap[$i]['is_libur'] ?? false;
                 $inD = (int) $request->input("in_hari_{$i}_d", 0);
                 $inN = (int) $request->input("in_hari_{$i}_n", 0);
-                $outD = $isLibur ? 0 : (int) $request->input("out_hari_{$i}_d", 0);
-                $outN = $isLibur ? 0 : (int) $request->input("out_hari_{$i}_n", 0);
+                $outD = (int) $request->input("out_hari_{$i}_d", 0);
+                $outN = (int) $request->input("out_hari_{$i}_n", 0);
 
                 $balanceD = $balance + $inD - $outD;
                 $balanceN = $balanceD + $inN - $outN;
