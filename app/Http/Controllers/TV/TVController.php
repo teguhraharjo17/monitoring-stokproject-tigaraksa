@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\HariLiburService;
 
 class TVController extends Controller
 {
@@ -150,6 +151,7 @@ class TVController extends Controller
             'daysInMonth' => $daysInMonth,
             'todayDay'    => $todayDay,
             'rows'        => $rows,
+            'hari_libur'  => HariLiburService::getLiburBulan($bulan, $tahun),
             'timestamp'   => now()->format('Y-m-d H:i:s'),
         ]);
     }
@@ -292,6 +294,7 @@ class TVController extends Controller
             'daysInMonth' => $daysInMonth,
             'todayDay'    => $todayDay,
             'rows'        => $rows,
+            'hari_libur'  => HariLiburService::getLiburBulan($bulan, $tahun),
             'timestamp'   => now()->format('Y-m-d H:i:s'),
         ]);
     }
@@ -461,6 +464,7 @@ class TVController extends Controller
             'daysInMonth' => $daysInMonth,
             'todayDay'    => $todayDay,
             'rows'        => $rows,
+            'hari_libur'  => HariLiburService::getLiburBulan($bulan, $tahun),
             'timestamp'   => now()->format('Y-m-d H:i:s'),
         ]);
     }

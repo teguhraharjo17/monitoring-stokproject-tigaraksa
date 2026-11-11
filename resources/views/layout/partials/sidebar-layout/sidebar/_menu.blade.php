@@ -112,6 +112,14 @@
 				</div>
 			@endif
 
+			<div class="menu-item">
+				<a class="menu-link {{ request()->routeIs('tv.*') ? 'active' : '' }}" href="{{ route('tv.index') }}" target="_blank">
+					<span class="menu-icon">{!! getIcon('screen', 'fs-2') !!}</span>
+					<span class="menu-title">Tampilan TV</span>
+					<span class="badge badge-light-primary fs-8 px-2 py-1 ms-2">Live</span>
+				</a>
+			</div>
+
 			{{-- Report Menu --}}
 			<div class="menu-item pt-5">
 				<div class="menu-content">

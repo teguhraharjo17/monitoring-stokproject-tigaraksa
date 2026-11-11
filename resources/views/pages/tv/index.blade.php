@@ -235,8 +235,8 @@
       border-bottom: 2px solid #334155;
       position: sticky;
       top: 0;
-      z-index: 10;
-      padding: 8px 6px;
+      z-index: 30;
+      padding: 7px 5px;
     }
 
     .tv-table thead tr.thead-sub th{
@@ -244,7 +244,8 @@
       font-size: 11px;
       color: #cbd5e1;
       font-weight: 700;
-      padding: 6px 4px;
+      padding: 5px 3px;
+      z-index: 30;
     }
 
     .tv-table tbody tr:nth-child(odd) td{
@@ -260,6 +261,7 @@
        ======================================================== */
     td.col-freeze {
       background-color: #0d1527 !important;
+      z-index: 20 !important;
     }
     .tv-table tbody tr:nth-child(odd) td.col-freeze {
       background-color: #090e1b !important;
@@ -269,6 +271,7 @@
     }
     thead th.col-freeze {
       background-color: #162032 !important;
+      z-index: 50 !important;
     }
 
     /* Column Sizing */
@@ -281,6 +284,157 @@
     .col-status { min-width: 54px; text-align: center !important; }
     .col-date { min-width: 36px; text-align: center !important; padding-left: 2px !important; padding-right: 2px !important; font-size: 11.5px !important; font-weight: 700; }
     .col-shift { min-width: 26px; text-align: center !important; font-size: 10.5px !important; padding-left: 2px !important; padding-right: 2px !important; font-weight: 700; }
+
+    /* "Tanggal" Colspan Header Styling */
+    .tv-table thead th.th-tanggal {
+      background: linear-gradient(90deg, #131c2d 0%, #162032 40%, #1a253c 100%) !important;
+      text-align: left !important;
+      padding: 6px 14px !important;
+      border-bottom: 1px solid #334155 !important;
+    }
+    .th-tanggal-title {
+      position: sticky;
+      left: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #93c5fd;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .th-tanggal-pill {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(59, 130, 246, 0.2);
+      color: #bfdbfe;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      letter-spacing: 0.3px;
+      text-transform: none;
+    }
+
+    /* Date box inside day header */
+    .tv-date-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.1;
+      gap: 1px;
+      padding: 1px 0;
+    }
+    .tv-date-num {
+      font-weight: 800;
+      font-size: 12px;
+      line-height: 1;
+    }
+    .tv-day-sub {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+      line-height: 1;
+      opacity: 0.85;
+    }
+
+    /* ========================================================
+       TANGGAL MERAH & HARI LIBUR HIGHLIGHTS
+       ======================================================== */
+    /* Libur Nasional */
+    th.th-libur-nasional {
+      background-color: #3b111e !important;
+      color: #fecdd3 !important;
+      border-bottom: 2px solid #f43f5e !important;
+    }
+    th.th-libur-nasional .tv-date-num {
+      color: #ff4d6d !important;
+      text-shadow: 0 0 6px rgba(244, 63, 94, 0.5);
+    }
+    th.th-libur-nasional .tv-day-sub {
+      color: #ffffff !important;
+      background: #e11d48;
+      padding: 1px 3px;
+      border-radius: 3px;
+      font-weight: 800;
+      font-size: 7.5px;
+      opacity: 1;
+    }
+
+    /* Hari Minggu */
+    th.th-minggu {
+      background-color: #33121d !important;
+      color: #fda4af !important;
+      border-bottom: 2px solid #e11d48 !important;
+    }
+    th.th-minggu .tv-date-num {
+      color: #f87171 !important;
+    }
+    th.th-minggu .tv-day-sub {
+      color: #fca5a5 !important;
+      font-weight: 800;
+    }
+
+    /* Hari Sabtu */
+    th.th-sabtu {
+      background-color: #1f1b2d !important;
+      color: #c7d2fe !important;
+      border-bottom: 2px solid #6366f1 !important;
+    }
+    th.th-sabtu .tv-date-num {
+      color: #a5b4fc !important;
+    }
+    th.th-sabtu .tv-day-sub {
+      color: #a5b4fc !important;
+      font-weight: 700;
+    }
+
+    /* Finish Goods shift row styles */
+    th.col-shift.th-shift-libur {
+      background-color: #301019 !important;
+      color: #fda4af !important;
+    }
+    th.col-shift.th-shift-minggu {
+      background-color: #2b0f16 !important;
+      color: #fca5a5 !important;
+    }
+    th.col-shift.th-shift-sabtu {
+      background-color: #1a1726 !important;
+      color: #c7d2fe !important;
+    }
+
+    /* Body Cell holiday backgrounds */
+    td.col-libur-nasional {
+      background-color: rgba(225, 29, 72, 0.12) !important;
+    }
+    .tv-table tbody tr:nth-child(odd) td.col-libur-nasional {
+      background-color: rgba(225, 29, 72, 0.08) !important;
+    }
+    .tv-table tbody tr:hover td.col-libur-nasional {
+      background-color: rgba(225, 29, 72, 0.22) !important;
+    }
+
+    td.col-minggu {
+      background-color: rgba(239, 68, 68, 0.08) !important;
+    }
+    .tv-table tbody tr:nth-child(odd) td.col-minggu {
+      background-color: rgba(239, 68, 68, 0.05) !important;
+    }
+    .tv-table tbody tr:hover td.col-minggu {
+      background-color: rgba(239, 68, 68, 0.18) !important;
+    }
+
+    td.col-sabtu {
+      background-color: rgba(99, 102, 241, 0.06) !important;
+    }
+    .tv-table tbody tr:nth-child(odd) td.col-sabtu {
+      background-color: rgba(99, 102, 241, 0.03) !important;
+    }
+    .tv-table tbody tr:hover td.col-sabtu {
+      background-color: rgba(99, 102, 241, 0.14) !important;
+    }
 
     /* Legend & Stacked Badges */
     .legend{
@@ -342,13 +496,26 @@
     }
 
     .today-col{
-      background-color: rgba(239, 68, 68, 0.15) !important;
+      background-color: rgba(239, 68, 68, 0.22) !important;
       border-left: 2px solid #ef4444 !important;
       border-right: 2px solid #ef4444 !important;
+      box-shadow: inset 0 0 8px rgba(239, 68, 68, 0.2);
     }
     th.today-col{
-      color: #fca5a5 !important;
-      font-weight: 900 !important;
+      background: linear-gradient(180deg, #7f1d1d 0%, #991b1b 100%) !important;
+      color: #ffffff !important;
+      border-top: 2px solid #f87171 !important;
+      border-bottom: 3px solid #ef4444 !important;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+      z-index: 35 !important;
+    }
+    th.today-col .tv-date-num {
+      color: #ffffff !important;
+      font-size: 13px !important;
+    }
+    th.today-col .tv-day-sub {
+      color: #fecdd3 !important;
+      font-weight: 800 !important;
     }
 
     .prod-low{ color: #f87171; font-weight: 800; }
@@ -624,6 +791,13 @@
           </p>
         </div>
         <hr class="border-secondary border-opacity-50 my-2">
+        <div class="mb-3">
+          <h6 class="text-info fw-bold mb-1"><i class="bi bi-calendar-event me-1"></i> Penanda Hari Libur & Tanggal Merah</h6>
+          <p class="mb-0 text-white" style="color: #ffffff !important;">
+            Kolom dengan highlight merah dan tanda <b>LBR</b> / <b>MIN</b> menandakan <b>Hari Libur Nasional</b> atau <b>Hari Minggu</b>, sedangkan tanda <b>SAB</b> menandakan <b>Hari Sabtu</b>. Kolom tetap dapat dipantau dan diinputkan data produksi/stok seperti biasa.
+          </p>
+        </div>
+        <hr class="border-secondary border-opacity-50 my-2">
         <div>
           <h6 class="text-info fw-bold mb-2"><i class="bi bi-palette me-1"></i> Arti Warna Status</h6>
           <div class="d-flex flex-column gap-2 text-white" style="color: #ffffff !important;">
@@ -648,10 +822,64 @@
   const fgUrl      = @json(route('tv.data.fg'));
 
   const state = {
-    subassy: { todayDay: null, bulan: null, tahun: null, timestamp: null, loaded: false },
-    mip:     { todayDay: null, bulan: null, tahun: null, timestamp: null, loaded: false },
-    fg:      { todayDay: null, bulan: null, tahun: null, timestamp: null, loaded: false }
+    subassy: { todayDay: null, bulan: null, tahun: null, timestamp: null, hariLibur: {}, loaded: false },
+    mip:     { todayDay: null, bulan: null, tahun: null, timestamp: null, hariLibur: {}, loaded: false },
+    fg:      { todayDay: null, bulan: null, tahun: null, timestamp: null, hariLibur: {}, loaded: false }
   };
+
+  const DAY_NAMES_SHORT = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
+
+  function getDayMeta(dayNum, hariLibur){
+    const dStr = String(dayNum);
+    const info = (hariLibur && (hariLibur[dayNum] || hariLibur[dStr])) ? (hariLibur[dayNum] || hariLibur[dStr]) : null;
+    const isLibur = !!info?.is_libur;
+    const isWeekend = !!info?.is_weekend;
+    const dayOfWeek = (info && info.day_of_week !== undefined && info.day_of_week !== null) ? Number(info.day_of_week) : null;
+    const isSunday = dayOfWeek === 0;
+    const isSaturday = dayOfWeek === 6;
+    const isNational = isLibur && !isWeekend;
+
+    let thClass = '';
+    let bodyClass = '';
+    let shiftClass = '';
+    let subText = (dayOfWeek !== null && DAY_NAMES_SHORT[dayOfWeek]) ? DAY_NAMES_SHORT[dayOfWeek] : '';
+    let tooltip = '';
+
+    if (isNational) {
+      thClass = 'th-libur-nasional';
+      bodyClass = 'col-libur-nasional';
+      shiftClass = 'th-shift-libur';
+      subText = 'LBR';
+      tooltip = info?.keterangan || 'Libur Nasional';
+    } else if (isSunday) {
+      thClass = 'th-minggu';
+      bodyClass = 'col-minggu';
+      shiftClass = 'th-shift-minggu';
+      subText = 'MIN';
+      tooltip = info?.keterangan || 'Hari Minggu';
+    } else if (isSaturday) {
+      thClass = 'th-sabtu';
+      bodyClass = 'col-sabtu';
+      shiftClass = 'th-shift-sabtu';
+      subText = 'SAB';
+      tooltip = info?.keterangan || 'Hari Sabtu';
+    } else if (info?.nama_hari) {
+      tooltip = `${info.nama_hari}, Tanggal ${dayNum}`;
+    }
+
+    return {
+      isLibur,
+      isWeekend,
+      isNational,
+      isSunday,
+      isSaturday,
+      thClass,
+      bodyClass,
+      shiftClass,
+      subText,
+      tooltip
+    };
+  }
 
   function escapeHtml(value){
     return String(value ?? '')
@@ -699,28 +927,50 @@
 
   function fixHeaderStickyTops(tableId){
     const table = document.getElementById(tableId);
-    if (!table || table.style.display === 'none') return;
+    if (!table || table.style.display === 'none' || table.offsetParent === null) return;
 
     const thead = table.querySelector('thead');
     if (!thead) return;
 
     const rows = Array.from(thead.querySelectorAll('tr'));
+    if (rows.length === 0) return;
+
+    // Row 0: all headers (frozen + "Tanggal") stick at top: 0px
+    const row0Ths = Array.from(rows[0].querySelectorAll('th'));
+    row0Ths.forEach(th => {
+      th.style.top = '0px';
+    });
+
     if (rows.length <= 1) return;
 
-    let acc = 0;
-    rows.forEach((row, rIndex) => {
-      const rowHeight = row.getBoundingClientRect().height || 0;
-      const ths = Array.from(row.querySelectorAll('th'));
-      ths.forEach(th => {
-        th.style.top = `${acc}px`;
-      });
-      acc += rowHeight;
+    // Measure non-rowspan cell in row 0 ("Tanggal" header).
+    // offsetHeight is in local CSS pixels (unzoomed), matching style.top perfectly.
+    const row0DateTh = rows[0].querySelector('th:not([rowspan])') || rows[0].querySelector('th');
+    const h0 = row0DateTh ? row0DateTh.offsetHeight : 0;
+    if (h0 <= 0) return;
+
+    // Row 1: sticks directly beneath row 0 with zero gap
+    const row1Ths = Array.from(rows[1].querySelectorAll('th'));
+    row1Ths.forEach(th => {
+      th.style.top = `${h0}px`;
     });
+
+    if (rows.length >= 3) {
+      // Row 2 (e.g. Finish Goods shift headers) sticks directly beneath row 1
+      const row1SampleTh = rows[1].querySelector('th');
+      const h1 = row1SampleTh ? row1SampleTh.offsetHeight : 0;
+      if (h1 <= 0) return;
+
+      const row2Ths = Array.from(rows[2].querySelectorAll('th'));
+      row2Ths.forEach(th => {
+        th.style.top = `${h0 + h1}px`;
+      });
+    }
   }
 
   function applyStickyLeftOffsets(tableId){
     const table = document.getElementById(tableId);
-    if (!table || table.style.display === 'none') return;
+    if (!table || table.style.display === 'none' || table.offsetParent === null) return;
 
     const thead = table.querySelector('thead');
     if (!thead) return;
@@ -739,7 +989,7 @@
       leftOffsets.push(currentLeft);
       th.style.position = 'sticky';
       th.style.left = `${currentLeft}px`;
-      th.style.zIndex = '40';
+      th.style.zIndex = '50';
       currentLeft += th.offsetWidth;
     });
 
@@ -893,12 +1143,16 @@
       applyStickyLeftOffsets(tableId);
       highlightTodayGeneric(tableId, todayDay);
     });
+    setTimeout(() => {
+      fixHeaderStickyTops(tableId);
+      applyStickyLeftOffsets(tableId);
+    }, 60);
   }
 </script>
 
 <!-- ==================== SUB ASSY ==================== -->
 <script>
-  function buildSubAssyHeader(daysInMonth){
+  function buildSubAssyHeader(daysInMonth, hariLibur){
     const thead = document.getElementById('subassyThead');
 
     let row1 = `
@@ -915,20 +1169,35 @@
         <th rowspan="2" class="col-freeze col-num">WIP Akhir</th>
         <th rowspan="2" class="col-freeze col-num">Prod %</th>
         <th rowspan="2" class="col-freeze col-status">Status</th>
-        <th colspan="${daysInMonth}">Tanggal</th>
+        <th colspan="${daysInMonth}" class="th-tanggal">
+          <div class="th-tanggal-title">
+            <i class="bi bi-calendar3 text-info"></i>
+            <span>Tanggal</span>
+            <span class="th-tanggal-pill">1 - ${daysInMonth}</span>
+          </div>
+        </th>
       </tr>
     `;
 
     let row2 = `<tr class="thead-sub">`;
     for (let i = 1; i <= daysInMonth; i++){
-      row2 += `<th class="col-date" data-day="${i}">${i}</th>`;
+      const meta = getDayMeta(i, hariLibur);
+      const titleAttr = meta.tooltip ? `title="${escapeHtml(meta.tooltip)}"` : '';
+      row2 += `
+        <th class="col-date ${meta.thClass}" data-day="${i}" ${titleAttr}>
+          <div class="tv-date-box">
+            <span class="tv-date-num">${i}</span>
+            <span class="tv-day-sub">${meta.subText}</span>
+          </div>
+        </th>
+      `;
     }
     row2 += `</tr>`;
 
     thead.innerHTML = row1 + row2;
   }
 
-  function buildSubAssyBody(rows, daysInMonth){
+  function buildSubAssyBody(rows, daysInMonth, hariLibur){
     const tbody = document.getElementById('subassyTbody');
     tbody.innerHTML = '';
 
@@ -961,9 +1230,10 @@
         const spk  = n(r.days?.spk?.[d]);
         const prod = n(r.days?.produksi?.[d]);
         const wip  = n(r.days?.wip?.[d]);
+        const meta = getDayMeta(d, hariLibur);
 
         html += `
-          <td class="day-cell col-date" data-day="${d}">
+          <td class="day-cell col-date ${meta.bodyClass}" data-day="${d}">
             <div class="cell-stack">
               <div class="pill pill-blue">${escapeHtml(spk)}</div>
               <div class="pill pill-green">${escapeHtml(prod)}</div>
@@ -998,14 +1268,15 @@
         bulan: json.bulan ?? null,
         tahun: json.tahun ?? null,
         timestamp: json.timestamp ?? '-',
+        hariLibur: json.hari_libur || {},
         loaded: true
       };
       updateActiveMeta();
       return;
     }
 
-    buildSubAssyHeader(json.daysInMonth);
-    buildSubAssyBody(json.rows, json.daysInMonth);
+    buildSubAssyHeader(json.daysInMonth, json.hari_libur);
+    buildSubAssyBody(json.rows, json.daysInMonth, json.hari_libur);
 
     loading.style.display = 'none';
     table.style.display = 'table';
@@ -1015,6 +1286,7 @@
       bulan: json.bulan ?? null,
       tahun: json.tahun ?? null,
       timestamp: json.timestamp ?? '-',
+      hariLibur: json.hari_libur || {},
       loaded: true
     };
 
@@ -1028,7 +1300,7 @@
 
 <!-- ==================== MIP ==================== -->
 <script>
-  function buildMIPHeader(daysInMonth){
+  function buildMIPHeader(daysInMonth, hariLibur){
     const thead = document.getElementById('mipThead');
 
     let row1 = `
@@ -1047,20 +1319,35 @@
         <th rowspan="2" class="col-freeze col-num">Safety</th>
         <th rowspan="2" class="col-freeze col-num">Max</th>
         <th rowspan="2" class="col-freeze col-status">Status</th>
-        <th colspan="${daysInMonth}">Tanggal</th>
+        <th colspan="${daysInMonth}" class="th-tanggal">
+          <div class="th-tanggal-title">
+            <i class="bi bi-calendar3 text-info"></i>
+            <span>Tanggal</span>
+            <span class="th-tanggal-pill">1 - ${daysInMonth}</span>
+          </div>
+        </th>
       </tr>
     `;
 
     let row2 = `<tr class="thead-sub">`;
     for (let i = 1; i <= daysInMonth; i++){
-      row2 += `<th class="col-date" data-day="${i}">${i}</th>`;
+      const meta = getDayMeta(i, hariLibur);
+      const titleAttr = meta.tooltip ? `title="${escapeHtml(meta.tooltip)}"` : '';
+      row2 += `
+        <th class="col-date ${meta.thClass}" data-day="${i}" ${titleAttr}>
+          <div class="tv-date-box">
+            <span class="tv-date-num">${i}</span>
+            <span class="tv-day-sub">${meta.subText}</span>
+          </div>
+        </th>
+      `;
     }
     row2 += `</tr>`;
 
     thead.innerHTML = row1 + row2;
   }
 
-  function buildMIPBody(rows, daysInMonth){
+  function buildMIPBody(rows, daysInMonth, hariLibur){
     const tbody = document.getElementById('mipTbody');
     tbody.innerHTML = '';
 
@@ -1095,9 +1382,10 @@
         const inQty  = n(r.days?.in?.[d]);
         const outQty = n(r.days?.out?.[d]);
         const bal    = n(r.days?.balance?.[d]);
+        const meta   = getDayMeta(d, hariLibur);
 
         html += `
-          <td class="day-cell col-date" data-day="${d}">
+          <td class="day-cell col-date ${meta.bodyClass}" data-day="${d}">
             <div class="cell-stack">
               <div class="pill pill-green">${escapeHtml(inQty)}</div>
               <div class="pill pill-red">${escapeHtml(outQty)}</div>
@@ -1132,14 +1420,15 @@
         bulan: json.bulan ?? null,
         tahun: json.tahun ?? null,
         timestamp: json.timestamp ?? '-',
+        hariLibur: json.hari_libur || {},
         loaded: true
       };
       updateActiveMeta();
       return;
     }
 
-    buildMIPHeader(json.daysInMonth);
-    buildMIPBody(json.rows, json.daysInMonth);
+    buildMIPHeader(json.daysInMonth, json.hari_libur);
+    buildMIPBody(json.rows, json.daysInMonth, json.hari_libur);
 
     loading.style.display = 'none';
     table.style.display = 'table';
@@ -1149,6 +1438,7 @@
       bulan: json.bulan ?? null,
       tahun: json.tahun ?? null,
       timestamp: json.timestamp ?? '-',
+      hariLibur: json.hari_libur || {},
       loaded: true
     };
 
@@ -1176,7 +1466,7 @@
     return `<span class="tag tag-green" style="padding: 2.5px 5px; font-size: 10px; border-radius: 3px;">Aman</span>`;
   }
 
-  function buildFGHeader(daysInMonth){
+  function buildFGHeader(daysInMonth, hariLibur){
     const thead = document.getElementById('fgThead');
 
     let row1 = `
@@ -1199,26 +1489,45 @@
         <th rowspan="3" class="col-freeze col-num">Stk Hand</th>
         <th rowspan="3" class="col-freeze col-num">Status Stk</th>
         <th rowspan="3" class="col-freeze col-status">Status</th>
-        <th colspan="${daysInMonth * 2}">Tanggal</th>
+        <th colspan="${daysInMonth * 2}" class="th-tanggal">
+          <div class="th-tanggal-title">
+            <i class="bi bi-calendar3 text-info"></i>
+            <span>Tanggal</span>
+            <span class="th-tanggal-pill">1 - ${daysInMonth}</span>
+          </div>
+        </th>
       </tr>
     `;
 
     let row2 = `<tr class="thead-sub">`;
     for (let i = 1; i <= daysInMonth; i++){
-      row2 += `<th colspan="2" class="col-date" data-day="${i}">${i}</th>`;
+      const meta = getDayMeta(i, hariLibur);
+      const titleAttr = meta.tooltip ? `title="${escapeHtml(meta.tooltip)}"` : '';
+      row2 += `
+        <th colspan="2" class="col-date ${meta.thClass}" data-day="${i}" ${titleAttr}>
+          <div class="tv-date-box">
+            <span class="tv-date-num">${i}</span>
+            <span class="tv-day-sub">${meta.subText}</span>
+          </div>
+        </th>
+      `;
     }
     row2 += `</tr>`;
 
     let row3 = `<tr class="thead-sub">`;
     for (let i = 1; i <= daysInMonth; i++){
-      row3 += `<th class="col-shift" data-day="${i}">D</th><th class="col-shift" data-day="${i}">N</th>`;
+      const meta = getDayMeta(i, hariLibur);
+      row3 += `
+        <th class="col-shift ${meta.shiftClass}" data-day="${i}">D</th>
+        <th class="col-shift ${meta.shiftClass}" data-day="${i}">N</th>
+      `;
     }
     row3 += `</tr>`;
 
     thead.innerHTML = row1 + row2 + row3;
   }
 
-  function buildFGBody(rows, daysInMonth){
+  function buildFGBody(rows, daysInMonth, hariLibur){
     const tbody = document.getElementById('fgTbody');
     tbody.innerHTML = '';
 
@@ -1261,16 +1570,17 @@
         const inN  = n(r.days?.in_n?.[d]);
         const outN = n(r.days?.out_n?.[d]);
         const balN = n(r.days?.bal_n?.[d]);
+        const meta = getDayMeta(d, hariLibur);
 
         html += `
-          <td class="day-cell col-shift" data-day="${d}">
+          <td class="day-cell col-shift ${meta.bodyClass}" data-day="${d}">
             <div class="cell-stack">
               <div class="pill pill-green">${escapeHtml(inD)}</div>
               <div class="pill pill-red">${escapeHtml(outD)}</div>
               <div class="pill pill-blue">${escapeHtml(balD)}</div>
             </div>
           </td>
-          <td class="day-cell col-shift" data-day="${d}">
+          <td class="day-cell col-shift ${meta.bodyClass}" data-day="${d}">
             <div class="cell-stack">
               <div class="pill pill-green">${escapeHtml(inN)}</div>
               <div class="pill pill-red">${escapeHtml(outN)}</div>
@@ -1305,14 +1615,15 @@
         bulan: json.bulan ?? null,
         tahun: json.tahun ?? null,
         timestamp: json.timestamp ?? '-',
+        hariLibur: json.hari_libur || {},
         loaded: true
       };
       updateActiveMeta();
       return;
     }
 
-    buildFGHeader(json.daysInMonth);
-    buildFGBody(json.rows, json.daysInMonth);
+    buildFGHeader(json.daysInMonth, json.hari_libur);
+    buildFGBody(json.rows, json.daysInMonth, json.hari_libur);
 
     loading.style.display = 'none';
     table.style.display = 'table';
@@ -1322,6 +1633,7 @@
       bulan: json.bulan ?? null,
       tahun: json.tahun ?? null,
       timestamp: json.timestamp ?? '-',
+      hariLibur: json.hari_libur || {},
       loaded: true
     };
 
